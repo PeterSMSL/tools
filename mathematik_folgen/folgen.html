@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Das Folgenlabor: Glied für Glied Monotonie, Schranken und Grenzwert untersuchen, automatisch ausgewertet.">
+<title>Folgen und Grenzwerte · Mathematik</title>
+<style>
+:root{
+  --blau:#136EA9;
+  --blau-d:#0C4E79;
+  --blau-h:#3E93CE;
+  --blau-pastell:#E3F0F9;
+  --orange:#F3A92F;
+  --orange-d:#D98908;
+  --orange-pastell:#FDF0DA;
+  --tinte:#16232E;
+  --grau:#5B6A76;
+  --linie:#D8E2EA;
+  --papier:#FFFFFF;
+  --bg:#EAF1F6;
+  --rot:#C62828;
+  --gruen:#2E7D32;
+  --stage-w:1280px;
+  --stage-h:720px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--tinte);
+  font-family:"Sansation","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+
+#stage{position:relative;width:var(--stage-w);height:var(--stage-h);transform-origin:center center;flex:none}
+.slide{
+  position:absolute;inset:0;
+  background:var(--papier);
+  border-radius:14px;
+  box-shadow:0 18px 50px rgba(12,78,121,.22), 0 2px 6px rgba(12,78,121,.12);
+  overflow:hidden;
+  padding:86px 62px 58px;
+  opacity:0;visibility:hidden;
+  transform:translateY(14px) scale(.995);
+  transition:opacity .32s ease, transform .32s ease, visibility .32s;
+  display:flex;flex-direction:column;
+}
+.slide.aktiv{opacity:1;visibility:visible;transform:none}
+
+.kopf{
+  position:absolute;top:0;left:0;right:0;height:58px;
+  background:linear-gradient(100deg,var(--blau-d) 0%,var(--blau) 55%,var(--blau-h) 100%);
+  display:flex;align-items:center;gap:14px;
+  padding:0 22px 0 18px;
+  color:#fff;
+  z-index:5;
+}
+.kopf::after{
+  content:"";position:absolute;left:0;right:0;bottom:-5px;height:5px;
+  background:linear-gradient(90deg,var(--orange) 0%,var(--orange) 34%,#F6C46E 34%,#F6C46E 100%);
+}
+.kopf img{height:42px;width:auto;background:#fff;border-radius:11px;padding:3px 6px;box-shadow:0 3px 10px rgba(0,0,0,.25), 0 0 0 1px rgba(255,255,255,.5)}
+.kopf .schule{font-size:13px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;opacity:.95}
+.kopf .kurs{
+  margin-left:auto;font-size:12.5px;font-weight:600;letter-spacing:.06em;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);
+  padding:5px 12px;border-radius:999px;
+}
+
+h1{font-size:56px;line-height:1.06;font-weight:800;letter-spacing:-.02em}
+h2{font-size:40px;line-height:1.12;font-weight:800;letter-spacing:-.015em;color:var(--blau-d)}
+h3{font-size:20px;font-weight:750;color:var(--blau-d)}
+p,li{font-size:19px;line-height:1.5;color:var(--tinte)}
+.klein{font-size:16px;line-height:1.45;color:var(--grau)}
+.eyebrow{font-size:13px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--orange-d);margin-bottom:10px}
+.titelzeile{margin-bottom:26px;flex:none}
+.titelzeile h2::after{content:"";display:block;width:64px;height:5px;border-radius:3px;background:var(--orange);margin-top:12px}
+.slide.kompakt .titelzeile{margin-bottom:14px}
+.slide.kompakt h2{font-size:32px}
+.slide.kompakt h2::after{margin-top:8px;height:4px;width:52px}
+.inhalt{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:safe center}
+.slide.oben .inhalt{justify-content:flex-start}
+strong{color:var(--blau-d)}
+
+.raster{display:grid;gap:20px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+
+.karte{background:var(--papier);border:1px solid var(--linie);border-radius:12px;padding:20px 22px;box-shadow:0 2px 0 rgba(19,110,169,.05);display:flex;flex-direction:column;gap:8px}
+.karte.blau{background:var(--blau-pastell);border-color:#C4DFF2}
+.karte.orange{background:var(--orange-pastell);border-color:#F3DCAF}
+.karte.voll{background:linear-gradient(150deg,var(--blau-d),var(--blau));border:none;color:#fff}
+.karte.voll h3,.karte.voll strong{color:#fff}
+.karte.voll p,.karte.voll li{color:rgba(255,255,255,.92)}
+.karte.voll .hl{color:var(--orange)}
+.karte p,.karte li{font-size:17px;line-height:1.45}
+
+.nummer{width:38px;height:38px;flex:none;border-radius:10px;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px}
+.nummer.b{background:var(--blau)}
+.zeile{display:flex;gap:16px;align-items:flex-start}
+
+.fuss{position:absolute;left:62px;right:62px;bottom:20px;display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--grau);border-top:1px solid var(--linie);padding-top:9px}
+
+/* Formeln */
+.formel{font-family:"Cambria Math","Cambria","Times New Roman",serif;font-style:normal;white-space:nowrap}
+.formel i{font-style:italic}
+.bruch{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px;line-height:1.15}
+.bruch > span:first-child{border-bottom:2px solid currentColor;padding:0 4px 2px}
+.bruch > span:last-child{padding:2px 4px 0}
+.antwort{border-top:1px dashed #E3C489;padding-top:8px;margin-top:2px;color:var(--tinte)!important}
+.karte.voll .antwort{border-top-color:rgba(255,255,255,.35);color:#fff!important}
+
+/* ---------- Titel und Schluss ---------- */
+.slide.titel{
+  padding:0;
+  background:
+    radial-gradient(1100px 520px at 78% 8%, rgba(243,169,47,.20), transparent 62%),
+    linear-gradient(140deg,#0A4470 0%, var(--blau-d) 40%, var(--blau) 100%);
+  color:#fff;display:grid;grid-template-columns:1.35fr .65fr;
+}
+.slide.titel .links{padding:74px 56px 56px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:2}
+.slide.titel .rechts{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:rgba(255,255,255,.07);border-left:1px solid rgba(255,255,255,.16);position:relative;z-index:2}
+.slide.titel .logokachel{background:#fff;border-radius:38px;padding:28px 30px;box-shadow:0 20px 46px rgba(0,0,0,.30), 0 0 0 1px rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center}
+.slide.titel .logokachel img{width:168px;display:block}
+.slide.titel h1{color:#fff}
+.slide.titel .eyebrow{color:var(--orange)}
+.slide.titel .unter{font-size:23px;color:rgba(255,255,255,.9);margin-top:18px;max-width:640px}
+.slide.titel .meta{margin-top:38px;display:flex;gap:12px;flex-wrap:wrap}
+.slide.titel .meta span{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.26);padding:8px 16px;border-radius:999px;font-size:15.5px;font-weight:600}
+.slide.titel .balken{height:6px;width:110px;background:var(--orange);border-radius:4px;margin-bottom:26px}
+.karogrund{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
+  background-size:40px 40px}
+.titelgraph svg{display:block}
+.slide.schluss{grid-template-columns:1fr}
+.slide.schluss .links{align-items:center;text-align:center;padding:60px 120px}
+.slide.schluss img{width:64px;margin-bottom:34px;background:rgba(255,255,255,.92);border-radius:50%;padding:9px;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.zitatgross{font-size:40px;line-height:1.28;font-weight:700;letter-spacing:-.015em;color:#fff;max-width:960px}
+.zitatgross .strich{display:block;width:56px;height:5px;background:var(--orange);border-radius:3px;margin:26px auto 20px}
+.quelle{font-size:18px;font-weight:600;color:var(--orange);letter-spacing:.06em}
+
+/* ---------- Graphen (SVG) ---------- */
+svg .gitter line{stroke:#E4ECF2;stroke-width:1}
+svg .achse{stroke:#6B7C89;stroke-width:1.6}
+svg .tick{font-size:12px;fill:var(--grau);font-weight:600}
+svg .kurve-f{fill:none;stroke:var(--blau);stroke-width:3.2;stroke-linejoin:round;stroke-linecap:round}
+svg .kurve-a{fill:none;stroke:var(--gruen);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+svg .sekante{stroke:var(--orange-d);stroke-width:2.6}
+svg .dreieck{fill:rgba(243,169,47,.16);stroke:var(--orange-d);stroke-width:1.8;stroke-dasharray:5 4}
+svg .dlabel{font-size:15px;font-weight:800;fill:var(--orange-d)}
+svg .band{fill:rgba(243,169,47,.13)}
+svg .bandrand{stroke:var(--orange);stroke-width:1.5;stroke-dasharray:4 4}
+svg .lot{stroke:var(--orange-d);stroke-width:1.5;stroke-dasharray:3 4}
+svg .punkt{fill:var(--orange);stroke:#fff;stroke-width:2}
+svg .kreuz{stroke:var(--orange-d);stroke-width:3;stroke-linecap:round}
+svg .kreuz.neu{animation:punktrein .45s ease;transform-box:fill-box;transform-origin:center}
+@keyframes punktrein{from{transform:scale(2.2);opacity:0}to{transform:none;opacity:1}}
+svg .verbindung{fill:none;stroke:var(--orange);stroke-width:1.6;stroke-dasharray:5 4}
+svg .kreuz.alt{stroke:#F2B64F;stroke-width:2;opacity:.75}
+svg .kreuz.draussen{stroke:#9FB3C3}
+svg .glied{fill:var(--orange);stroke:#fff;stroke-width:1.6}
+svg .glied.draussen{fill:#9FB3C3}
+svg .achsname{font-size:15px;font-weight:800;fill:var(--blau-d);font-style:italic}
+svg .grenzlinie{stroke:var(--gruen);stroke-width:2.4;stroke-dasharray:8 6}
+svg .grenzt{font-size:15px;font-weight:800;fill:var(--gruen)}
+svg .schranke{stroke:var(--blau-d);stroke-width:1.8;stroke-dasharray:3 5}
+svg .schrt{font-size:13px;font-weight:700;fill:var(--blau-d)}
+svg .schlauch{fill:rgba(243,169,47,.16);stroke:rgba(217,137,8,.5);stroke-width:1}
+svg .abn{stroke:var(--orange-d);stroke-width:2;stroke-dasharray:4 4}
+svg .abnt{font-size:14px;font-weight:800;fill:var(--orange-d)}
+svg .glied.hoch{fill:var(--gruen)}
+svg .glied.runter{fill:var(--rot)}
+svg .glied.gleich{fill:var(--grau)}
+.labspalte .knopfleiste .knopf.hell{font-size:14px;padding:6px 9px}
+.labspalte .knopfleiste{gap:5px;flex-wrap:nowrap}
+.erg{border:1px solid var(--linie);border-radius:11px;padding:5px 12px;background:#fff;transition:background .3s,border-color .3s}
+.erg h4{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--grau);font-weight:800;margin-bottom:0}
+.erg p{font-size:14.5px;line-height:1.35;transition:filter .3s,opacity .3s}
+.erg:not(.an) p{filter:blur(5px);opacity:.45;user-select:none}
+.erg.an{background:var(--blau-pastell);border-color:#C4DFF2}
+.erg .klein{font-size:13px}
+.startname{font-size:14px;font-weight:700;color:var(--grau);white-space:nowrap}
+.modus{display:flex;flex:none}
+.modus .knopf{font-size:14px;padding:5px 10px;border-radius:0}
+.modus .knopf:first-child{border-radius:999px 0 0 999px}
+.modus .knopf:last-child{border-radius:0 999px 999px 0;margin-left:-1px}
+.hinweis{font-size:12.5px;line-height:1.4;color:var(--grau)}
+svg .altlinie{fill:none;stroke:#F6C46E;stroke-width:1.3;stroke-dasharray:4 4;opacity:.7}
+svg .legende{font-size:14px;font-weight:700;fill:var(--tinte)}
+svg .legbox{fill:rgba(255,255,255,.9);stroke:var(--linie)}
+
+/* ---------- Labor ---------- */
+.labor{display:grid;grid-template-columns:720px 1fr;gap:18px;align-items:start}
+.plotrahmen{position:relative;border:1px solid var(--linie);border-radius:12px;overflow:hidden;background:#fff;touch-action:none;cursor:grab}
+.plotrahmen.zieht{cursor:grabbing}
+.plotrahmen svg{display:block}
+.zoom{position:absolute;right:10px;bottom:10px;display:flex;gap:6px}
+.bereich{display:flex;align-items:center;gap:10px;margin-top:10px;padding:6px 14px;background:var(--orange-pastell);border:1px solid #F3DCAF;border-radius:12px}
+.bereich .bt{font-size:15px;font-weight:700;color:var(--grau);white-space:nowrap}
+.bereich b{font-size:17px;color:var(--orange-d);min-width:34px;font-variant-numeric:tabular-nums}
+.bereich input[type=text]{width:74px;flex:none;font:inherit;font-size:16px;font-weight:800;color:var(--orange-d);border:1px solid #E3C489;border-radius:8px;padding:3px 7px;background:#fff;font-variant-numeric:tabular-nums}
+.bereich input[type=text].falsch{border-color:var(--rot);color:var(--rot)}
+.bereich input[type=range]{flex:1;accent-color:var(--orange-d);min-width:0;height:28px}
+.labspalte{display:flex;flex-direction:column;gap:9px;min-width:0}
+.labspalte .knopf{font-size:15px;padding:7px 13px}
+.eingabe{display:flex;flex-direction:column;gap:7px;background:var(--blau-pastell);border:1px solid #C4DFF2;border-radius:12px;padding:10px 12px}
+.eingabe .reihe{display:flex;gap:8px;align-items:center}
+.eingabe label{font-weight:800;color:var(--blau-d);font-size:17px;font-family:"Cambria Math","Cambria","Times New Roman",serif;font-style:italic;white-space:nowrap}
+.eingabe input,.eingabe select{font:inherit;font-size:16px;border:1px solid #9FC3DE;border-radius:8px;padding:6px 9px;background:#fff;color:var(--tinte);min-width:0}
+.eingabe input{flex:1;font-family:ui-monospace,Consolas,monospace}
+.eingabe select{flex:1}
+.fehler{font-size:14px;font-weight:700;color:var(--rot);min-height:0}
+.formelzeile{font-size:17px;color:var(--tinte);line-height:1.5}
+.formelzeile .fx{color:var(--blau);font-weight:700}
+.formelzeile .ax{color:var(--gruen);font-weight:700}
+.laborstatus{font-size:15px;font-weight:700;color:var(--blau-d)}
+.laborstatus .sub{font-weight:600;color:var(--grau)}
+table.wt{border-collapse:separate;border-spacing:0 3px;width:100%;font-size:13px}
+table.wt th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--grau);text-align:right;padding:0 6px;font-weight:800}
+table.wt th:first-child{text-align:left}
+table.wt td{background:#F6FAFD;padding:3px 6px;text-align:right;font-variant-numeric:tabular-nums;border-top:1px solid var(--linie);border-bottom:1px solid var(--linie)}
+table.wt td:first-child{text-align:left;border-left:1px solid var(--linie);border-radius:7px 0 0 7px}
+table.wt td:last-child{border-right:1px solid var(--linie);border-radius:0 7px 7px 0;font-weight:800;color:var(--orange-d)}
+table.wt tr.aktuell td{background:var(--orange-pastell);border-color:#F3DCAF}
+table.wt .leer td{background:none;border:none;color:var(--grau);text-align:left;font-weight:600}
+
+/* ---------- Knöpfe ---------- */
+.interaktiv{cursor:default}
+.knopfleiste{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.knopf{font:inherit;font-size:15.5px;font-weight:700;border:none;border-radius:999px;padding:8px 15px;cursor:pointer;background:var(--blau);color:#fff;box-shadow:0 2px 0 rgba(12,78,121,.25);transition:background .15s, opacity .15s, transform .1s}
+.knopf:hover{background:var(--blau-d)}
+.knopf:active{transform:translateY(1px)}
+.knopf.o{background:var(--orange);color:#3A2500}
+.knopf.o:hover{background:var(--orange-d)}
+.knopf.g{background:var(--gruen)}
+.knopf.hell{background:var(--blau-pastell);color:var(--blau-d);box-shadow:none;border:1px solid #C4DFF2}
+.knopf.hell:hover{background:#D2E7F6}
+.knopf.hell.an{background:var(--tinte);color:#fff;border-color:var(--tinte)}
+.knopf.rund{width:36px;height:36px;padding:0;font-size:20px;line-height:1}
+.knopf:disabled{opacity:.35;cursor:not-allowed}
+
+/* Schritte, Tabelle */
+.schritte{display:flex;flex-direction:column;gap:9px}
+.schritt{display:flex;gap:14px;align-items:center;background:var(--papier);border:1px solid var(--linie);border-radius:11px;padding:9px 14px}
+.schritt .nummer{width:34px;height:34px;font-size:17px}
+.schritt p{font-size:18px;line-height:1.35}
+.schritt.wichtig{background:var(--orange-pastell);border-color:#F3DCAF}
+table.tab{border-collapse:separate;border-spacing:0;width:100%;font-size:19px}
+table.tab th{background:var(--blau-d);color:#fff;text-align:right;padding:9px 16px;font-size:14px;letter-spacing:.06em}
+table.tab th:first-child{border-top-left-radius:10px;text-align:left}
+table.tab th:last-child{border-top-right-radius:10px}
+table.tab td{padding:8px 16px;border-bottom:1px solid var(--linie);text-align:right;font-variant-numeric:tabular-nums}
+table.tab td:first-child{text-align:left}
+table.tab tr:nth-child(even) td{background:#F6FAFD}
+table.tab td.z{font-weight:800;color:var(--orange-d)}
+
+.frag{opacity:0;transform:translateY(10px);transition:opacity .34s ease,transform .34s ease}
+.frag.an{opacity:1;transform:none}
+svg .frag{transform:none}
+
+#fortschritt{position:fixed;left:0;top:0;height:4px;background:var(--orange);width:0;transition:width .3s ease;z-index:50}
+#nav{position:fixed;right:18px;bottom:14px;z-index:50;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.85);backdrop-filter:blur(6px);border:1px solid var(--linie);border-radius:999px;padding:5px 8px;box-shadow:0 4px 14px rgba(12,78,121,.14)}
+#nav button{border:none;background:var(--blau-pastell);color:var(--blau-d);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;font-weight:800}
+#nav button:hover{background:var(--blau);color:#fff}
+#zaehler{font-size:13px;font-weight:700;color:var(--grau);padding:0 6px;min-width:52px;text-align:center}
+#uebersicht{position:fixed;inset:0;background:rgba(10,68,112,.96);z-index:100;display:none;padding:34px;overflow:auto}
+#uebersicht.an{display:block}
+#uebersicht h4{color:#fff;font-size:18px;margin-bottom:18px;font-weight:700}
+#uebersicht .gitter{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+#uebersicht .mini{background:#fff;border-radius:8px;padding:14px;cursor:pointer;border:3px solid transparent;min-height:78px}
+#uebersicht .mini:hover{border-color:var(--orange)}
+#uebersicht .mini .nr{font-size:11px;font-weight:800;color:var(--orange-d)}
+#uebersicht .mini .tt{font-size:14px;font-weight:700;color:var(--blau-d);margin-top:3px;line-height:1.25}
+
+@media print{
+  @page{size:A4 landscape;margin:0}
+  body{display:block;background:#fff;overflow:visible}
+  #stage{transform:none!important;width:100%;height:auto}
+  .slide{position:relative;visibility:visible;opacity:1;transform:none;width:1280px;height:720px;page-break-after:always;box-shadow:none;border-radius:0}
+  .frag{opacity:1!important;transform:none!important}
+  #nav,#fortschritt,#uebersicht{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<div id="fortschritt"></div>
+<div id="stage"></div>
+
+<div id="nav">
+  <button id="uebBtn" title="Übersicht (O)">☰</button>
+  <button id="zurueck" title="Zurück (←)">‹</button>
+  <span id="zaehler">1 / 1</span>
+  <button id="vor" title="Weiter (→)">›</button>
+</div>
+
+<div id="uebersicht"><h4>Übersicht — Folie anklicken (ESC schließt)</h4><div class="gitter"></div></div>
+
+<script>
+const LOGO = "data:image/jpeg;base64,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";
+</script>
+
+<script>
+/* =====================================================================
+   Formeln: lesen, auswerten, schön hinschreiben (Variable n)
+   ===================================================================== */
+const FUNKTIONEN = {sin:Math.sin, cos:Math.cos, tan:Math.tan, exp:Math.exp, ln:Math.log, lg:Math.log10,
+                    sqrt:Math.sqrt, abs:Math.abs, sgn:Math.sign,
+                    fak:k => (k<0 || !Number.isInteger(k)) ? NaN : k>170 ? NaN : [...Array(k)].reduce((a,_,i)=>a*(i+1),1)};
+const ALIAS = {log:'ln', wurzel:'sqrt', betrag:'abs'};
+const NAMEN = ['wurzel','betrag','sqrt','sin','cos','tan','exp','abs','sgn','log','ln','lg','pi','n','e','a'];            // a = aₙ (nur rekursiv)
+
+function zerlege(text){
+  let s = String(text).trim()
+    .replace(/[−–]/g,'-').replace(/[·×⋅]/g,'*').replace(/²/g,'^2').replace(/³/g,'^3')
+    .replace(/π/g,'pi').replace(/\*\*/g,'^').replace(/,/g,'.').replace(/√/g,'sqrt');
+  s = s.replace(/^\s*a\s*(_?\s*\(?\s*n\s*\+\s*1\s*\)?|\(\s*n\s*\+\s*1\s*\)|ₙ₊₁)\s*=/i,'')   // „aₙ₊₁ =“, „a_(n+1) =“ am Anfang
+       .replace(/^\s*a\s*(_?\s*n|\(\s*n\s*\)|ₙ)\s*=/i,'')                                   // „aₙ =“, „a_n =“, „a(n) =“ am Anfang
+       .replace(/a\s*_\s*\(?\s*n\s*\)?|a\s*\(\s*n\s*\)|aₙ/g, 'a');                              // aₙ im Term heißt kurz a
+  const t = []; let i = 0;
+  while(i < s.length){
+    const c = s[i];
+    if(c === ' '){ i++; continue; }
+    const zahl = s.slice(i).match(/^(\d+\.?\d*|\.\d+)/);
+    if(zahl){ t.push({k:'zahl', v:parseFloat(zahl[1])}); i += zahl[1].length; continue; }
+    if(/[a-zA-Z]/.test(c)){
+      const wort = s.slice(i).match(/^[a-zA-Z]+/)[0].toLowerCase();
+      let j = 0;
+      while(j < wort.length){
+        const n = NAMEN.find(n=>wort.startsWith(n, j));
+        if(!n) throw new Error(`„${wort.slice(j)}“ kenne ich nicht. Erlaubt: n, a (für aₙ), e, pi, sin, cos, tan, exp, ln, lg, sqrt, abs, n!`);
+        t.push({k:'name', v:ALIAS[n]||n}); j += n.length;
+      }
+      i += wort.length; continue;
+    }
+    if('+-*/^()|!'.includes(c)){ t.push({k:c}); i++; continue; }
+    throw new Error(`Das Zeichen „${c}“ kenne ich nicht.`);
+  }
+  return t;
+}
+
+function lies(text){
+  const t = zerlege(text); let p = 0;
+  if(!t.length) throw new Error('Bitte eine Folge eingeben, z. B. 1/n.');
+  const sieh = () => t[p], nimm = () => t[p++];
+  const beginntFaktor = (k) => k && (k.k==='zahl' || k.k==='name' || k.k==='(' );
+  function summe(){
+    let a = produkt();
+    while(sieh() && (sieh().k==='+' || sieh().k==='-')){ const o = nimm().k; a = {t:o, a, b:produkt()}; }
+    return a;
+  }
+  function produkt(){
+    let a = vorzeichen();
+    for(;;){
+      const k = sieh();
+      if(k && (k.k==='*' || k.k==='/')){ nimm(); a = {t:k.k, a, b:vorzeichen()}; }
+      else if(beginntFaktor(k)){ a = {t:'*', a, b:potenz()}; }       // 2x, 3(x+1), x sin(x)
+      else return a;
+    }
+  }
+  function vorzeichen(){
+    if(sieh() && sieh().k==='-'){ nimm(); return {t:'neg', a:vorzeichen()}; }
+    if(sieh() && sieh().k==='+'){ nimm(); return vorzeichen(); }
+    return potenz();
+  }
+  function potenz(){
+    let a = atom();
+    while(sieh() && sieh().k==='!'){ nimm(); a = {t:'fn', f:'fak', a}; }      // n!
+    if(sieh() && sieh().k==='^'){ nimm(); return {t:'^', a, b:vorzeichen()}; }
+    return a;
+  }
+  function atom(){
+    const k = nimm();
+    if(!k) throw new Error('Die Eingabe hört zu früh auf.');
+    if(k.k==='zahl') return {t:'num', v:k.v};
+    if(k.k==='(') { const a = summe(); if(!sieh() || nimm().k!==')') throw new Error('Eine Klammer „)“ fehlt.'); return a; }
+    if(k.k==='|') { const a = summe(); if(!sieh() || nimm().k!=='|') throw new Error('Ein Betragsstrich „|“ fehlt.'); return {t:'fn', f:'abs', a}; }
+    if(k.k==='name'){
+      if(k.v==='n') return {t:'x'};                      // intern heißt die Variable x
+      if(k.v==='a') return {t:'folge'};
+      if(k.v==='e') return {t:'num', v:Math.E, name:'e'};
+      if(k.v==='pi') return {t:'num', v:Math.PI, name:'π'};
+      if(!sieh() || sieh().k!=='(') throw new Error(`Nach ${k.v} bitte eine Klammer, z. B. ${k.v}(x).`);
+      nimm(); const a = summe();
+      if(!sieh() || nimm().k!==')') throw new Error('Eine Klammer „)“ fehlt.');
+      return {t:'fn', f:k.v, a};
+    }
+    throw new Error(`An dieser Stelle passt „${k.k}“ nicht.`);
+  }
+  const baum = summe();
+  if(p < t.length) throw new Error(`An dieser Stelle passt „${t[p].k==='zahl'?t[p].v:t[p].k==='name'?t[p].v:t[p].k}“ nicht.`);
+  return vereinfache(baum);
+}
+
+function werte(k){
+  // liefert eine Funktion (n, aₙ) → Wert; aₙ braucht nur das rekursive Bildungsgesetz
+  switch(k.t){
+    case 'num': return () => k.v;
+    case 'x': return (x) => x;
+    case 'folge': return (x, v) => v;
+    case 'neg': { const a = werte(k.a); return (x,v) => -a(x,v); }
+    case '+': { const a = werte(k.a), b = werte(k.b); return (x,v) => a(x,v)+b(x,v); }
+    case '-': { const a = werte(k.a), b = werte(k.b); return (x,v) => a(x,v)-b(x,v); }
+    case '*': { const a = werte(k.a), b = werte(k.b); return (x,v) => a(x,v)*b(x,v); }
+    case '/': { const a = werte(k.a), b = werte(k.b); return (x,v) => a(x,v)/b(x,v); }
+    case '^': { const a = werte(k.a), b = werte(k.b);
+      return (x,v) => { const g = a(x,v), h = b(x,v);
+        // (−8)^(1/3) usw.: bei negativer Basis nur ganze Exponenten
+        return (g < 0 && !Number.isInteger(h)) ? NaN : Math.pow(g, h); }; }
+    case 'fn': { const a = werte(k.a), f = FUNKTIONEN[k.f]; return (x,v) => f(a(x,v)); }
+  }
+}
+
+const hatX = n => n.t==='x' || (n.a && hatX(n.a)) || (n.b && hatX(n.b));
+const Z = v => ({t:'num', v});
+const istZ = (n, v) => n.t==='num' && !n.name && (v===undefined || n.v===v);
+
+function vereinfache(n){
+  if(n.a) n = {...n, a:vereinfache(n.a)};
+  if(n.b) n = {...n, b:vereinfache(n.b)};
+  const {a, b} = n;
+  switch(n.t){
+    case 'neg':
+      if(istZ(a)) return Z(-a.v);
+      if(a.t==='neg') return a.a;
+      return n;
+    case '+':
+      if(istZ(a) && istZ(b)) return Z(a.v+b.v);
+      if(istZ(a,0)) return b;
+      if(istZ(b,0)) return a;
+      if(b.t==='neg') return vereinfache({t:'-', a, b:b.a});
+      if(istZ(b) && b.v<0) return {t:'-', a, b:Z(-b.v)};
+      return n;
+    case '-':
+      if(istZ(a) && istZ(b)) return Z(a.v-b.v);
+      if(istZ(b,0)) return a;
+      if(istZ(a,0)) return vereinfache({t:'neg', a:b});
+      if(b.t==='neg') return vereinfache({t:'+', a, b:b.a});
+      return n;
+    case '*':
+      if(istZ(a) && istZ(b)) return Z(a.v*b.v);
+      if(istZ(a,0) || istZ(b,0)) return Z(0);
+      if(istZ(a,1)) return b;
+      if(istZ(b,1)) return a;
+      if(istZ(b) && !istZ(a)) return vereinfache({t:'*', a:b, b:a});           // Zahl nach vorn
+      if(istZ(a) && b.t==='*' && istZ(b.a)) return vereinfache({t:'*', a:Z(a.v*b.a.v), b:b.b});
+      if(a.t==='neg') return vereinfache({t:'neg', a:{t:'*', a:a.a, b}});
+      if(b.t==='neg') return vereinfache({t:'neg', a:{t:'*', a, b:b.a}});
+      if(istZ(a) && a.v<0) return vereinfache({t:'neg', a:{t:'*', a:Z(-a.v), b}});
+      if(istZ(a) && b.t==='/' && istZ(b.a)) return vereinfache({t:'/', a:Z(a.v*b.a.v), b:b.b});
+      if(a.t==='*' && istZ(a.a)) return vereinfache({t:'*', a:a.a, b:{t:'*', a:a.b, b}});   // (2·u)·v → 2·(u·v)
+      if(b.t==='*' && istZ(b.a) && !istZ(a)) return vereinfache({t:'*', a:b.a, b:{t:'*', a, b:b.b}});
+      return n;
+    case '/':
+      if(istZ(a) && istZ(b) && Number.isInteger(a.v/b.v)) return Z(a.v/b.v);
+      if(istZ(a,0)) return Z(0);
+      if(istZ(b,1)) return a;
+      if(a.t==='*' && istZ(a.a) && istZ(b)) return vereinfache({t:'*', a:Z(a.a.v/b.v), b:a.b});
+      if(JSON.stringify(a)===JSON.stringify(b)) return Z(1);
+      if(istZ(b) && !istZ(a) && b.v!==0 && Number.isInteger(1e4/b.v)) return vereinfache({t:'*', a:Z(1/b.v), b:a});   // x/4 → 0,25x, aber x/3 bleibt
+      if(a.t==='neg') return vereinfache({t:'neg', a:{t:'/', a:a.a, b}});
+      return n;
+    case '^':
+      if(istZ(a) && istZ(b)) return Z(Math.pow(a.v, b.v));
+      if(istZ(b,1)) return a;
+      if(istZ(b,0)) return Z(1);
+      if(a.t==='^' && istZ(a.b) && istZ(b)) return vereinfache({t:'^', a:a.a, b:Z(a.b.v*b.v)});
+      return n;
+    case 'fn':
+      if(n.f==='ln' && a.t==='num' && a.name==='e') return Z(1);
+      if(n.f==='exp' && istZ(a,0)) return Z(1);
+      return n;
+  }
+  return n;
+}
+
+/* Zahl deutsch: Komma, höchstens 4 Nachkommastellen, Minus als − */
+function zahlText(v, stellen=4){
+  if(!isFinite(v)) return '–';
+  let s = (Math.round(v*10**stellen)/10**stellen).toString();
+  if(s.includes('e')) s = v.toPrecision(3);
+  return s.replace('-','−').replace('.',',');
+}
+const RANG = {'+':1, '-':1, '*':2, '/':2, 'neg':3, '^':4};
+const rang = n => RANG[n.t] || 5;
+function schreibe(n, ctx=0){
+  const k = (inner, r) => r < ctx ? `(${inner})` : inner;
+  switch(n.t){
+    case 'num': return n.name ? n.name : (n.v < 0 ? k(zahlText(n.v), 3) : zahlText(n.v));
+    case 'x': return '<i>n</i>';
+    case 'folge': return '<i>a</i><sub>n</sub>';
+    case 'neg': return k('−' + schreibe(n.a, 2), 3);          // −2 · sin(x) statt −(2 · sin(x))
+    case '+': return k(`${schreibe(n.a,1)} + ${schreibe(n.b,1)}`, 1);
+    case '-': return k(`${schreibe(n.a,1)} − ${schreibe(n.b,2)}`, 1);
+    case '*': {
+      const links = schreibe(n.a,2), rechts = schreibe(n.b,2);
+      const startX = m => m.t==='x' || (m.t==='^' && m.a.t==='x') || (m.t==='*' && startX(m.a));
+      const eng = istZ(n.a) && n.a.v > 0 && startX(n.b);        // 3x², 2x · eˣ
+      return k(eng ? links + rechts : `${links} · ${rechts}`, 2);
+    }
+    case '/': return k(`${schreibe(n.a,2)} / ${schreibe(n.b,3)}`, 2);
+    case '^': return k(`${schreibe(n.a,5)}<sup>${schreibe(n.b,0)}</sup>`, 4);
+    case 'fn':
+      if(n.f==='abs') return `|${schreibe(n.a,0)}|`;
+      if(n.f==='sqrt') return `√(${schreibe(n.a,0)})`;
+      if(n.f==='exp') return `e<sup>${schreibe(n.a,0)}</sup>`;
+      if(n.f==='fak') return `${schreibe(n.a,5)}!`;
+      return `${n.f}(${schreibe(n.a,0)})`;
+  }
+}
+
+/* =====================================================================
+   Achsen und Gitter (Folgen: x = n, y = aₙ, eigene Maßstäbe)
+   ===================================================================== */
+function schoenerSchritt(bereich, teile=8){
+  const roh = bereich/teile, p = 10**Math.floor(Math.log10(roh)), f = roh/p;
+  return (f<1.5 ? 1 : f<3.5 ? 2 : f<7.5 ? 5 : 10) * p;
+}
+function achsenSVG(s, W, H, R){          // R = Ränder für die Beschriftung
+  const px = x => R.l + (x-s.xmin)/(s.xmax-s.xmin)*(W-R.l-R.r), py = y => R.o + (1-(y-s.ymin)/(s.ymax-s.ymin))*(H-R.o-R.u);
+  const sx = Math.max(1, schoenerSchritt(s.xmax-s.xmin, 10)), sy = schoenerSchritt(s.ymax-s.ymin, 7);
+  let g = '<g class="gitter">', z = '';
+  for(let x = Math.ceil(s.xmin/sx)*sx; x <= s.xmax; x += sx){ const X = px(x).toFixed(1);
+    g += `<line x1="${X}" y1="${R.o}" x2="${X}" y2="${H-R.u}"/>`; z += `<text class="tick" x="${X}" y="${H-R.u+17}" text-anchor="middle">${zahlText(x,3)}</text>`; }
+  for(let y = Math.ceil(s.ymin/sy)*sy; y <= s.ymax + sy*1e-9; y += sy){ const Y = py(y).toFixed(1);
+    g += `<line x1="${R.l}" y1="${Y}" x2="${W-R.r}" y2="${Y}"/>`; z += `<text class="tick" x="${R.l-7}" y="${(+Y+4).toFixed(1)}" text-anchor="end">${zahlText(Math.abs(y)<sy*1e-9?0:y,4)}</text>`; }
+  g += '</g>';
+  if(s.ymin < 0 && s.ymax > 0) g += `<line class="achse" x1="${R.l}" y1="${py(0).toFixed(1)}" x2="${W-R.r}" y2="${py(0).toFixed(1)}"/>`;
+  g += `<text class="achsname" x="${W-R.r}" y="${H-R.u+32}" text-anchor="end">n</text><text class="achsname" x="${R.l-7}" y="${R.o-8}" text-anchor="end">aₙ</text>`;
+  return {svg: g + z, px, py};
+}
+const punkt = (X, Y, r, cls='') => `<circle class="glied ${cls}" cx="${(+X).toFixed(1)}" cy="${(+Y).toFixed(1)}" r="${r}"/>`;
+const kreuz = (X, Y, r, cls='') => { const a = r/Math.SQRT2*1.25, x = +X, y = +Y;
+  return `<path class="kreuz ${cls}" d="M${(x-a).toFixed(1)} ${(y-a).toFixed(1)}L${(x+a).toFixed(1)} ${(y+a).toFixed(1)}M${(x-a).toFixed(1)} ${(y+a).toFixed(1)}L${(x+a).toFixed(1)} ${(y-a).toFixed(1)}"/>`; };
+
+/* =====================================================================
+   Auswertung einer Folge: Monotonie, Schranken, Grenzwert
+   Grundlage: alle Glieder bis n = 1000, dazu Stichproben n = 10 · 2^k bis 1.310.720
+   (gerade n und das ungerade n + 1 getrennt, damit Springen zwischen zwei Werten auffällt).
+   Ergebnis ist eine begründete Vermutung, kein Beweis.
+   ===================================================================== */
+const N_VOLL = 1000;
+const STICH = [...Array(18)].map((_,k)=>10*2**k);
+function verlauf(v, spanne){
+  // längster Lauf endlicher Werte am Ende (z. B. 2ⁿ/n! wird für große n zu ∞/∞)
+  let ende = v.length; while(ende > 0 && !isFinite(v[ende-1])){
+    if(v[ende-1] === Infinity && v.slice(0,ende).filter(isFinite).length && v.slice(ende-1).every(x=>x===Infinity)) return {art:'plus'};
+    if(v[ende-1] === -Infinity && v.slice(ende-1).every(x=>x===-Infinity)) return {art:'minus'};
+    ende--; }
+  let anf = ende; while(anf > 0 && isFinite(v[anf-1])) anf--;
+  const w = v.slice(anf, ende);
+  if(w.length < 5) return {art:'unklar'};
+  const L = w.length, d = w.slice(1).map((x,k)=>x-w[k]), dl = d.slice(-4);
+  const skala = Math.max(1, ...w.slice(-3).map(Math.abs));
+  // winzige Schritte, jeweils gemessen an den eigenen Nachbarwerten (sonst wirkt bei n! alles „winzig“)
+  if(dl.every((x,j)=>Math.abs(x) <= 1e-12*Math.max(1, Math.abs(w[L-5+j]), Math.abs(w[L-4+j])))) return {art:'konv', g:w[L-1], u:1e-12*skala};
+  const r = dl.slice(1).map((x,k)=>x/dl[k]);
+  if(r.every(q=>isFinite(q) && Math.abs(q) < 0.95) && Math.abs(dl[3]) < Math.abs(dl[0])){
+    const q = r[r.length-1]; return {art:'konv', g:w[L-1] + dl[3]*q/(1-q), u:1e-9*skala};      // Rest wie eine geometrische Reihe
+  }
+  // zufällige Winzschritte sind kein Wachstum: jeder Schritt muss spürbar sein, gemessen an seinen Nachbarwerten
+  const spuerbar = j => 1e-6*Math.max(1, Math.abs(w[L-5+j]), Math.abs(w[L-4+j]));
+  if(dl.every((x,j)=>x > spuerbar(j)) && r.every(q=>q>=0.95)) return {art:'plus'};
+  if(dl.every((x,j)=>x < -spuerbar(j)) && r.every(q=>q>=0.95)) return {art:'minus'};
+  const hinten = w.slice(-4), sp = Math.max(...hinten) - Math.min(...hinten);
+  if(sp <= 1e-4*Math.max(spanne, 1e-12) && sp <= 1e-2*(Math.max(...w) - Math.min(...w))) return {art:'konv', g:[...w.slice(-3)].sort((a,b)=>a-b)[1], u:sp};   // nähert sich schwankend an
+  return {art:'schwankt'};
+}
+const KONST = [['π²/6',Math.PI**2/6],['e',Math.E],['π',Math.PI],['√2',Math.SQRT2],['√3',Math.sqrt(3)],['ln 2',Math.LN2],['1/e',1/Math.E],['e²',Math.E**2],['√e',Math.sqrt(Math.E)],['π/2',Math.PI/2],['π/4',Math.PI/4]];
+function schoeneZahl(g, extra=0){
+  const tol = 1e-6*Math.max(1, Math.abs(g)) + extra;
+  for(let q=1;q<=12;q++){ const p = Math.round(g*q); if(Math.abs(g-p/q) < tol){
+    const t = (a,b)=> b ? t(b, a%b) : a, k = t(Math.abs(p), q) || 1;
+    return {wert:p/q, text: q/k===1 ? zahlText(p/k) : `${p<0?'−':''}${Math.abs(p)/k}/${q/k}`, genau:true}; } }
+  for(const [n,c] of KONST){ if(Math.abs(g-c) < tol) return {wert:c, text:n, genau:false}; if(Math.abs(g+c) < tol) return {wert:-c, text:'−'+n, genau:false}; }
+  return null;
+}
+function analysiere(f, n0){
+  const T = []; for(let n=n0;n<=N_VOLL;n++){ let y; try{ y = f(n); }catch(e){ y = NaN; } T.push({n, y}); }
+  const def = T.filter(t=>isFinite(t.y));
+  if(def.length < 10) return {fehler:'Für fast kein n definiert. Stimmt die Eingabe, passt der Startindex?'};
+  const spanne = Math.max(...def.map(t=>t.y)) - Math.min(...def.map(t=>t.y));
+  const G = verlauf(STICH.map(n=>f(n)), spanne), U = verlauf(STICH.map(n=>f(n+1)), spanne);
+  // Grenzverhalten
+  let grenz;
+  if(G.art==='konv' && U.art==='konv'){
+    const u = G.u + U.u, tol = 1e-6*Math.max(1, Math.abs(G.g), Math.abs(U.g)) + 1e-9 + u;
+    if(Math.abs(G.g-U.g) <= tol){ let g = (G.g+U.g)/2; if(Math.abs(g) < 1e-9*Math.max(1,spanne) + 2*u) g = 0; const s = schoeneZahl(g, 2*u); grenz = {art:'konv', g: s ? s.wert : g, schoen:s}; }
+    else grenz = {art:'zwei', werte:[G.g, U.g].sort((a,b)=>a-b)};
+  } else if(G.art==='plus' && U.art==='plus') grenz = {art:'plus'};
+  else if(G.art==='minus' && U.art==='minus') grenz = {art:'minus'};
+  else if((G.art==='plus'||G.art==='minus') && (U.art==='plus'||U.art==='minus')) grenz = {art:'beide'};
+  else if(G.art==='unklar' || U.art==='unklar') grenz = {art:'unklar'};
+  else grenz = {art:'schwankt'};
+  // Rechengenauigkeit: Viele rekursive Folgen treffen ihren Grenzwert im Rechner nach endlich vielen Schritten
+  // exakt (0,5·aₙ + 1 → 2,0), obwohl sie ihn mathematisch nie erreichen. Ab dort ist jeder Vergleich nur Rauschen.
+  let bisIdx = def.length, amZiel = false;
+  if(grenz.art==='konv'){
+    const tolG = 1e-13*Math.max(1, Math.abs(grenz.g));
+    const k = def.findIndex((t,j) => def.slice(j).every(u => Math.abs(u.y - grenz.g) <= tolG));
+    if(k > 1){ bisIdx = k; amZiel = true; }            // k ≤ 1: echt konstant (z. B. aₙ = 5)
+  }
+  const pruef = def.slice(0, bisIdx);
+  // Monotonie (bis n = 1000 bzw. bis die Folge auf Rechengenauigkeit am Grenzwert ist)
+  const d = pruef.slice(1).map((t,k)=>t.y - pruef[k].y);
+  const alle = (bed) => d.every(bed);
+  let mono;
+  if(alle(x=>x===0)) mono = {text:'konstant', art:'konst'};
+  else if(alle(x=>x>0)) mono = {text:'streng monoton steigend', art:'steigt'};
+  else if(alle(x=>x<0)) mono = {text:'streng monoton fallend', art:'faellt'};
+  else if(alle(x=>x>=0)) mono = {text:'monoton steigend (nicht streng)', art:'steigt'};
+  else if(alle(x=>x<=0)) mono = {text:'monoton fallend (nicht streng)', art:'faellt'};
+  else {
+    const abN = (bed) => { let k = d.length; while(k > 0 && bed(d[k-1])) k--; return k < d.length*0.5 ? pruef[k].n : null; };
+    const s = abN(x=>x>0), fa = abN(x=>x<0);
+    if(s !== null) mono = {text:`ab n = ${s} streng monoton steigend, davor nicht`, art:'ab', ab:s};
+    else if(fa !== null) mono = {text:`ab n = ${fa} streng monoton fallend, davor nicht`, art:'ab', ab:fa};
+    else mono = {text:'nicht monoton: mal steigt die Folge, mal fällt sie', art:'nein'};
+  }
+  // Schranken
+  const werte = def.map(t=>t.y).concat(STICH.flatMap(n=>[f(n), f(n+1)]).filter(isFinite));
+  let maxW = Math.max(...werte), minW = Math.min(...werte);
+  const maxT = def.reduce((a,t)=>t.y>a.y?t:a), minT = def.reduce((a,t)=>t.y<a.y?t:a);
+  const nurRundung = t => amZiel && def.indexOf(t) >= bisIdx;     // „erreicht“ nur durch Rundung zählt nicht
+  const oben = grenz.art==='plus' || grenz.art==='beide' ? null : Math.max(maxW, grenz.art==='konv' ? grenz.g : -Infinity);
+  const unten = grenz.art==='minus' || grenz.art==='beide' ? null : Math.min(minW, grenz.art==='konv' ? grenz.g : Infinity);
+  const angenommen = (s, t) => s !== null && !nurRundung(t) && (t.y === s || Math.abs(t.y - s) <= 1e-12*Math.max(Math.abs(s), Math.abs(t.y)));
+  const schranken = {oben, unten, obenBei: angenommen(oben, maxT) ? maxT.n : null, untenBei: angenommen(unten, minT) ? minT.n : null,
+                     beobachtet: grenz.art==='schwankt' || grenz.art==='unklar'};
+  return {T, def, grenz, mono, schranken, n0};
+}
+/* ε-Schlauch: ab welchem n bleiben alle Glieder in (g − ε, g + ε)? */
+function abWann(A, eps){
+  const g = A.grenz.g, drin = y => Math.abs(y-g) < eps*(1-1e-9);
+  let k = A.def.length; while(k > 0 && drin(A.def[k-1].y)) k--;
+  if(k === A.def.length) return null;                    // bis n = 1000 noch nicht
+  return A.def[k].n;
+}
+</script>
+
+<script>
+const KURS = "Mathematik · Folgen";
+const REIHE = "Folgen und Grenzwerte";
+
+function titelGraph(){
+  const W = 250, H = 200, R = {l:14, r:10, o:14, u:14}, s = {xmin:0.3, xmax:12.7, ymin:0.8, ymax:2.15};
+  const {px, py} = achsenSVG(s, W, H, R);
+  let g = `<line class="grenzlinie" x1="${R.l}" y1="${py(1)}" x2="${W-R.r}" y2="${py(1)}"/>`;
+  for(let n=1;n<=12;n++) g += punkt(px(n), py((n+1)/n), 5);
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="background:rgba(255,255,255,.95);border-radius:18px;box-shadow:0 14px 30px rgba(0,0,0,.25)">${g}</svg>`;
+}
+
+const folien = [
+
+{titel:"Titel", klasse:"titel", roh:`
+  <div class="karogrund"></div>
+  <div class="links">
+    <div class="balken"></div>
+    <div class="eyebrow">Folgen und Grenzwerte</div>
+    <h1>Wohin läuft<br>die Folge?</h1>
+    <p class="unter">Glied für Glied: Monotonie, Schranken und Grenzwert, automatisch ausgewertet.</p>
+    <div class="meta"><span>Mathematik</span><span>Folgen</span></div>
+  </div>
+  <div class="rechts">
+    <div class="logokachel"><img src="${LOGO}" alt="Logo Montessori-Schule Landau"></div>
+    <div class="titelgraph">${titelGraph()}</div>
+  </div>
+`},
+
+{titel:"Das Folgenlabor", klasse:"kompakt oben", eyebrow:"Das Folgenlabor", h2:"Folgen untersuchen", roh:`
+  <div class="interaktiv labor" id="labor">
+    <div>
+      <div class="plotrahmen"><svg id="plot" width="720" height="440" viewBox="0 0 720 440"></svg></div>
+      <div class="bereich">
+        <span class="bt">Glieder bis n =</span>
+        <input type="range" id="fBis" min="5" max="200" step="1" value="30" aria-label="Glieder bis n"><b id="fBisW">30</b>
+        <span class="bt" id="fEpsName">ε =</span>
+        <input type="range" id="fEps" min="0" max="30" step="1" value="10" aria-label="Epsilon"><input id="fEpsW" type="text" value="0,1" aria-label="Epsilon eingeben" spellcheck="false" autocomplete="off">
+      </div>
+    </div>
+    <div class="labspalte">
+      <div class="eingabe">
+        <div class="reihe"><label for="fEingabe" id="fLabel">a<sub>n</sub> =</label><input id="fEingabe" type="text" value="(n+1)/n" spellcheck="false" autocomplete="off">
+          <span class="startname" id="fStartName">ab n =</span><input id="fStart" type="text" value="1" spellcheck="false" autocomplete="off" aria-label="Startwert" style="width:52px;flex:none;text-align:center">
+          <button class="knopf" id="fZeichnen">Los</button></div>
+        <div class="reihe"><span class="modus"><button class="knopf hell an" id="fExpl">explizit</button><button class="knopf hell" id="fRek">rekursiv</button></span><select id="fAuswahl" aria-label="Beispielfolgen"></select></div>
+        <div class="fehler" id="fFehler"></div>
+      </div>
+      <div class="formelzeile" id="fFormel"></div>
+      <div class="knopfleiste">
+        <button class="knopf hell" id="fMono">Monotonie</button>
+        <button class="knopf hell" id="fSchr">Schranken</button>
+        <button class="knopf hell" id="fGrenz">Grenzwert</button>
+        <button class="knopf hell" id="fSchlauch">ε-Schlauch</button>
+      </div>
+      <div class="erg" id="eMono"><h4>Monotonie</h4><p id="eMonoT"></p></div>
+      <div class="erg" id="eSchr"><h4>Schranken</h4><p id="eSchrT"></p></div>
+      <div class="erg" id="eGrenz"><h4>Grenzwert</h4><p id="eGrenzT"></p></div>
+      <p class="hinweis">Grundlage: alle Glieder bis n = 1.000, Stichproben bis n ≈ 1,3 Mio. Eine begründete <strong>Vermutung</strong>, kein Beweis.</p>
+    </div>
+  </div>
+`}
+
+];
+</script>
+
+<script>
+const stage = document.getElementById('stage');
+folien.forEach((f,i)=>{
+  const el = document.createElement('section');
+  el.className = 'slide' + (f.klasse ? ' '+f.klasse : '');
+  let html = '';
+  if(!(f.klasse||'').split(' ').includes('titel')){
+    html += `<header class="kopf"><img src="${LOGO}" alt=""><span class="schule">Montessori-Schule Landau</span><span class="kurs">${KURS}</span></header>`;
+    if(f.h2) html += `<div class="titelzeile">${f.eyebrow?`<div class="eyebrow">${f.eyebrow}</div>`:''}<h2>${f.h2}</h2></div>`;
+    html += `<div class="inhalt">${f.roh}</div>`;
+    html += `<div class="fuss"><span>${REIHE}</span><span>${i+1} / ${folien.length}</span></div>`;
+  } else html = f.roh;
+  el.innerHTML = html;
+  stage.appendChild(el);
+});
+
+/* =====================================================================
+   Das Folgenlabor
+   ===================================================================== */
+const BEISPIELE_REK = [
+  ['0,5a + 1', '0', 'aₙ₊₁ = 0,5·aₙ + 1, a₀ = 0'],
+  ['sqrt(2 + a)', '0', 'aₙ₊₁ = √(2 + aₙ), a₀ = 0'],
+  ['(a + 2/a)/2', '1', 'aₙ₊₁ = (aₙ + 2/aₙ)/2, a₀ = 1 (Heron)'],
+  ['a + 1/(n+1)^2', '0', 'aₙ₊₁ = aₙ + 1/(n+1)², a₀ = 0'],
+  ['3,2a(1 - a)', '0,5', 'aₙ₊₁ = 3,2·aₙ·(1 − aₙ), a₀ = 0,5'],
+  ['-a/2 + 3', '0', 'aₙ₊₁ = −aₙ/2 + 3, a₀ = 0'],
+  ['2a', '1', 'aₙ₊₁ = 2·aₙ, a₀ = 1'],
+  ['a + n', '0', 'aₙ₊₁ = aₙ + n, a₀ = 0'],
+];
+const BEISPIELE = [
+  ['(n+1)/n', 'aₙ = (n + 1)/n'],
+  ['1/n', 'aₙ = 1/n'],
+  ['(-1)^n/n', 'aₙ = (−1)ⁿ/n'],
+  ['(-1)^n', 'aₙ = (−1)ⁿ'],
+  ['(2n+1)/(n+3)', 'aₙ = (2n + 1)/(n + 3)'],
+  ['(1+1/n)^n', 'aₙ = (1 + 1/n)ⁿ'],
+  ['0,8^n', 'aₙ = 0,8ⁿ'],
+  ['n^2', 'aₙ = n²'],
+  ['sqrt(n)', 'aₙ = √n'],
+  ['sin(n)/n', 'aₙ = sin(n)/n'],
+  ['n/2^n', 'aₙ = n/2ⁿ'],
+  ['2^n/n!', 'aₙ = 2ⁿ/n!'],
+];
+const labor = (function(){
+  const B = id => document.getElementById(id);
+  const W = 720, H = 440, R = {l:58, r:18, o:26, u:40};
+  const S = {rek:false, bis:30, eps:0.1, zeige:{mono:false, schr:false, grenz:false, schlauch:false}};
+  const eps = () => S.eps;
+  function auswahlFuellen(){
+    B('fAuswahl').innerHTML = '<option value="">Beispiel wählen …</option>' + (S.rek
+      ? BEISPIELE_REK.map(([w,a0,t],k)=>`<option value="${k}">${t}</option>`)
+      : BEISPIELE.map(([w,t])=>`<option value="${w}">${t}</option>`)).join('');
+  }
+  auswahlFuellen();
+  const MAX_N = STICH[STICH.length-1] + 1;
+  // rekursiv: a₀ gegeben, aₙ₊₁ = F(n, aₙ); einmal bis n ≈ 1,3 Mio. ausrechnen (dauert nur Millisekunden)
+  function rekursiv(F, a0){
+    const a = new Float64Array(MAX_N + 1).fill(NaN); a[0] = a0;
+    for(let n=0; n<MAX_N; n++){ const w = F(n, a[n]); if(!isFinite(w)){ a[n+1] = w; break; } a[n+1] = w; }
+    return n => (Number.isInteger(n) && n >= 0 && n <= MAX_N) ? a[n] : NaN;
+  }
+  const kommtVor = (k, t) => k.t===t || (k.a && kommtVor(k.a, t)) || (k.b && kommtVor(k.b, t));
+
+  function setze(text){
+    try{
+      const baum = lies(text), F = werte(baum);
+      let f, n0;
+      if(S.rek){
+        const sb = lies(B('fStart').value);
+        if(kommtVor(sb,'x') || kommtVor(sb,'folge')) throw new Error('Der Startwert a₀ muss eine Zahl sein.');
+        const a0 = werte(sb)(0, 0); if(!isFinite(a0)) throw new Error('Der Startwert a₀ ist keine gültige Zahl.');
+        f = rekursiv(F, a0); n0 = 0;
+      } else {
+        if(kommtVor(baum,'folge')) throw new Error('aₙ kommt nur im rekursiven Bildungsgesetz vor. Oben auf „rekursiv“ umschalten.');
+        f = n => F(n); n0 = Math.max(0, Math.min(20, Math.round(+String(B('fStart').value).replace(',','.') || 0)));
+      }
+      const A = analysiere(f, n0);
+      if(A.fehler) throw new Error(A.fehler);
+      S.text = text; S.baum = baum; S.f = f; S.A = A; S.n0 = n0;
+      B('fFehler').textContent = '';
+      auswertungSchreiben(); zeichne(); return true;
+    }catch(e){ B('fFehler').textContent = e.message; return false; }
+  }
+  const z = (v) => zahlText(v, 4);
+  const glied = (n) => `a<sub>${n}</sub>`;
+  function auswertungSchreiben(){
+    const A = S.A, G = A.grenz, sch = A.schranken;
+    const erste = A.def.slice(0, 4).map(t=>`${glied(t.n)} ${Math.abs(t.y - Math.round(t.y*1e4)/1e4) < 1e-12 ? '=' : '≈'} ${z(t.y)}`).join(' · ');
+    B('fFormel').innerHTML = `<span class="klein" title="a(n) = ${schreibe(S.baum).replace(/<[^>]+>/g,'')}">${erste} …</span>`;
+    B('eMonoT').innerHTML = `Die Folge ist <strong>${A.mono.text}</strong>.`;
+    const gText = G.art==='konv' ? (G.schoen ? (G.schoen.genau ? G.schoen.text : `${z(G.g)} (vermutlich ${G.schoen.text})`) : `≈ ${zahlText(G.g,6)}`) : '';
+    const sText = (wert, bei, art) => wert===null ? `nach ${art} <strong>unbeschränkt</strong>`
+      : `${art==='oben'?'kleinste obere':'größte untere'} Schranke <strong>${bei!==null ? z(wert) + ' = ' + glied(bei) : (G.art==='konv' && Math.abs(wert-G.g)<1e-9 ? gText : '≈ '+z(wert))}</strong>${bei===null && G.art==='konv' && Math.abs(wert-G.g)<1e-9 ? ' (der Grenzwert, wird nie erreicht)' : ''}`;
+    B('eSchrT').innerHTML = (sch.oben!==null && sch.unten!==null ? '<strong>Beschränkt.</strong> ' : '') + sText(sch.oben, sch.obenBei, 'oben') + ', ' + sText(sch.unten, sch.untenBei, 'unten') + '.'
+      + (sch.beobachtet ? ' <span class="klein">(Beobachtet an den berechneten Gliedern.)</span>' : '');
+    B('eGrenzT').innerHTML = {
+      konv: () => `<strong>Konvergent</strong>, Grenzwert <strong>g = ${gText}</strong>${G.g===0 ? ': eine <strong>Nullfolge</strong>' : ''}.<span id="eEps"></span>`,
+      zwei: () => `<strong>Divergent.</strong> Die Folge springt zwischen <strong>${z(G.werte[0])}</strong> und <strong>${z(G.werte[1])}</strong> hin und her (zwei Häufungswerte).`,
+      plus: () => `<strong>Divergent</strong>, wächst über jede Grenze: <strong>bestimmt divergent gegen +∞</strong>.`,
+      minus: () => `<strong>Divergent</strong>, fällt unter jede Grenze: <strong>bestimmt divergent gegen −∞</strong>.`,
+      beide: () => `<strong>Divergent</strong>, der Betrag wächst über jede Grenze, das Vorzeichen wechselt.`,
+      schwankt: () => `<strong>Divergent</strong>: Die Glieder schwanken und kommen keinem Wert immer näher.`,
+      unklar: () => `Dazu kann das Labor hier <strong>nichts Sicheres</strong> sagen (die Werte werden zu groß zum Rechnen).`,
+    }[G.art]();
+    B('fSchlauch').disabled = G.art !== 'konv';
+    if(G.art !== 'konv') S.zeige.schlauch = false;
+  }
+
+  function zeichne(){
+    const A = S.A, G = A.grenz, sch = A.schranken, bis = Math.max(S.n0 + 4, S.bis);
+    const pts = A.T.filter(t=>t.n <= bis && isFinite(t.y));
+    let ys = pts.map(t=>t.y);
+    if(G.art==='konv' && (S.zeige.grenz || S.zeige.schlauch)) ys.push(G.g);
+    if(S.zeige.schr){ if(sch.oben!==null) ys.push(sch.oben); if(sch.unten!==null) ys.push(sch.unten); }
+    if(S.zeige.schlauch) ys.push(G.g + eps(), G.g - eps());
+    let ymin = Math.min(...ys), ymax = Math.max(...ys);
+    if(ymax - ymin < 1e-9){ ymin -= 1; ymax += 1; }
+    const pad = (ymax-ymin)*0.1; ymin -= pad; ymax += pad;
+    const s = {xmin:S.n0 - 0.8, xmax:bis + 0.8, ymin, ymax};
+    const {svg:achsen, px, py} = achsenSVG(s, W, H, R);
+    let svg = `<clipPath id="flaeche"><rect x="${R.l}" y="${R.o}" width="${W-R.l-R.r}" height="${H-R.o-R.u}"/></clipPath>` + achsen;
+    const L = R.l, Rr = W-R.r;
+    let N = null;
+    if(S.zeige.schlauch && G.art==='konv'){
+      const e = eps(); N = abWann(A, e);
+      svg += `<rect class="schlauch" x="${L}" y="${py(G.g+e)}" width="${Rr-L}" height="${py(G.g-e)-py(G.g+e)}"/>`;
+      if(N !== null && N <= bis) svg += `<line class="abn" x1="${px(N)}" y1="${R.o}" x2="${px(N)}" y2="${H-R.u}"/><text class="abnt" x="${px(N)+6}" y="${R.o+16}">N = ${N}</text>`;
+    }
+    if(S.zeige.schr){
+      if(sch.oben!==null) svg += `<line class="schranke" x1="${L}" y1="${py(sch.oben)}" x2="${Rr}" y2="${py(sch.oben)}"/><text class="schrt" x="${Rr-6}" y="${py(sch.oben)-6}" text-anchor="end">obere Schranke</text>`;
+      if(sch.unten!==null) svg += `<line class="schranke" x1="${L}" y1="${py(sch.unten)}" x2="${Rr}" y2="${py(sch.unten)}"/><text class="schrt" x="${Rr-6}" y="${py(sch.unten)+16}" text-anchor="end">untere Schranke</text>`;
+    }
+    if((S.zeige.grenz || S.zeige.schlauch) && G.art==='konv')
+      svg += `<line class="grenzlinie" x1="${L}" y1="${py(G.g)}" x2="${Rr}" y2="${py(G.g)}"/><text class="grenzt" x="${L+8}" y="${py(G.g)-7}">g = ${G.schoen ? G.schoen.text : zahlText(G.g,4)}</text>`;
+    if(S.zeige.grenz && G.art==='zwei') G.werte.forEach(w=>{ svg += `<line class="grenzlinie" x1="${L}" y1="${py(w)}" x2="${Rr}" y2="${py(w)}"/><text class="grenzt" x="${L+8}" y="${py(w)-7}">Häufungswert ${z(w)}</text>`; });
+    const r = pts.length > 80 ? 3.2 : pts.length > 40 ? 4.2 : 5.5;
+    // nur Punkte, keine Verbindungslinien: eine Folge ist nur für natürliche Zahlen n definiert.
+    // Monotonie: Punkt grün, wenn das Glied größer ist als das vorige, rot, wenn kleiner.
+    const klasse = (t, k) => {
+      if(S.zeige.schlauch && G.art==='konv' && Math.abs(t.y-G.g) >= eps()*(1-1e-9)) return 'draussen';
+      if(S.zeige.mono && k > 0 && pts[k-1].n === t.n-1) return t.y > pts[k-1].y ? 'hoch' : t.y < pts[k-1].y ? 'runter' : 'gleich';
+      return '';
+    };
+    svg += `<g clip-path="url(#flaeche)">` + pts.map((t,k)=>punkt(px(t.n), py(t.y), r, klasse(t,k))).join('') + '</g>';
+    B('plot').innerHTML = svg;
+
+    ['mono','schr','grenz'].forEach(k=>B('e'+k[0].toUpperCase()+k.slice(1)).classList.toggle('an', S.zeige[k] || (k==='grenz' && S.zeige.schlauch)));
+    [['fMono','mono'],['fSchr','schr'],['fGrenz','grenz'],['fSchlauch','schlauch']].forEach(([id,k])=>B(id).classList.toggle('an', S.zeige[k]));
+    B('fEps').disabled = B('fEpsW').disabled = !S.zeige.schlauch; B('fEpsName').style.opacity = B('fEpsW').style.opacity = S.zeige.schlauch ? 1 : .4;
+    const ee = document.getElementById('eEps');
+    if(ee) ee.innerHTML = S.zeige.schlauch ? (N===null ? ` <br>ε = ${zahlText(eps(),3)}: N &gt; 1.000, bis n = 1.000 liegen noch Glieder außerhalb.` : ` <br>ε = ${zahlText(eps(),3)}: Eintauchzahl <strong>N = ${N}</strong>, ab n = ${N} liegen alle Glieder im Schlauch.`) : '';
+    B('labor').dataset.ab = N===null ? '' : N;
+  }
+
+  B('fZeichnen').onclick = ()=> setze(B('fEingabe').value);
+  B('fEingabe').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); setze(B('fEingabe').value); } });
+  B('fStart').addEventListener('change', ()=> setze(B('fEingabe').value));
+  B('fAuswahl').onchange = ()=>{ const v = B('fAuswahl').value; if(v==='') return;
+    if(S.rek){ const [w, a0] = BEISPIELE_REK[+v]; B('fEingabe').value = w; B('fStart').value = a0; setze(w); }
+    else { B('fEingabe').value = v; setze(v); }
+    B('fAuswahl').value = ''; };
+  function modus(rek){
+    S.rek = rek; B('fExpl').classList.toggle('an', !rek); B('fRek').classList.toggle('an', rek);
+    B('fLabel').innerHTML = rek ? 'a<sub>n+1</sub> =' : 'a<sub>n</sub> =';
+    B('fStartName').innerHTML = rek ? 'a<sub>0</sub> =' : 'ab n =';
+    auswahlFuellen();
+    const [w, a0] = rek ? BEISPIELE_REK[0] : ['(n+1)/n', '1'];
+    B('fEingabe').value = w; B('fStart').value = a0; setze(w);
+  }
+  B('fExpl').onclick = ()=> modus(false);
+  B('fRek').onclick = ()=> modus(true);
+  B('fStart').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); setze(B('fEingabe').value); } });
+  const schalter = (k) => ()=>{ S.zeige[k] = !S.zeige[k]; zeichne(); };
+  B('fMono').onclick = schalter('mono'); B('fSchr').onclick = schalter('schr'); B('fGrenz').onclick = schalter('grenz'); B('fSchlauch').onclick = schalter('schlauch');
+  B('fBis').addEventListener('input', ()=>{ S.bis = +B('fBis').value; B('fBisW').textContent = S.bis; zeichne(); });
+  // ε: Schieber (0,001 bis 1 in Zehntel-Zehnerpotenzen) oder frei eintippen
+  const epsText = v => zahlText(v, 6);
+  B('fEps').addEventListener('input', ()=>{ S.eps = +(10**(-B('fEps').value/10)).toPrecision(2); B('fEpsW').value = epsText(S.eps); B('fEpsW').classList.remove('falsch'); zeichne(); });
+  const epsTippen = ()=>{
+    const v = parseFloat(B('fEpsW').value.replace(',', '.').replace('−','-'));
+    if(!(v > 0 && v < 1e6)){ B('fEpsW').classList.add('falsch'); return; }
+    B('fEpsW').classList.remove('falsch'); S.eps = v;
+    B('fEps').value = Math.max(0, Math.min(30, Math.round(-10*Math.log10(v))));
+    zeichne();
+  };
+  B('fEpsW').addEventListener('change', epsTippen);
+  B('fEpsW').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); epsTippen(); } });
+  setze(B('fEingabe').value);
+  return {S, setze};
+})();
+
+/* =====================================================================
+   Folien-Navigation
+   ===================================================================== */
+const slides = [...document.querySelectorAll('.slide')];
+let i = 0, schritt = 0;
+function frags(n){
+  return [...slides[n].querySelectorAll('.frag')]
+    .map((el,k)=>({el, ord: el.dataset.schritt ? parseFloat(el.dataset.schritt) : k+1, k}))
+    .sort((a,b)=> a.ord - b.ord || a.k - b.k).map(x=>x.el);
+}
+function zeige(n, alleFragmente=false){
+  i = Math.max(0, Math.min(slides.length-1, n));
+  slides.forEach((s,k)=>s.classList.toggle('aktiv', k===i));
+  const fr = frags(i);
+  schritt = alleFragmente ? fr.length : 0;
+  fr.forEach((f,k)=>f.classList.toggle('an', k<schritt));
+  document.getElementById('zaehler').textContent = (i+1)+' / '+slides.length;
+  document.getElementById('fortschritt').style.width = ((i+1)/slides.length*100)+'%';
+  try{ history.replaceState(null, '', '#'+(i+1)); }catch(e){}
+}
+function vor(){ const fr = frags(i); if(schritt < fr.length){ fr[schritt].classList.add('an'); schritt++; return; } if(i < slides.length-1) zeige(i+1); }
+function zurueck(){ if(schritt > 0){ schritt--; frags(i)[schritt].classList.remove('an'); return; } if(i > 0) zeige(i-1, true); }
+function skalieren(){ const s = Math.min((innerWidth-40)/1280, (innerHeight-40)/720); stage.style.transform = 'scale('+s+')'; }
+addEventListener('resize', skalieren);
+const ueb = document.getElementById('uebersicht'), gitter = ueb.querySelector('.gitter');
+folien.forEach((f,k)=>{ const d = document.createElement('div'); d.className = 'mini';
+  d.innerHTML = `<div class="nr">FOLIE ${k+1}</div><div class="tt">${f.h2 || f.titel}</div>`;
+  d.onclick = ()=>{ ueb.classList.remove('an'); zeige(k); }; gitter.appendChild(d); });
+addEventListener('keydown', e=>{
+  if(e.target.closest && e.target.closest('input, select, textarea')) return;   // beim Tippen der Funktion nicht blättern
+  if(e.target.closest && e.target.closest('button') && (e.key===' '||e.key==='Enter')) return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='Enter'){ e.preventDefault(); vor(); }
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='Backspace'){ e.preventDefault(); zurueck(); }
+  else if(e.key==='Home'){ zeige(0); }
+  else if(e.key==='End'){ zeige(slides.length-1, true); }
+  else if(e.key==='o'||e.key==='O'){ ueb.classList.toggle('an'); }
+  else if(e.key==='Escape'){ ueb.classList.remove('an'); }
+  else if(e.key==='f'||e.key==='F'){ vollbild(); }
+});
+function vollbild(){
+  const el = document.documentElement;
+  try{
+    if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+    else if(el.requestFullscreen) el.requestFullscreen().catch(()=>{});
+    else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  }catch(e){}
+}
+let wischX = null, wischY = null;
+stage.addEventListener('touchstart', e=>{ if(e.target.closest('.interaktiv')){ wischX = null; return; } wischX = e.touches[0].clientX; wischY = e.touches[0].clientY; }, {passive:true});
+stage.addEventListener('touchend', e=>{ if(wischX === null) return; const dx = e.changedTouches[0].clientX - wischX, dy = e.changedTouches[0].clientY - wischY;
+  if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) (dx < 0 ? vor : zurueck)(); wischX = null; });
+document.getElementById('uebBtn').onclick = ()=> ueb.classList.toggle('an');
+document.getElementById('vor').onclick = vor;
+document.getElementById('zurueck').onclick = zurueck;
+stage.addEventListener('click', e=>{ if(!e.target.closest('a, button, input, select, .interaktiv')) vor(); });
+skalieren();
+zeige(parseInt(location.hash.slice(1)) - 1 || 0);
+</script>
+</body>
+</html>
