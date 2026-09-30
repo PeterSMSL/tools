@@ -283,6 +283,56 @@ svg .frag{transform:none}
   .frag{opacity:1!important;transform:none!important}
   #nav,#fortschritt,#uebersicht{display:none!important}
 }
+/* =====================================================================
+   HANDY-SCHICHT für den Rahmen der Vorlagen (ds1 / Folgen).
+   Greift nur, wenn handy.js <html class="handy"> setzt: Bildschirm zu klein für die
+   Bühne 1280 × 720 (Handy, Tablet hochkant). Beamer, Laptop und Druck bleiben unberührt.
+   Aus der Bühne wird eine scrollbare Seite pro Folie; Raster werden einspaltig,
+   Schrift mindestens 14 px, Knöpfe mindestens 40 px (Finger).
+   ===================================================================== */
+html.handy, html.handy body{height:auto;overflow-x:hidden;overflow-y:auto}
+html.handy body{display:block;background:var(--papier)}
+html.handy #stage{width:100%;height:auto;transform:none!important}
+html.handy .slide{position:relative;inset:auto;display:none;min-height:100vh;border-radius:0;box-shadow:none;
+  padding:64px 14px 84px;transform:none;transition:none;overflow:visible}
+html.handy .slide.aktiv{display:flex}
+
+/* Kopf, Überschriften, Fuß */
+html.handy .kopf{height:48px;padding:0 12px;gap:10px}
+html.handy .kopf img{height:34px}
+html.handy .kopf .schule{font-size:14px;letter-spacing:.06em}
+html.handy .kopf .kurs{display:none}
+html.handy h1{font-size:34px}
+html.handy h2, html.handy .slide.kompakt h2{font-size:25px}
+html.handy .eyebrow{font-size:14px;letter-spacing:.12em}
+html.handy .titelzeile, html.handy .slide.kompakt .titelzeile{margin-bottom:14px}
+html.handy .inhalt{display:block}
+html.handy .fuss{position:static;margin-top:22px;font-size:14px;gap:10px}
+html.handy p, html.handy li{font-size:17px}
+html.handy .klein, html.handy .hinweis{font-size:15px}
+
+/* Titelfolie: untereinander */
+html.handy .slide.titel{display:none;grid-template-columns:1fr;padding:0}
+html.handy .slide.titel.aktiv{display:grid}
+html.handy .slide.titel .links{padding:40px 20px 24px}
+html.handy .slide.titel .rechts{padding:24px 0 90px;border-left:none;border-top:1px solid rgba(255,255,255,.16)}
+html.handy .slide.titel .unter{font-size:18px}
+html.handy .slide.titel .meta span{font-size:14px}
+html.handy .slide.titel .logokachel{border-radius:26px;padding:16px 18px}
+html.handy .slide.titel .logokachel img{width:110px}
+html.handy .slide.titel svg{max-width:100%;height:auto}
+
+/* Raster und Karten: einspaltig */
+html.handy .raster, html.handy .g2, html.handy .g3, html.handy .g4{grid-template-columns:1fr!important}
+html.handy .karte p, html.handy .karte li{font-size:16px}
+
+/* Finger: Knöpfe und Felder mindestens 40 px */
+html.handy .knopf{min-height:42px;min-width:42px;font-size:15.5px;padding:8px 14px}
+html.handy input, html.handy select{min-height:42px;font-size:16px}   /* 16 px: iOS zoomt sonst beim Tippen */
+html.handy #nav{right:10px;bottom:10px;padding:6px 8px;gap:6px}
+html.handy #nav button{width:42px;height:42px;font-size:18px}
+html.handy #zaehler{font-size:14px}
+html.handy svg{max-width:100%;height:auto}
 /* ---------- Bruchrechner ---------- */
 :root{
   /* Inhaltsfarben — bedeuten etwas, wandern nie */
@@ -348,6 +398,28 @@ svg .klabel2{font-size:13px;font-weight:700;fill:var(--grau)}
 .fakten p{font-size:22px;font-weight:800;color:var(--blau-d);font-family:"Cambria Math","Cambria","Times New Roman",serif;display:flex;align-items:center;gap:4px;min-height:44px}
 .ueberstrich{text-decoration:overline}
 .titelkreise svg{display:block;background:rgba(255,255,255,.95);border-radius:18px;box-shadow:0 14px 30px rgba(0,0,0,.25)}
+
+/* ---------- Handy-Ansicht (html.handy, gesetzt von technik/handy/handy.js) ---------- */
+html.handy .darstellen{grid-template-columns:minmax(0,1fr);gap:14px}
+html.handy .darstellen > div{min-width:0}
+html.handy .eingabegross{padding:14px}
+html.handy .eingabegross .bf input{width:96px;font-size:44px}
+html.handy .eingabegross .bf .strich{width:104px}
+html.handy .fakten{grid-template-columns:1fr 1fr}
+html.handy .fakten h4{font-size:14px;letter-spacing:.05em}
+html.handy .panel{min-height:0;padding:8px 10px}
+html.handy .panel h3{font-size:14px;flex-wrap:wrap}
+html.handy .panel h3 .knopf{font-size:15px}
+html.handy .aufgabe{flex-wrap:wrap;justify-content:center;padding:10px 8px;row-gap:10px}
+html.handy .aufgabe .knopfleiste{margin-left:0;width:100%;justify-content:center}
+html.handy .bf input{width:54px}
+html.handy .op{font-size:28px;margin:0 3px}
+html.handy .rueck{font-size:16px}
+html.handy .zwei{grid-template-columns:minmax(0,1fr);gap:12px}
+html.handy .s2{flex-wrap:wrap;row-gap:2px}
+html.handy .s2 .was{min-width:0;font-size:14px}
+html.handy .rechnung{flex-wrap:wrap;white-space:normal;row-gap:6px}
+html.handy .rechnung .hin{font-size:14px}
 
 </style>
 </head>
@@ -525,7 +597,16 @@ const DARSTELLEN = (() => {
     const [gz, gn] = kuerze(S.z, S.n), wert = S.z / S.n;
     const kreisZahl = Math.max(1, Math.ceil(wert));
     if (S.n > 60 || kreisZahl > 4) R('bild').innerHTML = `<p class="leerhinweis">Zu viele Teile oder Kreise für die Zeichnung (höchstens 60 Teile, 4 Kreise).</p>`;
-    else {
+    else if (document.documentElement.classList.contains('handy')) {
+      // Handy: große Kreise, zwei pro Reihe
+      const teile = stuecke(S.z, 'b1'), r = 70, reihen = Math.ceil(kreisZahl / 2);
+      let g = '';
+      for (let z = 0; z < reihen; z++) {
+        const hier = Math.min(2, kreisZahl - 2 * z), x0 = 170 - (hier - 1) * 80;
+        g += kreise(S.n, teile.slice(z * 2 * S.n, (z + 1) * 2 * S.n).concat(Array(Math.max(0, (hier - 1) * S.n)).fill('leer')).slice(0, hier * S.n), x0, 80 + z * 160, r, 160).svg;
+      }
+      R('bild').innerHTML = `<svg width="340" height="${reihen * 160}" viewBox="0 0 340 ${reihen * 160}">${g}</svg>`;
+    } else {
       const k = kreise(S.n, stuecke(S.z, 'b1'), 0, 0, 70, 160);
       const x0 = (760 - k.breite) / 2 + 70;
       R('bild').innerHTML = `<svg width="760" height="190" viewBox="0 0 760 190">${kreise(S.n, stuecke(S.z, 'b1'), x0, 95, 70, 160).svg}</svg>`;
@@ -535,7 +616,7 @@ const DARSTELLEN = (() => {
     R('dez').innerHTML = dezimal(S.z, S.n);
     const p = wert * 100, exakt = Math.abs(p * 100 - Math.round(p * 100)) < 1e-9;
     R('proz').innerHTML = (exakt ? '' : '≈ ') + zahlText(Math.round(p * 100) / 100, 2) + ' %';
-    R('erklaer').innerHTML = meldung || `${S.z} von ${S.n} gleich großen Teilen.`;
+    R('erklaer').innerHTML = meldung || (S.z <= S.n ? `${S.z} von ${S.n} gleich großen Teilen.` : `${S.z} Teile, jeder Kreis in ${S.n} gleich große Teile geteilt: mehr als ein Ganzes.`);
     root.dataset.bruch = `${S.z}/${S.n}`;
   }
   function lies(){
@@ -555,6 +636,7 @@ const DARSTELLEN = (() => {
     S.z *= f; S.n *= f; zeichne(`Erweitert mit ${f}: gleich viel vom Kreis, nur feiner geteilt.`);
   };
   R('erw2').onclick = erw(2); R('erw3').onclick = erw(3);
+  window.addEventListener('handy-wechsel', () => zeichne());
   zeichne();
   return { S, zeichne };
 })();
@@ -642,14 +724,16 @@ function rechnerLabor(root, op){
       zeilen.push([`passt ${ganz}-mal${rest ? ` und ${rest}/${C}-mal` : ''}: ${erg}`, C, stuecke(A, 'erg')]);
     }
     if (S.dein && S.dein[0] >= 0 && S.dein[1] > 0) zeilen.push([`dein Ergebnis ${t(S.dein[0], S.dein[1])}`, S.dein[1], stuecke(S.dein[0], 'dein')]);
-    const r = 26, hoehe = 63, W = 468;
+    // Beamer: Beschriftung links, Kreise rechts. Handy: Beschriftung über den Kreisen, schmales Bild.
+    const handy = document.documentElement.classList.contains('handy');
+    const r = handy ? 28 : 26, hoehe = handy ? 2 * r + 36 : 63, W = handy ? 340 : 468, xk = handy ? 0 : 215;
     let g = '', zuViel = false;
     zeilen.forEach(([text, N, teile], i) => {
-      const y = 30 + i * hoehe;
-      g += `<text class="klabel" x="0" y="${y + 5}">${text}</text>`;
+      const y = handy ? i * hoehe + 22 + r + 8 : 30 + i * hoehe, yt = handy ? i * hoehe + 18 : y + 5;
+      g += `<text class="klabel" x="0" y="${yt}">${text}</text>`;
       if (!N) return;
-      if (N > 60 || Math.ceil(teile.length / N) > 5) { g += `<text class="klabel2" x="215" y="${y + 5}">zu viele Teile für die Zeichnung</text>`; zuViel = true; return; }
-      g += kreise(N, teile, 215 + r, y, r, 2 * r + 10).svg;
+      if (N > 60 || Math.ceil(teile.length / N) > 5) { g += `<text class="klabel2" x="${xk}" y="${handy ? y : y + 5}">zu viele Teile für die Zeichnung</text>`; zuViel = true; return; }
+      g += kreise(N, teile, xk + r + 2, y, r, 2 * r + 10).svg;
     });
     R('bild').innerHTML = `<svg width="${W}" height="${zeilen.length * hoehe + 6}" viewBox="0 0 ${W} ${zeilen.length * hoehe + 6}">${g}</svg>`;
   }
@@ -725,6 +809,7 @@ function rechnerLabor(root, op){
   R('alle').onclick = () => { S.offen = L.schritte.length; zeichneWeg(); };
   R('kreis').onclick = () => { S.kreis = !S.kreis; zeichneKreise(); };
 
+  window.addEventListener('handy-wechsel', zeichneKreise);
   setze(...START[op]);
   return { S, setze, loesung: () => L };
 }
@@ -786,6 +871,41 @@ document.getElementById('zurueck').onclick = zurueck;
 stage.addEventListener('click', e=>{ if(!e.target.closest('a, button, input, select, .interaktiv')) vor(); });
 skalieren();
 zeige(parseInt(location.hash.slice(1)) - 1 || 0);
+</script>
+<script>
+/* =====================================================================
+   HANDY-SCHICHT — schaltet die Handy-Ansicht, wenn die Bühne 1280 × 720 zu stark
+   verkleinert würde (Maßstab unter 0,62: Handy hoch und quer, Tablet hochkant).
+   Muss NACH der Folien-Navigation des Rahmens stehen (nutzt stage, zeige, skalieren).
+   Meldet Wechsel mit dem Ereignis „handy-wechsel", damit Rechner neu zeichnen können.
+   ===================================================================== */
+(function(){
+  const html = document.documentElement;
+  const istHandy = () => Math.min(innerWidth / 1280, innerHeight / 720) < 0.62;
+  let vorher = null;
+  function pruefen(){
+    const h = istHandy();
+    html.classList.toggle('handy', h);
+    if (h) stage.style.transform = 'none';
+    else if (typeof skalieren === 'function') skalieren();
+    if (h !== vorher){ vorher = h; window.dispatchEvent(new CustomEvent('handy-wechsel', { detail: h })); }
+  }
+  addEventListener('resize', pruefen);
+  addEventListener('orientationchange', () => setTimeout(pruefen, 200));
+  pruefen();
+
+  // Neue Folie (und nur dann, nicht bei jedem Knopf): nach oben scrollen
+  const wach = new MutationObserver((liste) => {
+    if (!html.classList.contains('handy')) return;
+    if (liste.some((m) => m.target.classList.contains('aktiv') && !/\baktiv\b/.test(m.oldValue || ''))) window.scrollTo(0, 0);
+  });
+  document.querySelectorAll('.slide').forEach((f) => wach.observe(f, { attributes: true, attributeFilter: ['class'], attributeOldValue: true }));
+
+  // Beim Scrollen tippt man oft auf Text: auf dem Handy blättert ein Tipp nicht weiter
+  stage.addEventListener('click', (e) => {
+    if (html.classList.contains('handy') && !e.target.closest('a, button, input, select, textarea, label, .interaktiv')) e.stopPropagation();
+  }, true);
+})();
 </script>
 </body>
 </html>
