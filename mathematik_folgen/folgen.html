@@ -8,12 +8,19 @@
 <style>
 /* ==== HANDY-SCHICHT: technik/handy/handy.css ==== */
 /* =====================================================================
-   HANDY-SCHICHT für den Rahmen der Vorlagen (ds1 / Folgen).
+   HANDY-SCHICHT für den Rahmen der Vorlagen (ds1 / Folgen) — plus eine Regel für alle Ansichten:
+   zu viel Inhalt scrollt statt abgeschnitten zu werden.
    Greift nur, wenn handy.js <html class="handy"> setzt: Bildschirm zu klein für die
    Bühne 1280 × 720 (Handy, Tablet hochkant). Beamer, Laptop und Druck bleiben unberührt.
    Aus der Bühne wird eine scrollbare Seite pro Folie; Raster werden einspaltig,
    Schrift mindestens 14 px, Knöpfe mindestens 40 px (Finger).
    ===================================================================== */
+/* ---- Für ALLE Ansichten (auch Beamer): nie abschneiden. Passt der Inhalt einer Folie nicht,
+        scrollt der Inhaltsbereich; Kopf und Fuß bleiben stehen. ---- */
+#stage .slide .inhalt{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#C4DFF2 transparent;
+  margin-bottom:-10px}   /* bis an die Fußzeilenlinie: der freie Rand darüber gehört zum Inhalt (Folgen nutzt ihn) */
+@media print{#stage .slide .inhalt{overflow:visible}}            /* Druck: alles zeigen */
+
 html.handy, html.handy body{height:auto;overflow-x:hidden;overflow-y:auto}
 html.handy body{display:block;background:var(--papier)}
 html.handy #stage{width:100%;height:auto;transform:none!important}
@@ -30,7 +37,7 @@ html.handy h1{font-size:34px}
 html.handy h2, html.handy .slide.kompakt h2{font-size:25px}
 html.handy .eyebrow{font-size:14px;letter-spacing:.12em}
 html.handy .titelzeile, html.handy .slide.kompakt .titelzeile{margin-bottom:14px}
-html.handy .inhalt{display:block}
+html.handy .inhalt, html.handy #stage .slide .inhalt{display:block;overflow:visible;margin-bottom:0}   /* Handy: die Seite scrollt, nicht die Folie */
 html.handy .fuss{position:static;margin-top:22px;font-size:14px;gap:10px}
 html.handy p, html.handy li{font-size:17px}
 html.handy .klein, html.handy .hinweis{font-size:15px}

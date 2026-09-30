@@ -6,6 +6,65 @@
 <meta name="description" content="Brüche am Kreis sehen, dann addieren, subtrahieren, multiplizieren und dividieren: eigenes Ergebnis prüfen, Lösungsweg Schritt für Schritt.">
 <title>Bruchrechnung · Mathematik</title>
 <style>
+/* ==== HANDY-SCHICHT: technik/handy/handy.css ==== */
+/* =====================================================================
+   HANDY-SCHICHT für den Rahmen der Vorlagen (ds1 / Folgen) — plus eine Regel für alle Ansichten:
+   zu viel Inhalt scrollt statt abgeschnitten zu werden.
+   Greift nur, wenn handy.js <html class="handy"> setzt: Bildschirm zu klein für die
+   Bühne 1280 × 720 (Handy, Tablet hochkant). Beamer, Laptop und Druck bleiben unberührt.
+   Aus der Bühne wird eine scrollbare Seite pro Folie; Raster werden einspaltig,
+   Schrift mindestens 14 px, Knöpfe mindestens 40 px (Finger).
+   ===================================================================== */
+/* ---- Für ALLE Ansichten (auch Beamer): nie abschneiden. Passt der Inhalt einer Folie nicht,
+        scrollt der Inhaltsbereich; Kopf und Fuß bleiben stehen. ---- */
+#stage .slide .inhalt{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#C4DFF2 transparent;
+  margin-bottom:-10px}   /* bis an die Fußzeilenlinie: der freie Rand darüber gehört zum Inhalt (Folgen nutzt ihn) */
+@media print{#stage .slide .inhalt{overflow:visible}}            /* Druck: alles zeigen */
+
+html.handy, html.handy body{height:auto;overflow-x:hidden;overflow-y:auto}
+html.handy body{display:block;background:var(--papier)}
+html.handy #stage{width:100%;height:auto;transform:none!important}
+html.handy .slide{position:relative;inset:auto;display:none;min-height:100vh;border-radius:0;box-shadow:none;
+  padding:64px 14px 84px;transform:none;transition:none;overflow:visible}
+html.handy .slide.aktiv{display:flex}
+
+/* Kopf, Überschriften, Fuß */
+html.handy .kopf{height:48px;padding:0 12px;gap:10px}
+html.handy .kopf img{height:34px}
+html.handy .kopf .schule{font-size:14px;letter-spacing:.06em}
+html.handy .kopf .kurs{display:none}
+html.handy h1{font-size:34px}
+html.handy h2, html.handy .slide.kompakt h2{font-size:25px}
+html.handy .eyebrow{font-size:14px;letter-spacing:.12em}
+html.handy .titelzeile, html.handy .slide.kompakt .titelzeile{margin-bottom:14px}
+html.handy .inhalt, html.handy #stage .slide .inhalt{display:block;overflow:visible;margin-bottom:0}   /* Handy: die Seite scrollt, nicht die Folie */
+html.handy .fuss{position:static;margin-top:22px;font-size:14px;gap:10px}
+html.handy p, html.handy li{font-size:17px}
+html.handy .klein, html.handy .hinweis{font-size:15px}
+
+/* Titelfolie: untereinander */
+html.handy .slide.titel{display:none;grid-template-columns:1fr;padding:0}
+html.handy .slide.titel.aktiv{display:grid}
+html.handy .slide.titel .links{padding:40px 20px 24px}
+html.handy .slide.titel .rechts{padding:24px 0 90px;border-left:none;border-top:1px solid rgba(255,255,255,.16)}
+html.handy .slide.titel .unter{font-size:18px}
+html.handy .slide.titel .meta span{font-size:14px}
+html.handy .slide.titel .logokachel{border-radius:26px;padding:16px 18px}
+html.handy .slide.titel .logokachel img{width:110px}
+html.handy .slide.titel svg{max-width:100%;height:auto}
+
+/* Raster und Karten: einspaltig */
+html.handy .raster, html.handy .g2, html.handy .g3, html.handy .g4{grid-template-columns:1fr!important}
+html.handy .karte p, html.handy .karte li{font-size:16px}
+
+/* Finger: Knöpfe und Felder mindestens 40 px */
+html.handy .knopf{min-height:42px;min-width:42px;font-size:15.5px;padding:8px 14px}
+html.handy input, html.handy select{min-height:42px;font-size:16px}   /* 16 px: iOS zoomt sonst beim Tippen */
+html.handy #nav{right:10px;bottom:10px;padding:6px 8px;gap:6px}
+html.handy #nav button{width:42px;height:42px;font-size:18px}
+html.handy #zaehler{font-size:14px}
+html.handy svg{max-width:100%;height:auto}
+/* ==== /HANDY-SCHICHT ==== */
 :root{
   --blau:#136EA9;
   --blau-d:#0C4E79;
@@ -283,56 +342,6 @@ svg .frag{transform:none}
   .frag{opacity:1!important;transform:none!important}
   #nav,#fortschritt,#uebersicht{display:none!important}
 }
-/* =====================================================================
-   HANDY-SCHICHT für den Rahmen der Vorlagen (ds1 / Folgen).
-   Greift nur, wenn handy.js <html class="handy"> setzt: Bildschirm zu klein für die
-   Bühne 1280 × 720 (Handy, Tablet hochkant). Beamer, Laptop und Druck bleiben unberührt.
-   Aus der Bühne wird eine scrollbare Seite pro Folie; Raster werden einspaltig,
-   Schrift mindestens 14 px, Knöpfe mindestens 40 px (Finger).
-   ===================================================================== */
-html.handy, html.handy body{height:auto;overflow-x:hidden;overflow-y:auto}
-html.handy body{display:block;background:var(--papier)}
-html.handy #stage{width:100%;height:auto;transform:none!important}
-html.handy .slide{position:relative;inset:auto;display:none;min-height:100vh;border-radius:0;box-shadow:none;
-  padding:64px 14px 84px;transform:none;transition:none;overflow:visible}
-html.handy .slide.aktiv{display:flex}
-
-/* Kopf, Überschriften, Fuß */
-html.handy .kopf{height:48px;padding:0 12px;gap:10px}
-html.handy .kopf img{height:34px}
-html.handy .kopf .schule{font-size:14px;letter-spacing:.06em}
-html.handy .kopf .kurs{display:none}
-html.handy h1{font-size:34px}
-html.handy h2, html.handy .slide.kompakt h2{font-size:25px}
-html.handy .eyebrow{font-size:14px;letter-spacing:.12em}
-html.handy .titelzeile, html.handy .slide.kompakt .titelzeile{margin-bottom:14px}
-html.handy .inhalt{display:block}
-html.handy .fuss{position:static;margin-top:22px;font-size:14px;gap:10px}
-html.handy p, html.handy li{font-size:17px}
-html.handy .klein, html.handy .hinweis{font-size:15px}
-
-/* Titelfolie: untereinander */
-html.handy .slide.titel{display:none;grid-template-columns:1fr;padding:0}
-html.handy .slide.titel.aktiv{display:grid}
-html.handy .slide.titel .links{padding:40px 20px 24px}
-html.handy .slide.titel .rechts{padding:24px 0 90px;border-left:none;border-top:1px solid rgba(255,255,255,.16)}
-html.handy .slide.titel .unter{font-size:18px}
-html.handy .slide.titel .meta span{font-size:14px}
-html.handy .slide.titel .logokachel{border-radius:26px;padding:16px 18px}
-html.handy .slide.titel .logokachel img{width:110px}
-html.handy .slide.titel svg{max-width:100%;height:auto}
-
-/* Raster und Karten: einspaltig */
-html.handy .raster, html.handy .g2, html.handy .g3, html.handy .g4{grid-template-columns:1fr!important}
-html.handy .karte p, html.handy .karte li{font-size:16px}
-
-/* Finger: Knöpfe und Felder mindestens 40 px */
-html.handy .knopf{min-height:42px;min-width:42px;font-size:15.5px;padding:8px 14px}
-html.handy input, html.handy select{min-height:42px;font-size:16px}   /* 16 px: iOS zoomt sonst beim Tippen */
-html.handy #nav{right:10px;bottom:10px;padding:6px 8px;gap:6px}
-html.handy #nav button{width:42px;height:42px;font-size:18px}
-html.handy #zaehler{font-size:14px}
-html.handy svg{max-width:100%;height:auto}
 /* ---------- Bruchrechner ---------- */
 :root{
   /* Inhaltsfarben — bedeuten etwas, wandern nie */
@@ -872,7 +881,7 @@ stage.addEventListener('click', e=>{ if(!e.target.closest('a, button, input, sel
 skalieren();
 zeige(parseInt(location.hash.slice(1)) - 1 || 0);
 </script>
-<script>
+<script data-handy="technik/handy/handy.js">
 /* =====================================================================
    HANDY-SCHICHT — schaltet die Handy-Ansicht, wenn die Bühne 1280 × 720 zu stark
    verkleinert würde (Maßstab unter 0,62: Handy hoch und quer, Tablet hochkant).
@@ -906,6 +915,6 @@ zeige(parseInt(location.hash.slice(1)) - 1 || 0);
     if (html.classList.contains('handy') && !e.target.closest('a, button, input, select, textarea, label, .interaktiv')) e.stopPropagation();
   }, true);
 })();
-</script>
+</script><!-- /HANDY-SCHICHT -->
 </body>
 </html>
