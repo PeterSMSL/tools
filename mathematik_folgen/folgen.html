@@ -6,6 +6,58 @@
 <meta name="description" content="Das Folgenlabor: Glied für Glied Monotonie, Schranken und Grenzwert untersuchen, automatisch ausgewertet.">
 <title>Folgen und Grenzwerte · Mathematik</title>
 <style>
+/* ==== HANDY-SCHICHT: technik/handy/handy.css ==== */
+/* =====================================================================
+   HANDY-SCHICHT für den Rahmen der Vorlagen (ds1 / Folgen).
+   Greift nur, wenn handy.js <html class="handy"> setzt: Bildschirm zu klein für die
+   Bühne 1280 × 720 (Handy, Tablet hochkant). Beamer, Laptop und Druck bleiben unberührt.
+   Aus der Bühne wird eine scrollbare Seite pro Folie; Raster werden einspaltig,
+   Schrift mindestens 14 px, Knöpfe mindestens 40 px (Finger).
+   ===================================================================== */
+html.handy, html.handy body{height:auto;overflow-x:hidden;overflow-y:auto}
+html.handy body{display:block;background:var(--papier)}
+html.handy #stage{width:100%;height:auto;transform:none!important}
+html.handy .slide{position:relative;inset:auto;display:none;min-height:100vh;border-radius:0;box-shadow:none;
+  padding:64px 14px 84px;transform:none;transition:none;overflow:visible}
+html.handy .slide.aktiv{display:flex}
+
+/* Kopf, Überschriften, Fuß */
+html.handy .kopf{height:48px;padding:0 12px;gap:10px}
+html.handy .kopf img{height:34px}
+html.handy .kopf .schule{font-size:14px;letter-spacing:.06em}
+html.handy .kopf .kurs{display:none}
+html.handy h1{font-size:34px}
+html.handy h2, html.handy .slide.kompakt h2{font-size:25px}
+html.handy .eyebrow{font-size:14px;letter-spacing:.12em}
+html.handy .titelzeile, html.handy .slide.kompakt .titelzeile{margin-bottom:14px}
+html.handy .inhalt{display:block}
+html.handy .fuss{position:static;margin-top:22px;font-size:14px;gap:10px}
+html.handy p, html.handy li{font-size:17px}
+html.handy .klein, html.handy .hinweis{font-size:15px}
+
+/* Titelfolie: untereinander */
+html.handy .slide.titel{display:none;grid-template-columns:1fr;padding:0}
+html.handy .slide.titel.aktiv{display:grid}
+html.handy .slide.titel .links{padding:40px 20px 24px}
+html.handy .slide.titel .rechts{padding:24px 0 90px;border-left:none;border-top:1px solid rgba(255,255,255,.16)}
+html.handy .slide.titel .unter{font-size:18px}
+html.handy .slide.titel .meta span{font-size:14px}
+html.handy .slide.titel .logokachel{border-radius:26px;padding:16px 18px}
+html.handy .slide.titel .logokachel img{width:110px}
+html.handy .slide.titel svg{max-width:100%;height:auto}
+
+/* Raster und Karten: einspaltig */
+html.handy .raster, html.handy .g2, html.handy .g3, html.handy .g4{grid-template-columns:1fr!important}
+html.handy .karte p, html.handy .karte li{font-size:16px}
+
+/* Finger: Knöpfe und Felder mindestens 40 px */
+html.handy .knopf{min-height:42px;min-width:42px;font-size:15.5px;padding:8px 14px}
+html.handy input, html.handy select{min-height:42px;font-size:16px}   /* 16 px: iOS zoomt sonst beim Tippen */
+html.handy #nav{right:10px;bottom:10px;padding:6px 8px;gap:6px}
+html.handy #nav button{width:42px;height:42px;font-size:18px}
+html.handy #zaehler{font-size:14px}
+html.handy svg{max-width:100%;height:auto}
+/* ==== /HANDY-SCHICHT ==== */
 :root{
   --blau:#136EA9;
   --blau-d:#0C4E79;
@@ -283,6 +335,27 @@ svg .frag{transform:none}
   .frag{opacity:1!important;transform:none!important}
   #nav,#fortschritt,#uebersicht{display:none!important}
 }
+/* ==== NUR DIESE PRÄSENTATION ==== */
+/* ---------- Handy-Ansicht des Folgenlabors (html.handy, s. technik/handy/) ---------- */
+html.handy .labor{grid-template-columns:minmax(0,1fr);gap:12px}
+html.handy .labor > div{min-width:0}
+html.handy .plotrahmen{touch-action:auto;cursor:default}       /* sonst lässt sich über dem Diagramm nicht scrollen */
+html.handy .bereich{display:grid;grid-template-columns:auto minmax(0,1fr) 84px;align-items:center;gap:8px 10px;padding:8px 10px}
+html.handy .bereich b{text-align:center}
+html.handy .bereich input[type=text]{width:84px}
+html.handy .labspalte .knopfleiste{flex-wrap:wrap;gap:6px}
+html.handy .labspalte .knopfleiste .knopf.hell, html.handy .modus .knopf{font-size:15px}
+html.handy .eingabe .reihe{flex-wrap:wrap}
+html.handy .eingabe label{font-size:18px}
+html.handy .startname{font-size:15px}
+html.handy .fehler{font-size:15px}
+html.handy .erg h4{font-size:14px}
+html.handy .erg p{font-size:17px}                             /* Indizes (aₙ) bleiben so ≥ 14 px */
+html.handy .erg .klein{font-size:15px}
+html.handy .formelzeile .klein{font-size:17px}
+html.handy svg .tick{font-size:14px}
+html.handy .titelgraph svg{max-width:100%;height:auto}
+/* ==== /NUR DIESE PRÄSENTATION ==== */
 </style>
 </head>
 <body>
@@ -752,7 +825,7 @@ const BEISPIELE = [
 ];
 const labor = (function(){
   const B = id => document.getElementById(id);
-  const W = 720, H = 440, R = {l:58, r:18, o:26, u:40};
+  let W = 720, H = 440, R = {l:58, r:18, o:26, u:40};      // auf dem Handy schmaler, s. zeichne()
   const S = {rek:false, bis:30, eps:0.1, zeige:{mono:false, schr:false, grenz:false, schlauch:false}};
   const eps = () => S.eps;
   function auswahlFuellen(){
@@ -816,6 +889,10 @@ const labor = (function(){
   }
 
   function zeichne(){
+    // Handy: eigenes, schmales Diagramm statt verkleinertem (Achsenschrift bleibt lesbar)
+    const handy = document.documentElement.classList.contains('handy');
+    [W, H, R] = handy ? [360, 300, {l:46, r:10, o:22, u:36}] : [720, 440, {l:58, r:18, o:26, u:40}];
+    B('plot').setAttribute('width', W); B('plot').setAttribute('height', H); B('plot').setAttribute('viewBox', `0 0 ${W} ${H}`);
     const A = S.A, G = A.grenz, sch = A.schranken, bis = Math.max(S.n0 + 4, S.bis);
     const pts = A.T.filter(t=>t.n <= bis && isFinite(t.y));
     let ys = pts.map(t=>t.y);
@@ -894,6 +971,7 @@ const labor = (function(){
   };
   B('fEpsW').addEventListener('change', epsTippen);
   B('fEpsW').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); epsTippen(); } });
+  window.addEventListener('handy-wechsel', ()=>{ if(S.A) zeichne(); });
   setze(B('fEingabe').value);
   return {S, setze};
 })();
@@ -956,5 +1034,40 @@ stage.addEventListener('click', e=>{ if(!e.target.closest('a, button, input, sel
 skalieren();
 zeige(parseInt(location.hash.slice(1)) - 1 || 0);
 </script>
+<script data-handy="technik/handy/handy.js">
+/* =====================================================================
+   HANDY-SCHICHT — schaltet die Handy-Ansicht, wenn die Bühne 1280 × 720 zu stark
+   verkleinert würde (Maßstab unter 0,62: Handy hoch und quer, Tablet hochkant).
+   Muss NACH der Folien-Navigation des Rahmens stehen (nutzt stage, zeige, skalieren).
+   Meldet Wechsel mit dem Ereignis „handy-wechsel", damit Rechner neu zeichnen können.
+   ===================================================================== */
+(function(){
+  const html = document.documentElement;
+  const istHandy = () => Math.min(innerWidth / 1280, innerHeight / 720) < 0.62;
+  let vorher = null;
+  function pruefen(){
+    const h = istHandy();
+    html.classList.toggle('handy', h);
+    if (h) stage.style.transform = 'none';
+    else if (typeof skalieren === 'function') skalieren();
+    if (h !== vorher){ vorher = h; window.dispatchEvent(new CustomEvent('handy-wechsel', { detail: h })); }
+  }
+  addEventListener('resize', pruefen);
+  addEventListener('orientationchange', () => setTimeout(pruefen, 200));
+  pruefen();
+
+  // Neue Folie (und nur dann, nicht bei jedem Knopf): nach oben scrollen
+  const wach = new MutationObserver((liste) => {
+    if (!html.classList.contains('handy')) return;
+    if (liste.some((m) => m.target.classList.contains('aktiv') && !/\baktiv\b/.test(m.oldValue || ''))) window.scrollTo(0, 0);
+  });
+  document.querySelectorAll('.slide').forEach((f) => wach.observe(f, { attributes: true, attributeFilter: ['class'], attributeOldValue: true }));
+
+  // Beim Scrollen tippt man oft auf Text: auf dem Handy blättert ein Tipp nicht weiter
+  stage.addEventListener('click', (e) => {
+    if (html.classList.contains('handy') && !e.target.closest('a, button, input, select, textarea, label, .interaktiv')) e.stopPropagation();
+  }, true);
+})();
+</script><!-- /HANDY-SCHICHT -->
 </body>
 </html>
