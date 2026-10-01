@@ -594,6 +594,9 @@ folien.forEach((f,i)=>{
   stage.appendChild(el);
 });
 
+/* Streng lesen: nur ganze Zahlen (auch mit Minus). „1,5" oder „2a" ergeben NaN statt still 1 bzw. 2. */
+const ganz = t => /^\s*[-−]?\d+\s*$/.test(String(t)) ? parseInt(String(t).replace('−', '-'), 10) : NaN;
+
 /* =====================================================================
    Folie „Brüche darstellen"
    ===================================================================== */
@@ -629,7 +632,7 @@ const DARSTELLEN = (() => {
     root.dataset.bruch = `${S.z}/${S.n}`;
   }
   function lies(){
-    const z = parseInt(R('z').value, 10), n = parseInt(R('n').value, 10);
+    const z = ganz(R('z').value), n = ganz(R('n').value);
     const zOk = z >= 0 && z <= 999, nOk = n >= 1 && n <= 999;
     R('z').classList.toggle('falsch', !zOk); R('n').classList.toggle('falsch', !nOk);
     if (zOk && nOk) { S.z = z; S.n = n; zeichne(); }
@@ -750,7 +753,7 @@ function rechnerLabor(root, op){
   /* ---------- Prüfen ---------- */
   const gleich = (z1, n1, z2, n2) => z1 * n2 === z2 * n1;
   function pruefe(){
-    const ze = parseInt(R('ze').value, 10), ne = parseInt(R('ne').value, 10);
+    const ze = ganz(R('ze').value), ne = ganz(R('ne').value);
     const box = R('ze').closest('.bf');
     box.classList.remove('ok', 'nein');
     if (!Number.isInteger(ze) || !Number.isInteger(ne) || ne === 0){
@@ -779,7 +782,7 @@ function rechnerLabor(root, op){
 
   /* ---------- Eingabe der Aufgabe ---------- */
   function lies(){
-    const v = ['z1', 'n1', 'z2', 'n2'].map(r => parseInt(R(r).value, 10));
+    const v = ['z1', 'n1', 'z2', 'n2'].map(r => ganz(R(r).value));
     const ok = [v[0] >= 0 && v[0] <= 99, v[1] >= 1 && v[1] <= 99, v[2] >= (op === 'durch' ? 1 : 0) && v[2] <= 99, v[3] >= 1 && v[3] <= 99];
     ['z1', 'n1', 'z2', 'n2'].forEach((r, i) => R(r).classList.toggle('falsch', !ok[i]));
     if (!ok.every(Boolean)) return;
