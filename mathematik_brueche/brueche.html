@@ -1074,9 +1074,10 @@ const RE = (() => {
   /* ---------- Dokument ---------- */
   const texFertig = t => t.replace(/\*\*(.+?)\*\*/g, '\\textbf{$1}').replace(/ε/g, '\\ensuremath{\\varepsilon}');   // { tex } aus ausHtml: schon maskiert
   /* Markup-Absatz ('Text $…$ $$…$$ **fett**'): Text maskiert (%, &, _ … sonst schneidet pdflatex still ab), Formeln über mathe() */
-  const absatzTex = t => t.split(/(\$\$[\s\S]+?\$\$|\$[^$]+\$)/).map(s =>
-    /^\$\$[\s\S]+\$\$$/.test(s) ? `\n\\[ ${mathe(s.slice(2, -2))} \\]\n` : /^\$[^$]+\$$/.test(s) ? `\\(${mathe(s.slice(1, -1))}\\)`
-      : text(s).replace(/\*\*(.+?)\*\*/g, '\\textbf{$1}')).join('');
+  // Fett zuerst als Platzhalter (\u0001 … \u0002): **…** darf Formeln umschließen („**Eintauchzahl $N = 10$**“)
+  const absatzTex = t => t.replace(/\*\*([\s\S]+?)\*\*/g, '\u0001$1\u0002').split(/(\$\$[\s\S]+?\$\$|\$[^$]+\$)/).map(s =>
+    /^\$\$[\s\S]+\$\$$/.test(s) ? `\n\\[ ${mathe(s.slice(2, -2))} \\]\n` : /^\$[^$]+\$$/.test(s) ? `\\(${mathe(s.slice(1, -1))}\\)` : text(s))
+    .join('').replace(/\u0001/g, '\\textbf{').replace(/\u0002/g, '}');
   /* ---------- Marke: Name und Logo aus der Kopfleiste der Seite ---------- */
   const MITTE = 'Musterlösung';
   const marke = () => ({ name: ((document.querySelector('.kopf .schule') || {}).textContent || '').trim(),

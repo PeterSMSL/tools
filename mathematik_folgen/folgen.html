@@ -938,9 +938,10 @@ const RE = (() => {
   /* ---------- Dokument ---------- */
   const texFertig = t => t.replace(/\*\*(.+?)\*\*/g, '\\textbf{$1}').replace(/ε/g, '\\ensuremath{\\varepsilon}');   // { tex } aus ausHtml: schon maskiert
   /* Markup-Absatz ('Text $…$ $$…$$ **fett**'): Text maskiert (%, &, _ … sonst schneidet pdflatex still ab), Formeln über mathe() */
-  const absatzTex = t => t.split(/(\$\$[\s\S]+?\$\$|\$[^$]+\$)/).map(s =>
-    /^\$\$[\s\S]+\$\$$/.test(s) ? `\n\\[ ${mathe(s.slice(2, -2))} \\]\n` : /^\$[^$]+\$$/.test(s) ? `\\(${mathe(s.slice(1, -1))}\\)`
-      : text(s).replace(/\*\*(.+?)\*\*/g, '\\textbf{$1}')).join('');
+  // Fett zuerst als Platzhalter (\u0001 … \u0002): **…** darf Formeln umschließen („**Eintauchzahl $N = 10$**“)
+  const absatzTex = t => t.replace(/\*\*([\s\S]+?)\*\*/g, '\u0001$1\u0002').split(/(\$\$[\s\S]+?\$\$|\$[^$]+\$)/).map(s =>
+    /^\$\$[\s\S]+\$\$$/.test(s) ? `\n\\[ ${mathe(s.slice(2, -2))} \\]\n` : /^\$[^$]+\$$/.test(s) ? `\\(${mathe(s.slice(1, -1))}\\)` : text(s))
+    .join('').replace(/\u0001/g, '\\textbf{').replace(/\u0002/g, '}');
   /* ---------- Marke: Name und Logo aus der Kopfleiste der Seite ---------- */
   const MITTE = 'Musterlösung';
   const marke = () => ({ name: ((document.querySelector('.kopf .schule') || {}).textContent || '').trim(),
@@ -1961,6 +1962,218 @@ const RECHNUNG = (() => {
     const k = alsBruch(y1 / Math.pow(m, qw(p))); if (!k) return null;
     return Math.max(n0, 1) === n0 && pruefe(f, n0, n => qw(k) * Math.pow(n, qw(p))) ? { art: 'potenz', k, p } : null;
   }
+  /* ---------- gebrochen-rational: aₙ = p(n)/q(n) (05.10.) ----------
+     Aus dem eingelesenen Baum exakt mit Brüchen gebaut, über den ggT der Polynome gekürzt, dann ganzzahlig.
+     „Für alle n ≥ n0“ wird exakt gezeigt: Oberhalb der Nullstellenschranke (Fujiwara) hat ein Polynom das Vorzeichen
+     seines Leitkoeffizienten, darunter wird jede ganze Stelle mit BigInt nachgerechnet. */
+  const qAdd = (a, b) => Q(a.z * b.n + b.z * a.n, a.n * b.n);
+  const pNorm = p => { p = p.slice(); while (p.length > 1 && p[p.length - 1].z === 0) p.pop(); return p; };
+  const pGrad = p => { p = pNorm(p); return p.length === 1 && p[0].z === 0 ? -1 : p.length - 1; };
+  const pAdd = (a, b) => pNorm([...Array(Math.max(a.length, b.length))].map((_, i) => qAdd(a[i] || Q(0), b[i] || Q(0))));
+  const pMul = (a, b) => { const r = [...Array(a.length + b.length - 1)].map(() => Q(0));
+    a.forEach((x, i) => b.forEach((y, j) => { r[i + j] = qAdd(r[i + j], qMul(x, y)); })); return pNorm(r); };
+  const pSkal = (p, k) => pNorm(p.map(x => qMul(x, k)));
+  function pTeile(a, b){                                         // → [Quotient, Rest]
+    a = pNorm(a); const gb = pGrad(b), qu = [...Array(Math.max(1, pGrad(a) - gb + 1))].map(() => Q(0));
+    while (pGrad(a) >= gb && pGrad(a) >= 0){
+      const ga = pGrad(a), f = qDiv(a[ga], b[gb]), r = a.slice(); qu[ga - gb] = f;
+      for (let i = 0; i <= gb; i++) r[i + ga - gb] = qSub(r[i + ga - gb], qMul(f, b[i]));
+      a = pNorm(r);
+    }
+    return [pNorm(qu), a];
+  }
+  function pGgt(a, b){ while (pGrad(b) >= 0) [a, b] = [b, pTeile(a, b)[1]]; return a; }
+  function rational(k){                                          // Baum → { p, q } (Brüche) oder null
+    const R = (p, q = [Q(1)]) => (p.length > 9 || q.length > 9 ? null : { p, q });
+    switch (k.t){
+      case 'num': { if (k.name) return null; const b = alsBruch(k.v, 1e6); return b ? R([b]) : null; }
+      case 'x': return R([Q(0), Q(1)]);
+      case 'neg': { const a = rational(k.a); return a && R(pSkal(a.p, Q(-1)), a.q); }
+      case '+': case '-': { const a = rational(k.a), b = rational(k.b); if (!a || !b) return null;
+        return R(pAdd(pMul(a.p, b.q), pMul(k.t === '-' ? pSkal(b.p, Q(-1)) : b.p, a.q)), pMul(a.q, b.q)); }
+      case '*': { const a = rational(k.a), b = rational(k.b); return a && b ? R(pMul(a.p, b.p), pMul(a.q, b.q)) : null; }
+      case '/': { const a = rational(k.a), b = rational(k.b); return a && b && pGrad(b.p) >= 0 ? R(pMul(a.p, b.q), pMul(a.q, b.p)) : null; }
+      case '^': { if (k.b.t !== 'num' || k.b.name || !Number.isInteger(k.b.v) || Math.abs(k.b.v) > 6) return null;
+        const a = rational(k.a); if (!a) return null; let r = { p: [Q(1)], q: [Q(1)] };
+        for (let i = 0; i < Math.abs(k.b.v); i++){ r = R(pMul(r.p, a.p), pMul(r.q, a.q)); if (!r) return null; }
+        return k.b.v < 0 ? (pGrad(r.p) < 0 ? null : R(r.q, r.p)) : r; }
+    }
+    return null;
+  }
+  /* ganzzahlige Polynome (Koeffizienten als Zahl, Index = Hochzahl) */
+  const B2 = x => BigInt(x);
+  const pWertB = (r, n) => r.reduceRight((s, c) => s * B2(n) + B2(c), 0n);
+  const binom = (i, j) => { let r = 1; for (let t = 1; t <= j; t++) r = r * (i - t + 1) / t; return r; };
+  const pVerschoben = p => p.map((_, j) => p.reduce((s, c, i) => i >= j ? s + c * binom(i, j) : s, 0));   // p(n + 1)
+  const iKurz = r => { r = r.slice(); while (r.length > 1 && r[r.length - 1] === 0) r.pop(); return r; };
+  const iMul = (a, b) => { const r = Array(a.length + b.length - 1).fill(0); a.forEach((x, i) => b.forEach((y, j) => { r[i + j] += x * y; })); return iKurz(r); };
+  const iSub = (a, b) => iKurz([...Array(Math.max(a.length, b.length))].map((_, i) => (a[i] || 0) - (b[i] || 0)));
+  const sicher = r => r.every(c => Number.isSafeInteger(c));
+  function schranke(r){                                          // alle reellen Nullstellen liegen unter dieser Zahl (Fujiwara)
+    const d = r.length - 1, ld = Math.abs(r[d]); let m = 0;
+    for (let i = 0; i < d; i++) if (r[i]) m = Math.max(m, (Math.abs(r[i]) / ld / (i === 0 ? 2 : 1)) ** (1 / (d - i)));
+    return Math.ceil(2 * m) + 1;
+  }
+  /* Ab welcher Stelle (≥ n0) hat r(n) für immer das Vorzeichen s seines Leitkoeffizienten? null: zu weit zum Nachrechnen */
+  function abVorzeichen(r, n0){
+    if (!sicher(r)) return null;
+    const d = r.length - 1, s = Math.sign(r[d]), M = Math.max(n0, schranke(r));
+    if (M - n0 > 3e6) return null;
+    let ab = n0, abSchwach = n0;                                 // ab: streng (≠ 0, Vorzeichen s); abSchwach: nur kein Gegenvorzeichen
+    for (let n = n0; n <= M; n++){ const v = pWertB(r, n), sg = v > 0n ? 1 : v < 0n ? -1 : 0; if (sg !== s) ab = n + 1; if (sg === -s) abSchwach = n + 1; }
+    return { s, ab, abSchwach };
+  }
+  function polyTex(r){
+    let t = '';
+    for (let i = r.length - 1; i >= 0; i--){ const c = r[i]; if (!c) continue; const a = Math.abs(c), x = i === 0 ? '' : i === 1 ? 'n' : `n^{${i}}`;
+      t += (c < 0 ? (t ? ' - ' : '-') : (t ? ' + ' : '')) + (a === 1 && x ? '' : a) + x; }
+    return t || '0';
+  }
+  const ggtB = (a, b) => { a = a < 0n ? -a : a; b = b < 0n ? -b : b; while (b) [a, b] = [b, a % b]; return a || 1n; };
+  const bruchB = (z, n) => { if (n < 0n){ z = -z; n = -n; } const g = ggtB(z, n); return [z / g, n / g]; };
+  const texB = ([z, n], d = true) => n === 1n ? String(z) : `${z < 0n ? '-' : ''}\\${d ? 'dfrac' : 'frac'}{${z < 0n ? -z : z}}{${n}}`;
+  const vglB = ([a, b], [c, d]) => a * d - c * b;               // Vorzeichen von x − y (Nenner positiv)
+  function rationalErkennen(baum, n0){
+    const r = rational(baum); if (!r) return null;
+    const g = pGgt(r.p, r.q), P = pTeile(r.p, g)[0], Qn = pTeile(r.q, g)[0];
+    if (pGrad(Qn) < 0) return null;
+    const L = [...P, ...Qn].reduce((l, x) => kgv(l, x.n), 1);
+    let p = P.map(x => x.z * L / x.n), q = Qn.map(x => x.z * L / x.n);
+    const t = [...p, ...q].reduce((a, b) => ggt(a, b), 0) || 1; p = p.map(c => c / t); q = q.map(c => c / t);
+    if (q[q.length - 1] < 0){ p = p.map(c => -c); q = q.map(c => -c); }
+    if (!sicher([...p, ...q]) || [...p, ...q].some(c => Math.abs(c) > 1e9)) return null;
+    const V = abVorzeichen(q, n0); if (!V || V.s < 0 || V.ab !== n0) return null;   // Nenner für alle n ≥ n0 positiv
+    return { art: 'rational', p, q };
+  }
+  const gleichTex = (a, b) => { const n = t => t.replace(/\\[dt]?frac/g, 'frac').replace(/\\left|\\right|\\cdot|[\s{}()]/g, ''); return n(a) === n(b); };
+  /* Polynom mit n + 1 statt n, noch nicht ausmultipliziert: 2(n + 1)^{2} - (n + 1) + 3 */
+  function ersetzt(r){
+    let t = '';
+    for (let i = r.length - 1; i >= 0; i--){ const c = r[i]; if (!c) continue; const a = Math.abs(c), x = i === 0 ? '' : i === 1 ? '(n + 1)' : `(n + 1)^{${i}}`;
+      t += (c < 0 ? (t ? ' - ' : '-') : (t ? ' + ' : '')) + (a === 1 && x ? '' : a) + x; }
+    return t === '(n + 1)' ? 'n + 1' : t || '0';
+  }
+  function rationalText(R, e, eingabe){
+    const { p, q, n0 } = R, T = { folge: [], mono: [], schr: [], grenz: [], eps: [] };
+    const dp = p.length - 1, dq = q.length - 1, pl = p[dp], ql = q[dq], an = n => bruchB(pWertB(p, n), pWertB(q, n));
+    const bruch = dq === 0 && ql === 1 ? polyTex(p) : `\\dfrac{${polyTex(p)}}{${polyTex(q)}}`;
+    T.folge.push(`Gegeben ist $a_{n} = ${eingabe}$ für $n \\ge ${n0}$: eine **gebrochen-rationale Folge** (Polynom durch Polynom)`
+      + (gleichTex(eingabe, bruch) ? '.' : `, gekürzt als ein Bruch $$a_{n} = ${bruch}$$`));
+    T.folge.push('Die ersten Glieder: ' + glieder(n0, n => texB(an(n), false)));
+    // Monotonie: Zähler von aₙ₊₁ − aₙ
+    const z = iSub(iMul(pVerschoben(p), q), iMul(p, pVerschoben(q)));
+    let mono;
+    if (z.length === 1 && z[0] === 0){ mono = { art: 'konst', ab: n0 }; T.mono.push(`Alle Glieder sind gleich, $a_{n} = ${texB(an(n0))}$: die Folge ist **konstant**.`); }
+    else {
+      const V = abVorzeichen(z, n0); if (!V) return null;
+      mono = { art: V.s > 0 ? 'steigt' : 'faellt', ab: V.abSchwach };   // für die Schranken zählt, ab wann es nicht mehr zurückgeht
+      // Schritt für Schritt (Peter, 05.10.: „der Hauptnenner soll nicht vom Himmel fallen“)
+      const p1 = pVerschoben(p), q1 = pVerschoben(q), P0 = polyTex(p), P1 = polyTex(p1), Q0 = polyTex(q), Q1 = polyTex(q1);
+      T.mono.push('Zuerst $a_{n+1}$: In $a_{n}$ wird $n$ durch $n + 1$ ersetzt und ausmultipliziert.');
+      if (dq === 0){
+        const dd = iSub(p1, p), durch = ql === 1 ? '' : `\\dfrac{1}{${ql}} \\cdot `;
+        T.mono.push(`$$a_{n+1} = ${durch}${ql === 1 ? '' : '\\big('}${ersetzt(p)}${ql === 1 ? '' : '\\big)'} = ${durch}${ql === 1 ? P1 : `(${P1})`}$$`);
+        T.mono.push('Dann die Differenz zweier aufeinanderfolgender Glieder:');
+        T.mono.push(`$$\\begin{aligned} a_{n+1} - a_{n} &= ${durch}\\big((${P1}) - (${P0})\\big) \\\\ &= ${ql === 1 ? polyTex(dd) : `\\dfrac{${polyTex(dd)}}{${ql}}`} \\end{aligned}$$`);
+      } else {
+        const A = iMul(p1, q), Bm = iMul(p, q1), hn = `${kl(Q1)} \\cdot ${kl(Q0)}`;
+        T.mono.push(`$$a_{n+1} = \\dfrac{${ersetzt(p)}}{${ersetzt(q)}} = \\dfrac{${P1}}{${Q1}}$$`);
+        T.mono.push('Dann die Differenz zweier aufeinanderfolgender Glieder:');
+        T.mono.push(`$$a_{n+1} - a_{n} = \\dfrac{${P1}}{${Q1}} - \\dfrac{${P0}}{${Q0}}$$`);
+        T.mono.push(`**Hauptnenner** ist das Produkt der beiden Nenner, $${hn}$. Jeder Bruch wird mit dem Nenner des anderen erweitert:`);
+        T.mono.push(`$$a_{n+1} - a_{n} = \\dfrac{${kl(P1)} \\cdot ${kl(Q0)} - ${kl(P0)} \\cdot ${kl(Q1)}}{${hn}}$$`);
+        T.mono.push('Im Zähler beide Produkte ausmultiplizieren:');
+        T.mono.push(`$$\\begin{aligned} ${kl(P1)} \\cdot ${kl(Q0)} &= ${polyTex(A)} \\\\ ${kl(P0)} \\cdot ${kl(Q1)} &= ${polyTex(Bm)} \\end{aligned}$$`);
+        T.mono.push(`Der Zähler ist die Differenz: $(${polyTex(A)}) - (${polyTex(Bm)}) = ${polyTex(z)}$. Also`);
+        T.mono.push(`$$a_{n+1} - a_{n} = \\dfrac{${polyTex(z)}}{${hn}}$$`);
+      }
+      const steigt = V.s > 0, zz = dq === 0 ? iSub(pVerschoben(p), p) : z;   // der angezeigte Zähler (bei Polynomen ohne den Faktor ql)
+      T.mono.push((dq === 0 ? (ql === 1 ? 'Das Vorzeichen: ' : `Der Nenner $${ql}$ ist positiv, das Vorzeichen bestimmt der Zähler. `) : `Der Nenner ist für $n \\ge ${n0}$ positiv, das Vorzeichen bestimmt der Zähler. `)
+        + `$${polyTex(zz)}$ ist ${V.ab === n0 ? `für alle $n \\ge ${n0}$` : `ab $n = ${V.ab}$`} ${steigt ? 'positiv' : 'negativ'}`
+        + (zz.length > 1 ? ` (für große $n$ entscheidet der Leitkoeffizient $${zz[zz.length - 1]}$, die kleinen $n$ sind einzeln nachgerechnet)` : '')
+        + (V.ab === n0 ? `. Also ist die Folge **streng monoton ${steigt ? 'steigend' : 'fallend'}**.`
+          : V.abSchwach === n0 ? `; davor ist er nie ${steigt ? 'negativ' : 'positiv'}, nur an einzelnen Stellen $0$ (dort sind zwei Glieder gleich). Also ist die Folge **monoton ${steigt ? 'steigend' : 'fallend'}** (nicht streng; ab $n = ${V.ab}$ sogar streng).`
+          : `. Also ist die Folge **ab $n = ${V.ab}$ streng monoton ${steigt ? 'steigend' : 'fallend'}**, davor nicht durchgehend.`));
+    }
+    // Grenzwert: durch die höchste Potenz des Nenners teilen
+    const geteilt = r => { const s = [];
+      for (let i = r.length - 1; i >= 0; i--){ const c = r[i]; if (!c) continue; const k = i - dq, a = Math.abs(c);
+        const glied = k === 0 ? `${a}` : k > 0 ? `${a === 1 ? '' : a}n${k === 1 ? '' : `^{${k}}`}` : `\\dfrac{${a}}{n${-k === 1 ? '' : `^{${-k}}`}}`;
+        s.push(`${c < 0 ? '- ' : s.length ? '+ ' : ''}${glied}`); }
+      return s.join(' ') || '0'; };
+    const hoch = dq === 0 ? '' : `n${dq === 1 ? '' : `^{${dq}}`}`;
+    let g = null;
+    if (dq > 0) T.grenz.push(`Zähler und Nenner durch die höchste Potenz des Nenners, $${hoch}$, teilen:`);
+    const dar = `\\dfrac{${geteilt(p)}}{${geteilt(q)}}`;
+    if (dp < dq){ g = Q(0); T.grenz.push(`$$a_{n} = ${dar} \\xrightarrow{\\;n \\to \\infty\\;} \\dfrac{0}{${ql}} = 0$$`);
+      T.grenz.push('Alle Summanden mit $n$ im Nenner gehen gegen $0$: eine **Nullfolge**, $g = 0$.'); }
+    else if (dp === dq){ g = Q(pl, ql);
+      if (dq > 0) T.grenz.push(`$$a_{n} = ${dar} \\xrightarrow{\\;n \\to \\infty\\;} \\dfrac{${pl}}{${ql}}${g.n !== ql || g.z !== pl ? ` = ${tq(g)}` : ''}$$`);
+      T.grenz.push(dq > 0 ? `Alle Summanden mit $n$ im Nenner gehen gegen $0$: **konvergent**, Grenzwert $g = ${tq(g)}$.` : `Konstant: Grenzwert $${tq(g)}$.`); }
+    else T.grenz.push((dq > 0 ? `$$a_{n} = ${dar}$$ ` : '') + `Im Zähler bleibt eine Potenz von $n$ stehen${dq > 0 ? `, der Nenner geht gegen $${ql}$` : ''}: **bestimmt divergent**, $a_{n} \\to ${pl > 0 ? '+' : '-'}\\infty$.`);
+    // Schranken: endlich viele Glieder bis zum Beginn des monotonen Teils, danach monoton
+    const ab = mono.ab; if (ab - n0 > 5000) return null;
+    const vorn = [...Array(ab - n0 + 1)].map((_, i) => [n0 + i, an(n0 + i)]);
+    const max = vorn.reduce((m, x) => vglB(x[1], m[1]) > 0n ? x : m), min = vorn.reduce((m, x) => vglB(x[1], m[1]) < 0n ? x : m);
+    const gl = x => `$a_{${x[0]}} = ${texB(x[1])}$`;
+    if (mono.art === 'konst') T.schr.push('Konstant, also beschränkt.');
+    else if (g){ const gB = [B2(g.z), B2(g.n)], steigt = mono.art === 'steigt';
+      const oben = steigt ? (vglB(max[1], gB) >= 0n ? max : null) : max, unten = steigt ? min : (vglB(min[1], gB) <= 0n ? min : null);
+      T.schr.push((ab > n0 ? `Bis $n = ${ab}$ sind es endlich viele Glieder, danach läuft die Folge monoton auf $g = ${tq(g)}$ zu. ` : `Die Folge läuft monoton auf $g = ${tq(g)}$ zu. `)
+        + `Kleinste obere Schranke: ${oben ? gl(oben) : `$g = ${tq(g)}$ (wird nie erreicht)`}, größte untere Schranke: ${unten ? gl(unten) : `$g = ${tq(g)}$ (wird nie erreicht)`}. Also`
+        + `$$${unten ? texB(unten[1]) : tq(g)} ${unten ? '\\le' : '<'} a_{n} ${oben ? '\\le' : '<'} ${oben ? texB(oben[1]) : tq(g)}$$ **Beschränkt.**`);
+    } else T.schr.push(pl > 0 ? `Nach unten beschränkt durch das kleinste Glied ${gl(min)}, nach oben **unbeschränkt**.` : `Nach oben beschränkt durch das größte Glied ${gl(max)}, nach unten **unbeschränkt**.`);
+    // ε-Schlauch: |aₙ − g| = |r(n)|/D(n) < ε  ⇔  ε·D(n) − r(n) > 0  und  ε·D(n) + r(n) > 0
+    let N = null;
+    if (g && mono.art !== 'konst'){
+      const r = iSub(p.map(c => c * g.n), q.map(c => c * g.z)), D = q.map(c => c * g.n);
+      const h1 = iSub(D.map(c => c * e.z), r.map(c => c * e.n)), h2 = iSub(D.map(c => c * e.z), r.map(c => -c * e.n));
+      const V1 = abVorzeichen(h1, n0), V2 = abVorzeichen(h2, n0); if (!V1 || !V2 || V1.s < 0 || V2.s < 0) return null;
+      N = Math.max(V1.ab, V2.ab);
+      const abst = n => { const [x, y] = an(n), d = x * B2(g.n) - B2(g.z) * y; return bruchB(d < 0n ? -d : d, y * B2(g.n)); };
+      T.eps.push(`Gesucht ist das kleinste $N$, ab dem alle Glieder im Schlauch $|a_{n} - g| < \\varepsilon$ liegen, hier mit $\\varepsilon = ${dez(e)}$. Der Abstand zum Grenzwert:`);
+      if (g.z === 0) T.eps.push(`$$a_{n} - g = ${bruch} - 0 = ${bruch}$$`);
+      else {                                                    // auf den Hauptnenner: g = gz/gn, erweitern mit gn bzw. q(n)
+        const P0 = polyTex(p), Q0 = polyTex(q), mitN = g.n === 1 ? kl(P0) : `${g.n} \\cdot ${kl(P0)}`, nen = g.n === 1 ? Q0 : `${g.n} \\cdot ${kl(Q0)}`;
+        T.eps.push(`$$\\begin{aligned} a_{n} - g &= \\dfrac{${P0}}{${Q0}} - ${tqK(g)} \\\\ &= \\dfrac{${mitN} - ${g.z === 1 ? '' : g.z < 0 ? `(${g.z}) \\cdot ` : `${g.z} \\cdot `}${kl(Q0)}}{${nen}} \\\\ &= \\dfrac{${polyTex(r)}}{${polyTex(D)}} \\end{aligned}$$`);
+      }
+      // Schritt für Schritt, wo es geht: Betrag auflösen (Zähler wechselt das Vorzeichen nicht), malnehmen, lineare oder
+      // quadratische Ungleichung lösen. Die exakte Rechnung (N oben) ist die Kontrolle – passt die Lösung nicht, bleibt der kurze Satz.
+      const Vr = abVorzeichen(r, n0);
+      let schritte = null;
+      if (Vr && Vr.ab === n0 && Vr.abSchwach === n0){
+        const rAbs = Vr.s > 0 ? r : r.map(c => -c), h = iSub(D.map(c => c * e.z), rAbs.map(c => c * e.n)), dh = h.length - 1;
+        const RA = polyTex(rAbs), DD = polyTex(D), epsMal = e.z === 1 ? '' : `${e.z} \\cdot `;
+        const kette = `\\begin{aligned} \\dfrac{${RA}}{${DD}} &< ${dez(e)} \\\\ \\Leftrightarrow \\quad ${RA} &< ${dez(e)} \\cdot ${kl(DD)} \\\\ `
+          + (e.n !== 1 ? `\\Leftrightarrow \\quad ${e.n} \\cdot ${kl(RA)} &< ${epsMal ? epsMal + kl(DD) : DD} \\\\ ` : '') + `\\Leftrightarrow \\quad 0 &< ${polyTex(h)} \\end{aligned}`;
+        let loes = null;
+        if (dh === 1){ const x = Q(-h[0], h[1]), Nx = Math.max(n0, Math.floor(qw(x)) + 1);
+          if (Nx === N) loes = `$$n > ${tq(x)}${x.n !== 1 ? ` \\approx ${zahlTex(qw(x), 2)}` : ''}$$`; }
+        else if (dh === 2){ const [c0, b1, a2] = h, disc = b1 * b1 - 4 * a2 * c0;
+          if (disc > 0){ const x2 = (-b1 + Math.sqrt(disc)) / (2 * a2), Nx = Math.max(n0, Math.floor(x2 + 1e-9) + 1);
+            const wurzel = a2 === 1 && b1 % 2 === 0 ? `${b1 ? `${-b1 / 2} + ` : ''}\\sqrt{${b1 * b1 / 4 - c0}}` : `\\dfrac{${b1 ? `${-b1} + ` : ''}\\sqrt{${disc}}}{${2 * a2}}`;
+            if (Nx === N) loes = `Die Nullstellen von $${polyTex(h)}$ (Mitternachtsformel): Die Parabel ist nach oben offen, positiv also rechts der größeren Nullstelle$$n > ${wurzel} \\approx ${zahlTex(x2, 2)}$$`; } }
+        if (loes) schritte = [`Für $n \\ge ${n0}$ ist der Zähler $${polyTex(r)}$ ${Vr.s > 0 ? 'positiv' : 'negativ'}, also $|a_{n} - g| = \\dfrac{${RA}}{${DD}}$. Die Bedingung, mit dem positiven Nenner${e.n !== 1 ? ` und mit $${e.n}$` : ''} malgenommen:`, `$$${kette}$$`, loes];
+      }
+      if (schritte) T.eps.push(...schritte);
+      else T.eps.push(`Mit dem positiven Nenner heißt $|a_{n} - g| < \\varepsilon$: $$${dez(e)} \\cdot ${kl(polyTex(D))} - \\left|${polyTex(r)}\\right| > 0$$ `
+        + 'Für große $n$ gilt das sicher (der Nenner hat den höheren Grad), die kleinen $n$ sind einzeln nachgerechnet.');
+      T.eps.push(`Die kleinste Zahl, ab der es für alle $n$ gilt: **Eintauchzahl $N = ${N}$**. Probe: $|a_{${N}} - g| = ${texB(abst(N), false)} < ${dez(e)}$`
+        + (N - 1 >= n0 ? `, aber $|a_{${N - 1}} - g| = ${texB(abst(N - 1), false)} \\ge ${dez(e)}$.` : '.'));
+    } else if (g){ N = n0; T.eps.push('Konstant: Alle Glieder liegen in jedem Schlauch.'); }
+    else T.eps.push('Kein Grenzwert – also kein ε-Schlauch.');
+    return { T, N, g: g ? qw(g) : null, art: 'Bauart: gebrochen-rational, exakt gerechnet' };
+  }
+  /* g + k·qⁿ mit g ≠ 0 (z. B. 1 − (1/2)ⁿ): die Differenzen sind geometrisch */
+  function geoVerschoben(f, n0){
+    const y = [1, 2, 3].map(i => f(n0 + i)); if (y.some(v => !Number.isFinite(v))) return null;
+    const d0 = y[1] - y[0], d1 = y[2] - y[1]; if (d0 === 0) return null;
+    const q = alsBruch(d1 / d0); if (!q || q.z === 0 || q.z === q.n) return null;
+    const k = alsBruch(d0 / (Math.pow(qw(q), n0 + 1) * (qw(q) - 1))); if (!k || k.z === 0) return null;
+    const g = alsBruch(y[0] - qw(k) * Math.pow(qw(q), n0 + 1)); if (!g || g.z === 0) return null;
+    return pruefe(f, n0, n => qw(g) + qw(k) * Math.pow(qw(q), n)) ? { art: 'geometrisch', g, k, q } : null;
+  }
+
   function erkenne(S){
     if (S.rek){
       const s = werte(S.baum), q = alsBruch(s(0, 1) - s(0, 0)), c = alsBruch(s(0, 0)), a0 = alsBruch(S.f(0));
@@ -1970,11 +2183,12 @@ const RECHNUNG = (() => {
     }
     const f = S.f, n0 = S.A.def[0].n;
     const G = gebrochen(f, n0); if (G) return { ...G, n0 };
-    const E = geometrisch(f, n0); if (E) return { ...E, n0 };
+    const E = geometrisch(f, n0) || geoVerschoben(f, n0); if (E) return { ...E, n0 };
     const P = potenz(f, n0); if (P) return { ...P, n0 };
     const alt = n => f(n) * (n % 2 ? -1 : 1);                                   // (−1)ⁿ · Nullfolge
     const I = gebrochen(alt, n0) || potenz(alt, n0);
     if (I && ((I.art === 'gebrochen' && I.a === 0) || (I.art === 'potenz' && qw(I.p) < 0))) return { art: 'alternierend', inner: { ...I, n0 }, n0 };
+    const Ra = rationalErkennen(S.baum, n0); if (Ra) return { ...Ra, n0 };
     return null;
   }
 
@@ -2063,7 +2277,8 @@ const RECHNUNG = (() => {
       T.folge.push(`Gegeben ist $a_{n+1} = ${eingabe}$ mit $a_{0} = ${tq(R.a0)}$: also $a_{n+1} = ${tqK(R.q)}\\, a_{n} ${R.c.z < 0 ? '-' : '+'} ${tq(qAbs(R.c))}$.`);
       T.folge.push(`Der **Fixpunkt** $g$ erfüllt $g = ${tqK(R.q)}\\, g ${R.c.z < 0 ? '-' : '+'} ${tq(qAbs(R.c))}$, also $g = \\dfrac{${tq(R.c, false)}}{1 - ${tqK(R.q)}} = ${tq(g)}$. Der Abstand zum Fixpunkt wird in jedem Schritt mit $${tq(R.q)}$ malgenommen: $a_{n+1} - g = ${tqK(R.q)}\\,(a_{n} - g)$. Daraus die geschlossene Form`);
       T.folge.push(`$$\\begin{aligned} a_{n} &= g + (a_{0} - g) \\cdot ${tqK(q)}^{n} \\\\ &= ${formel} \\end{aligned}$$`);
-    } else T.folge.push(`Gegeben ist $a_{n} = ${eingabe}$ für $n \\ge ${n0}$: eine **geometrische Folge** $a_{n} = ${formel}$ mit dem festen Quotienten $q = ${tq(q)}$.`);
+    } else if (g.z) T.folge.push(`Gegeben ist $a_{n} = ${eingabe}$ für $n \\ge ${n0}$: eine **verschobene geometrische Folge** $a_{n} = ${formel}$ – zum festen Wert $${tq(g)}$ kommt $${tq(k)} \\cdot ${tqK(q)}^{n}$ dazu, mit dem festen Quotienten $q = ${tq(q)}$.`);
+    else T.folge.push(`Gegeben ist $a_{n} = ${eingabe}$ für $n \\ge ${n0}$: eine **geometrische Folge** $a_{n} = ${formel}$ mit dem festen Quotienten $q = ${tq(q)}$.`);
     const wert = n => { const p = qMul(k, Q(q.z ** n, q.n ** n)); return Q(g.z * p.n + p.z * g.n, g.n * p.n); };
     T.folge.push('Die ersten Glieder: ' + glieder(n0, n => tq(wert(n), false)));
     // Monotonie. Geometrisch: über den Quotienten (alle Glieder haben das Vorzeichen von k – die Fallunterscheidung
@@ -2105,7 +2320,7 @@ const RECHNUNG = (() => {
       T.schr.push(q.z > 0 ? `Nach ${k.z > 0 ? 'unten' : 'oben'} beschränkt durch $a_{${n0}} = ${tq(wert(n0))}$, nach ${k.z > 0 ? 'oben' : 'unten'} **unbeschränkt**.` : 'Nach oben und unten **unbeschränkt**.');
       T.eps.push('Kein Grenzwert – also kein ε-Schlauch.');
     }
-    return { T, N, g: konv ? qw(g) : null, art: rek ? 'Bauart: rekursiv mit $a_{n+1} = q \\cdot a_{n} + c$, exakt gerechnet' : 'Bauart: geometrisch, exakt gerechnet' };
+    return { T, N, g: konv ? qw(g) : null, art: rek ? 'Bauart: rekursiv mit $a_{n+1} = q \\cdot a_{n} + c$, exakt gerechnet' : g.z ? 'Bauart: verschoben geometrisch, exakt gerechnet' : 'Bauart: geometrisch, exakt gerechnet' };
   }
 
   function potenzText(R, e, eingabe, alternierend){
@@ -2189,6 +2404,7 @@ const RECHNUNG = (() => {
     else if (R && R.art === 'arithmetisch') E = arithmetischText(R, e, eingabe);
     else if (R && R.art === 'geometrisch') E = geoText(R, e, eingabe, false);
     else if (R && R.art === 'potenz') E = potenzText(R, e, eingabe, false);
+    else if (R && R.art === 'rational') E = rationalText(R, e, eingabe) || numerischText(S, e, eingabe);
     else if (R && R.art === 'alternierend') E = R.inner.art === 'potenz' ? potenzText({ ...R.inner, n0: R.n0 }, e, eingabe, true) : alternierendGebrochen(R, e, eingabe);
     else if (R && R.art === 'affin'){
       const { q, c, a0 } = R, eins = Q(1);
@@ -2315,7 +2531,7 @@ const folien = [
       <div class="erg" id="eSchr"><h4>Schranken</h4><p id="eSchrT"></p></div>
       <div class="erg" id="eGrenz"><h4>Grenzwert</h4><p id="eGrenzT"></p></div>
       <div class="rechnungzeile"><button class="knopf" id="fRechnung">Rechnung</button>
-        <p class="hinweis">${M('Das Bild beruht auf allen Gliedern bis $n = 1000$ und Stichproben bis $n \\approx 1{,}3$ Mio. Die <strong>Rechnung</strong> beweist es für bekannte Bauarten exakt – sonst bleibt es eine begründete Vermutung.')}</p></div>
+        <p class="hinweis" id="fHinweis"></p></div>
     </div>
   </div>
 `}
@@ -2354,6 +2570,8 @@ const BEISPIELE_REK = [
 ];
 const BEISPIELE = [
   ['(n+1)/n', 'aₙ = (n + 1)/n'],
+  ['(3n^2-1)/(n^2+2n)', 'aₙ = (3n² − 1)/(n² + 2n)'],
+  ['1-(1/2)^n', 'aₙ = 1 − (1/2)ⁿ'],
   ['1/n', 'aₙ = 1/n'],
   ['(-1)^n/n', 'aₙ = (−1)ⁿ/n'],
   ['(-1)^n', 'aₙ = (−1)ⁿ'],
@@ -2406,7 +2624,7 @@ const labor = (function(){
       if(A.fehler) throw new Error(A.fehler);
       S.text = text; S.baum = baum; S.f = f; S.A = A; S.n0 = n0;
       B('fFehler').textContent = '';
-      auswertungSchreiben(); zeichne(); return true;
+      auswertungSchreiben(); rechnungKnopf(); zeichne(); return true;
     }catch(e){ B('fFehler').textContent = e.message; return false; }
   }
   const z = (v) => zahlTex(v, 4);                          // LaTeX; Texte unten laufen durch M()
@@ -2435,6 +2653,14 @@ const labor = (function(){
     if(G.art !== 'konv') S.zeige.schlauch = false;
   }
 
+  /* Rechnung nur, wo das Labor exakt rechnet – sonst kein Knopf, nur der Hinweis (Peter, 05.10.) */
+  const HINWEIS = {
+    exakt: 'Das Bild beruht auf allen Gliedern bis $n = 1000$ und Stichproben bis $n \\approx 1{,}3$ Mio. Die <strong>Rechnung</strong> beweist es exakt.',
+    num: 'Diese Folge rechnet das Labor nicht exakt durch – das Bild beruht auf allen Gliedern bis $n = 1000$ und Stichproben bis $n \\approx 1{,}3$ Mio.' };
+  function rechnungKnopf(){
+    let exakt = false; try { exakt = !!S.A && !RECHNUNG.erzeuge(S).numerisch; } catch (e) { exakt = false; }
+    B('fRechnung').hidden = !exakt; B('fHinweis').innerHTML = M(exakt ? HINWEIS.exakt : HINWEIS.num);
+  }
   function zeichne(){
     // Handy: eigenes, schmales Diagramm statt verkleinertem (Achsenschrift bleibt lesbar)
     const handy = document.documentElement.classList.contains('handy');
@@ -2509,13 +2735,13 @@ const labor = (function(){
   B('fBis').addEventListener('input', ()=>{ S.bis = +B('fBis').value; B('fBisW').textContent = S.bis; zeichne(); });
   // ε: Schieber (0,001 bis 1 in Zehntel-Zehnerpotenzen) oder frei eintippen
   const epsText = v => zahlText(v, 6);
-  B('fEps').addEventListener('input', ()=>{ S.eps = +(10**(-B('fEps').value/10)).toPrecision(2); S.epsQ = RECHNUNG.epsBruch(S.eps); B('fEpsW').value = epsText(S.eps); B('fEpsW').classList.remove('falsch'); zeichne(); });
+  B('fEps').addEventListener('input', ()=>{ S.eps = +(10**(-B('fEps').value/10)).toPrecision(2); S.epsQ = RECHNUNG.epsBruch(S.eps); B('fEpsW').value = epsText(S.eps); B('fEpsW').classList.remove('falsch'); rechnungKnopf(); zeichne(); });
   const epsTippen = ()=>{
     const L = liesEps(B('fEpsW').value);                                  // streng: Dezimalzahl oder Bruch, sonst Feld rot
     if(!L){ B('fEpsW').classList.add('falsch'); return; }
     const v = L.v; B('fEpsW').classList.remove('falsch'); S.eps = v; S.epsQ = L.q;
     B('fEps').value = Math.max(0, Math.min(30, Math.round(-10*Math.log10(v))));
-    zeichne();
+    rechnungKnopf(); zeichne();
   };
   B('fEpsW').addEventListener('change', epsTippen);
   B('fEpsW').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); epsTippen(); } });
