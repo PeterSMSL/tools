@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Erst das passende Verfahren wählen (Wurzel ziehen, x ausklammern, Lösungsformel, quadratische Ergänzung), dann exakt lösen – auch mit Wurzeln. Die Diskriminante entscheidet über 0, 1 oder 2 Lösungen, die Parabel zeigt es.">
-<title>Quadratische Gleichungen · Verfahren wählen</title>
+<meta name="description" content="Lineare Gleichungen an der Balkenwaage lösen: jede Umformung auf beiden Seiten, bis x allein steht. Danach mit negativen Zahlen, Brüchen und Klammern – eigene Umformungskette, Lösungsweg, Probe und die zwei Seiten als Geraden.">
+<title>Lineare Gleichungen · Waage und Umformung</title>
 <style>
 /* ==== HANDY-SCHICHT: technik/handy/handy.css ==== */
 /* =====================================================================
@@ -852,26 +852,48 @@ html.handy mroot > :last-child{font-size:max(14px, .6em)}     /* Wurzelexponent 
 /* Brüche in Knöpfen in voller Größe */
 .knopf math{math-style:normal}
 
-/* ---------- Quadratische Gleichungen (Farben: technik/mathe/farben.css) ---------- */
-.qg-verfahren{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
-.qg-verfahren .bt{font-size:14px;font-weight:700;color:var(--grau);margin-right:4px}
-.qg-verfahren .knopf{font-size:14px;padding:5px 11px}
-.qg-verfahren .knopf.gut{background:var(--m-ok-h);border-color:var(--m-ok);color:var(--m-ok)}
-.qg-verfahren .knopf.geht{background:var(--m-hinweis-h);border-color:var(--m-hinweis);color:var(--m-hinweis)}
-.qg-verfahren .knopf.nicht{background:var(--m-falsch-h);border-color:var(--m-falsch);color:var(--m-falsch)}
-.qg-menge{display:inline-flex;align-items:center;gap:6px;font-family:var(--m-schrift);font-size:26px}
-.qg-menge .wz-eingabe{width:300px}
-.qg-regel{font-size:15px;color:var(--grau);margin-top:6px}
-.qg-regel b{color:var(--tinte)}
-math .qg-plus{color:var(--m-ok)} math .qg-null{color:var(--m-hinweis)} math .qg-minus{color:var(--m-falsch)}   /* Diskriminante: zwei, eine, keine Lösung */
-svg .qg-scheitel{fill:var(--m-erg);stroke:var(--papier);stroke-width:2}
-svg .qg-t{font-size:13px;font-weight:800;fill:var(--m-erg)}
-html.handy .qg-menge{font-size:22px;width:100%;flex-wrap:wrap}
-html.handy .qg-menge .wz-eingabe{width:auto;flex:1}
-html.handy .qg-verfahren .knopf{font-size:15px}
-html.handy .qg-verfahren .bt{width:100%}
+/* ---------- Lineare Gleichungen (Farben: technik/mathe/farben.css) ---------- */
+.lg-zwei{display:grid;grid-template-columns:540px minmax(0,1fr);gap:16px;align-items:start;margin-top:10px}
+.lg-waage{padding:6px 8px}
+.lg-waage svg{display:block;margin:0 auto}
+.lg-hinweis{font-size:15px;color:var(--grau);text-align:center;margin:2px 6px 4px;min-height:22px}
+.lg-ops{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.lg-ops .bt{font-size:14px;font-weight:700;color:var(--grau);margin-right:2px}
+.lg-ops .knopf{font-size:15px;padding:6px 12px}
+.wz-eingabe.lg-op{width:150px;font-size:20px;text-align:center}
+.wz-eingabe.lg-op.falsch{border-color:var(--m-falsch);background:var(--m-falsch-h)}
+.lg-kette{overflow-x:auto;padding:2px 0}
+.lg-kette math{font-size:1.1em}
+.lg-kette math *, .wz-w math *{math-style:normal}                 /* Brüche in der Kette in voller Größe */
+.lg-kette mtd:last-child{color:var(--m-erg)}                        /* „| Umformung“ */
+.lg-oprueck{font-size:15.5px;min-height:0}
+.lg-erg{display:inline-flex;align-items:center;gap:8px;font-size:26px;margin-left:22px}
+.lg-erg .wz-eingabe{width:230px}
+.lg-legende{font-size:15px;display:flex;gap:16px;flex-wrap:wrap;margin-top:2px}
+.lg-legende .l{color:var(--m-1);font-weight:700} .lg-legende .r{color:var(--m-2);font-weight:700}
+.lg-erkl{font-size:15px;color:var(--grau);margin-top:2px}
+svg .lg-lot{stroke:var(--m-erg);stroke-width:2;stroke-dasharray:5 4}
+/* Waage */
+svg .ww-fuss{fill:var(--linie)} svg .ww-boden{fill:var(--m-achse)}
+svg .ww-balken{stroke:var(--m-achse);stroke-width:7;stroke-linecap:round}
+svg .ww-achse{fill:var(--papier);stroke:var(--m-achse);stroke-width:3}
+svg .ww-stuetze{stroke:var(--m-achse);stroke-width:5;stroke-linecap:round}
+svg .ww-schale{fill:var(--m-gitter);stroke:var(--m-achse);stroke-width:2}
+svg .ww-sack{fill:var(--m-erg-h);stroke:var(--m-erg);stroke-width:2}
+svg .ww-band{fill:none;stroke:var(--m-erg);stroke-width:2}
+svg .ww-x{fill:var(--m-erg);font-family:var(--m-schrift);font-style:italic;font-weight:700}
+svg .ww-gewicht{fill:var(--m-2-h);stroke:var(--m-2);stroke-width:2}
+svg .ww-eins{fill:var(--m-2-t);font-weight:800;font-family:var(--m-schrift)}
+svg.ww.leer .ww-balken, svg.ww.leer .ww-schale{opacity:.45}
+html.handy .lg-zwei{grid-template-columns:minmax(0,1fr)}
+html.handy .lg-waage svg{max-width:100%;height:auto}   /* in Handybreite neu gezeichnet (teil_labor.js), nicht hochskaliert */
+html.handy .wz-eingabe.lg-op{width:auto;flex:1 1 120px}
+html.handy .lg-ops .knopf{font-size:15px}
+html.handy .lg-erg{font-size:22px;width:100%;margin-left:0}
+html.handy .lg-erg .wz-eingabe{width:auto;flex:1}
+html.handy .lg-hinweis, html.handy .lg-legende, html.handy .lg-erkl{font-size:15px}
 
-.titelpolster{padding:10px}   /* Titelkarte (Rahmen) mit Innenabstand */
+.titelpolster{padding:8px 10px 2px}   /* Titelkarte (Rahmen) mit Innenabstand */
 
 /* Grundregel aller Werkzeuge: hidden gilt immer, auch wenn eine Klasse display:flex/grid setzt */
 [hidden]{display:none!important}
@@ -1963,10 +1985,51 @@ function M(text){ return String(text).replace(/\$\$([^$]+)\$\$/g, (_, t) => F(t,
 const KURS = "Mathematik · Gleichungen";
 const REIHE = "Gleichungen";
 
-function titelBild(){
-  const K = G_koord({ W: 280, H: 200, xmin: -4, xmax: 4, ymin: -4, ymax: 5, rand: { l: 14, r: 10, o: 10, u: 14 } });
-  return K.svg(K.grund + K.kurve(x => x * x - 3, 'g-k1') + K.kurve(x => x * x + 1, 'g-k2') + K.kurve(x => (x - 2) * (x - 2), 'g-k3')
-    + K.punkt(-Math.sqrt(3), 0, 'g-p1', 5) + K.punkt(Math.sqrt(3), 0, 'g-p1', 5) + K.punkt(2, 0, 'g-p3', 5));
+/* =====================================================================
+   Balkenwaage als SVG (auch fürs Titelbild).
+   o: { W, H, l: [säckchen, gewichte], r: [säckchen, gewichte], kipp: −1 | 0 | 1 (links schwerer = 1), schrift }
+   Säckchen tragen ein x, Gewichte eine 1. Ohne l/r: leere, graue Waage.
+   ===================================================================== */
+function waageSVG(o){                                          // Tafelwaage: Schalen sitzen oben auf dem Balken
+  const { W, H } = o, cx = W / 2, by = o.balken || H - 70, pb = W * 0.17, L = W / 2 - pb - 12;
+  const fs = o.schrift || 14, kipp = o.kipp || 0, w = kipp * 7 * Math.PI / 180;
+  const ende = s => ({ x: cx + s * L * Math.cos(w), y: by - s * L * Math.sin(w) });   // s = −1 links, 1 rechts
+  const el = ende(-1), er = ende(1), f = v => v.toFixed(1);
+  let g = `<path class="ww-fuss" d="M${cx} ${by}L${cx - 30} ${H - 8}L${cx + 30} ${H - 8}Z"/>`
+    + `<rect class="ww-boden" x="${cx - 70}" y="${H - 10}" width="140" height="6" rx="3"/>`
+    + `<line class="ww-balken" x1="${f(el.x)}" y1="${f(el.y)}" x2="${f(er.x)}" y2="${f(er.y)}"/>`
+    + `<circle class="ww-achse" cx="${cx}" cy="${by}" r="7"/>`;
+  const schale = (e, inhalt) => {
+    const sy = e.y - 22;                                          // Oberkante der Schale
+    let s = `<line class="ww-stuetze" x1="${f(e.x)}" y1="${f(e.y)}" x2="${f(e.x)}" y2="${f(sy + 6)}"/>`
+      + `<path class="ww-schale" d="M${f(e.x - pb - 6)} ${f(sy)}L${f(e.x + pb + 6)} ${f(sy)}L${f(e.x + pb - 6)} ${f(sy + 9)}L${f(e.x - pb + 6)} ${f(sy + 9)}Z"/>`;
+    if (!inhalt) return s;
+    const [sack, gew] = inhalt, sb = 34, sh = 38, gb = 24;
+    const proReiheS = Math.max(1, Math.floor((2 * pb + 6) / (sb + 6))), proReiheG = Math.max(1, Math.floor((2 * pb + 6) / (gb + 4)));
+    let y = sy;
+    for (let i = 0; i < sack; i += proReiheS){                      // Säckchen unten
+      const n = Math.min(proReiheS, sack - i), x0 = e.x - (n * (sb + 6) - 6) / 2;
+      for (let j = 0; j < n; j++){
+        const x = x0 + j * (sb + 6), t = y - sh;
+        s += `<path class="ww-sack" d="M${f(x + 9)} ${f(t + 8)}L${f(x + sb - 9)} ${f(t + 8)}Q${f(x + sb + 2)} ${f(t + 22)} ${f(x + sb - 2)} ${f(y - 1)}L${f(x + 2)} ${f(y - 1)}Q${f(x - 2)} ${f(t + 22)} ${f(x + 9)} ${f(t + 8)}Z"/>`
+          + `<path class="ww-band" d="M${f(x + 11)} ${f(t + 8)}L${f(x + sb / 2)} ${f(t + 1)}L${f(x + sb - 11)} ${f(t + 8)}"/>`
+          + `<text class="ww-x" style="font-size:${fs + 4}px" x="${f(x + sb / 2)}" y="${f(y - 9)}" text-anchor="middle">x</text>`;
+      }
+      y -= sh + 4;
+    }
+    for (let i = 0; i < gew; i += proReiheG){                        // Gewichte darüber
+      const n = Math.min(proReiheG, gew - i), x0 = e.x - (n * (gb + 4) - 4) / 2;
+      for (let j = 0; j < n; j++){
+        const x = x0 + j * (gb + 4);
+        s += `<rect class="ww-gewicht" x="${f(x)}" y="${f(y - gb)}" width="${gb}" height="${gb}" rx="4"/>`
+          + `<text class="ww-eins" style="font-size:${fs}px" x="${f(x + gb / 2)}" y="${f(y - gb / 2 + fs * 0.36)}" text-anchor="middle">1</text>`;
+      }
+      y -= gb + 4;
+    }
+    return s;
+  };
+  g += schale(el, o.l) + schale(er, o.r);
+  return `<svg class="ww${o.l ? '' : ' leer'}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Balkenwaage">${g}</svg>`;
 }
 
 const folien = [
@@ -1976,36 +2039,65 @@ const folien = [
   <div class="links">
     <div class="balken"></div>
     <div class="eyebrow">Gleichungen</div>
-    <h1>Quadratische Gleichungen</h1>
-    <p class="unter">Erst das Verfahren wählen, dann rechnen. Zwei, eine oder keine Lösung – die Diskriminante weiß es vorher.</p>
+    <h1>Lineare Gleichungen</h1>
+    <p class="unter">Eine Gleichung ist eine Waage im Gleichgewicht. Was man links tut, tut man auch rechts – bis x allein steht.</p>
     <div class="meta"><span>Mathematik</span><span>Gleichungen</span></div>
   </div>
   <div class="rechts">
     <div class="logokachel"><img src="${LOGO}" alt="Logo Montessori-Schule Landau"></div>
-    <div class="titelkarte titelpolster">${titelBild()}</div>
+    <div class="titelkarte titelpolster">${waageSVG({ W: 300, H: 200, l: [2, 3], r: [1, 5], schrift: 14 })}</div>
   </div>
 `},
 
-{titel:"Quadratische Gleichungen", klasse:"kompakt oben", eyebrow:"Quadratische Gleichungen", h2:"Welches Verfahren passt?", roh:`
-  <div class="interaktiv" data-werkzeug data-quadratisch>
+{titel:"An der Waage", klasse:"kompakt oben", eyebrow:"An der Waage", h2:"Beide Seiten gleich behandeln", roh:`
+  <div class="interaktiv" data-werkzeug data-waage>
     <div class="wz-aufgabe">
-      <span class="wz-was">Löse:</span>
-      <span class="wz-term" data-r="term"></span><span class="wz-gleich">= 0</span>
-      <span class="qg-menge">${F('L = \\{')}<input class="wz-eingabe" data-r="antwort" spellcheck="false" autocomplete="off" placeholder="z. B. -2; 3/2 oder 1+√5; 1-√5" aria-label="Lösungsmenge">${F('\\}')}</span>
+      <span class="wz-was">Löse:</span><span class="wz-term" data-r="term"></span>
+      <div class="knopfleiste"><button class="knopf hell" data-r="neu">Neue Waage</button></div>
+    </div>
+    <div class="lg-zwei">
+      <div class="wz-panel lg-waage"><div data-r="bild"></div><p class="lg-hinweis" data-r="hinweis"></p></div>
+      <div>
+        <div class="lg-ops">
+          <span class="bt">Umformung:</span>
+          <input class="wz-eingabe lg-op" data-r="op" spellcheck="false" autocomplete="off" placeholder="z. B. −2, −x, :3" aria-label="Umformung">
+          <button class="knopf o" data-r="beide">auf beiden Seiten</button>
+          <button class="knopf hell" data-r="links">nur links</button>
+          <button class="knopf hell" data-r="zurueck">Rückgängig</button>
+          <button class="knopf hell" data-r="tipp">Tipp</button>
+        </div>
+        <div class="wz-rueck" data-r="rueck"></div>
+        <div class="wz-panel"><h3>Deine Umformungen</h3><div class="lg-kette" data-r="kette"></div></div>
+      </div>
+    </div>
+  </div>
+`},
+
+{titel:"Lineare Gleichungen", klasse:"kompakt oben", eyebrow:"Lineare Gleichungen", h2:"Umformen, bis x allein steht", roh:`
+  <div class="interaktiv" data-werkzeug data-linear>
+    <div class="wz-aufgabe">
+      <span class="wz-was">Löse:</span><span class="wz-term" data-r="term"></span>
+      <span class="lg-erg">${F('x =')}<input class="wz-eingabe" data-r="antwort" spellcheck="false" autocomplete="off" placeholder="z. B. 3, −2/3, keine, alle" aria-label="Lösung"></span>
       <div class="knopfleiste"><button class="knopf o" data-r="pruefen">Prüfen</button></div>
     </div>
-    <div class="qg-verfahren"><span class="bt">1. Verfahren wählen:</span>
-      <button class="knopf hell" data-v="wurzel">Wurzel ziehen</button><button class="knopf hell" data-v="ausklammern">${F('x')} ausklammern</button>
-      <button class="knopf hell" data-v="formel">pq-Formel</button><button class="knopf hell" data-v="ergaenzung">quadratische Ergänzung</button></div>
-    <p class="qg-regel">2. Lösungen mit <b>Semikolon</b> trennen, exakt: Brüche als <b>3/2</b>, Wurzeln als <b>√5</b> oder <b>sqrt(5)</b>, auch <b>1±√5</b>. Keine Lösung: leer lassen oder „keine".</p>
     <div class="wz-arten"><span class="bt">Neue Aufgabe:</span>
-      <button class="knopf hell" data-art="rein">ohne x-Glied</button><button class="knopf hell" data-art="ohnec">ohne Zahl</button>
-      <button class="knopf hell" data-art="voll">vollständig</button><button class="knopf hell" data-art="gemischt">gemischt</button>
-      <span class="rechts"><input class="wz-eingabe" style="width:190px;font-size:16px" data-r="eigen" spellcheck="false" autocomplete="off" placeholder="eigene, z. B. 2x^2-3x-2" aria-label="eigene Aufgabe"><button class="knopf hell" data-r="uebernehmen">Übernehmen</button></span></div>
+      <button class="knopf hell" data-art="ganz">ganze Zahlen</button><button class="knopf hell" data-art="klammern">Klammern</button>
+      <button class="knopf hell" data-art="brueche">Brüche</button><button class="knopf hell" data-art="sonder">Sonderfall</button>
+      <button class="knopf hell" data-art="gemischt">gemischt</button>
+      <span class="rechts"><input class="wz-eingabe" style="width:210px;font-size:16px" data-r="eigen" spellcheck="false" autocomplete="off" placeholder="eigene, z. B. 2(x-3) = x+4" aria-label="eigene Gleichung"><button class="knopf hell" data-r="uebernehmen">Übernehmen</button></span></div>
     <div class="wz-rueck" data-r="rueck"></div>
     <div class="wz-zwei">
-      <div class="wz-panel"><h3>Lösungsweg <span class="rechts"><button class="knopf hell" data-r="schritt">Nächster Schritt</button><button class="knopf hell" data-r="alle">Alle</button></span></h3><div class="wz-weg" data-r="weg"></div></div>
-      <div class="wz-panel"><h3>Parabel <span class="rechts"><button class="knopf hell" data-r="bild">Bild zeigen</button></span></h3><div class="wz-bild" data-r="flaeche"></div></div>
+      <div class="wz-panel"><h3>Deine Umformungen</h3>
+        <div class="lg-ops">
+          <input class="wz-eingabe lg-op" data-r="op" spellcheck="false" autocomplete="off" placeholder="z. B. +3x, :(−2)" aria-label="Umformung">
+          <button class="knopf o" data-r="beide">auf beiden Seiten</button><button class="knopf hell" data-r="zurueck">Rückgängig</button>
+        </div>
+        <div class="wz-rueck lg-oprueck" data-r="oprueck"></div>
+        <div class="lg-kette" data-r="kette"></div></div>
+      <div>
+        <div class="wz-panel"><h3>Lösungsweg <span class="rechts"><button class="knopf hell" data-r="schritt">Nächster Schritt</button><button class="knopf hell" data-r="alle">Alle</button></span></h3><div class="wz-weg" data-r="weg"></div></div>
+        <div class="wz-panel" style="margin-top:10px"><h3>Beide Seiten als Geraden <span class="rechts"><button class="knopf hell" data-r="bild">Bild zeigen</button></span></h3><div class="wz-bild" data-r="flaeche"></div></div>
+      </div>
     </div>
   </div>
 `},
@@ -2030,212 +2122,359 @@ folien.forEach((f,i)=>{
 });
 
 /* =====================================================================
-   Quadratische Gleichungen a·x² + b·x + c = 0 (a, b, c ganz)
-   Lösungen exakt: r ± s·√m mit r, s als Bruch (bruch.js), m quadratfrei.
-   Darstellung: LaTeX → MathML (formel.js). In JS jeden Backslash doppelt.
+   Lineare Gleichungen. Eine Seite ist { a, b } für a·x + b, exakt mit Brüchen (bruch.js).
+   Eine Gleichung ist { l, r } (+ lt/rt: LaTeX der Ausgangsform, z. B. mit Klammern).
+   Darstellung LaTeX → MathML (formel.js). Kein CAS: nur lineare Terme werden angenommen.
    ===================================================================== */
-const QUADRATISCH = (() => {
-  const root = document.querySelector('[data-quadratisch]');
+const L_Q = v => /e/i.test(String(v)) ? null : qLies(String(v));          // Zahl im Termbaum → Bruch (Dezimal exakt)
+const L_gross = q => Math.abs(q.z) > 1e6 || q.n > 1e6;
+function L_lin(b){                                                       // Termbaum → { a, b } oder null (nicht linear)
+  switch (b.t){
+    case 'z': { if (b.name) return null; const q = L_Q(b.v); return q && { a: Q(0), b: q }; }
+    case 'x': return { a: Q(1), b: Q(0) };
+    case '()': return L_lin(b.a);
+    case 'neg': { const s = L_lin(b.a); return s && { a: qNeg(s.a), b: qNeg(s.b) }; }
+    case '+': case '-': { const l = L_lin(b.a), r = L_lin(b.b); if (!l || !r) return null; const f = b.t === '+' ? qAdd : qSub; return { a: f(l.a, r.a), b: f(l.b, r.b) }; }
+    case '*': { const l = L_lin(b.a), r = L_lin(b.b); if (!l || !r || (!qNull(l.a) && !qNull(r.a))) return null;
+      const k = qNull(l.a) ? l.b : r.b, s = qNull(l.a) ? r : l; return { a: qMul(s.a, k), b: qMul(s.b, k) }; }
+    case '/': { const l = L_lin(b.a), r = L_lin(b.b); if (!l || !r || !qNull(r.a) || qNull(r.b)) return null; return { a: qDiv(l.a, r.b), b: qDiv(l.b, r.b) }; }
+    case '^': { const l = L_lin(b.a), r = L_lin(b.b); if (!l || !r || !qNull(r.a) || r.b.n !== 1) return null;
+      if (r.b.z === 1) return l; if (!qNull(l.a) || r.b.z < 0 || r.b.z > 6) return null;
+      let p = Q(1); for (let i = 0; i < r.b.z; i++) p = qMul(p, l.b); return { a: Q(0), b: p }; }
+    default: return null;
+  }
+}
+const L_plus = (s, k) => ({ a: qAdd(s.a, k.a), b: qAdd(s.b, k.b) });
+const L_mal = (s, f) => ({ a: qMul(s.a, f), b: qMul(s.b, f) });
+const L_wert = (s, x) => qAdd(qMul(s.a, x), s.b);
+const L_kl = q => q.z < 0 ? klTex(qTex(q)) : qTex(q);                     // negative Zahl / Bruch in Klammern
+function L_tex(s){                                                       // „3x + 2“, „-x“, „\frac{1}{2}x - 3“, „0“
+  let t = '';
+  if (!qNull(s.a)) t = (qGleich(s.a, Q(1)) ? '' : qGleich(s.a, Q(-1)) ? '-' : qTex(s.a)) + 'x';
+  if (!qNull(s.b)) t += t ? (s.b.z < 0 ? ' - ' : ' + ') + qTex(Q(Math.abs(s.b.z), s.b.n)) : qTex(s.b);
+  return t || '0';
+}
+const L_text = s => `(${qText(s.a)})*x+(${qText(s.b)})`;
+/* Umformung lesen: „-2“, „+3x“, „-x“, „:2“, „·(-3)“, „*1/2“, „/4“, „-(x+2)“ */
+function L_op(text){
+  if (/\d\s+[\d,.]|[,.]\s+\d/.test(String(text))) throw new Error('Zwischen zwei Zahlen fehlt ein Rechenzeichen – „2 5“ ist nicht 25.');
+  const t = String(text).trim().replace(/[−–]/g, '-').replace(/\s+/g, '');
+  if (!t) throw new Error('Gib eine Umformung ein, z. B. −2, −x oder :3.');
+  const z = t[0], rest = t.slice(1);
+  if (!'+-*·:/'.includes(z)) throw new Error('Eine Umformung beginnt mit einem Rechenzeichen: + 2, − x, · 3 oder : 4.');
+  if (!rest) throw new Error('Hinter dem Rechenzeichen fehlt die Zahl oder der Term.');
+  let s;
+  try { s = L_lin(T_lies(rest)); } catch (e) { s = null; }
+  if (!s || L_gross(s.a) || L_gross(s.b)) throw new Error('Nach dem Rechenzeichen darf eine Zahl, ein Bruch oder ein Vielfaches von x stehen, z. B. 2, 3x oder 1/2.');
+  if (z === '+' || z === '-'){
+    if (qNull(s.a) && qNull(s.b)) throw new Error('± 0 ändert nichts – such eine Umformung, die etwas bewegt.');
+    const roh = L_tex(s), kl = (!qNull(s.a) && !qNull(s.b)) || (qNull(s.a) ? s.b.z < 0 : s.a.z < 0);
+    return { art: 'plus', k: z === '+' ? s : L_mal(s, Q(-1)), tex: `${z === '+' ? '+' : '-'} ${kl ? klTex(roh) : roh}` };
+  }
+  if (!qNull(s.a)) throw new Error('Mit x malnehmen oder durch x teilen ist keine sichere Umformung: Für x = 0 ändert sich die Lösungsmenge. Nimm nur Zahlen ungleich 0.');
+  if (qNull(s.b)) throw new Error(z === ':' || z === '/' ? 'Durch 0 kann man nicht teilen.' : 'Mit 0 malnehmen macht aus jeder Gleichung 0 = 0 – das ist verboten.');
+  const teilen = z === ':' || z === '/';
+  return { art: 'mal', f: teilen ? qDiv(Q(1), s.b) : s.b, tex: `${teilen ? ':' : '\\cdot'} ${L_kl(s.b)}` };
+}
+const L_anwenden = (g, op) => op.art === 'plus' ? { l: L_plus(g.l, op.k), r: L_plus(g.r, op.k) } : { l: L_mal(g.l, op.f), r: L_mal(g.r, op.f) };
+function L_loesung(g){                                                   // { art: 'eine'|'keine'|'alle', x }
+  const A = qSub(g.l.a, g.r.a), B = qSub(g.r.b, g.l.b);
+  if (qNull(A)) return { art: qNull(B) ? 'alle' : 'keine' };
+  return { art: 'eine', x: qDiv(B, A) };
+}
+function L_stand(g){                                                     // steht x allein? Widerspruch? immer wahr?
+  if (qNull(g.l.a) && qNull(g.r.a)) return { art: qGleich(g.l.b, g.r.b) ? 'alle' : 'keine' };
+  if (qGleich(g.l.a, Q(1)) && qNull(g.l.b) && qNull(g.r.a)) return { art: 'eine', x: g.r.b };
+  if (qGleich(g.r.a, Q(1)) && qNull(g.r.b) && qNull(g.l.a)) return { art: 'eine', x: g.l.b };
+  return { art: 'offen' };
+}
+const L_menge = L => L.art === 'eine' ? (L.x.n > 1 ? `\\mathbb{L} = \\left\\{${qTex(L.x)}\\right\\}` : `\\mathbb{L} = \\{${qTex(L.x)}\\}`) : L.art === 'keine' ? '\\mathbb{L} = \\{\\,\\}' : '\\mathbb{L} = \\mathbb{R}';
+/* Umformungskette wie im Heft: Gleichung, rechts „| Umformung“ */
+function L_kette(zeilen){
+  return F(`\\begin{array}{rcll} ${zeilen.map(z => `${z.lt} & = & ${z.rt} & ${z.op ? `\\mid\\; ${z.op}` : ''}`).join(' \\\\ ')} \\end{array}`, true);
+}
+/* Probe: a·(x) + b ausgerechnet */
+function L_einsetzen(s, x){
+  if (qNull(s.a)) return qTex(s.b);
+  const ax = qGleich(s.a, Q(1)) ? L_kl(x) : qGleich(s.a, Q(-1)) ? `-${L_kl(x)}` : `${qTex(s.a)} \\cdot ${L_kl(x)}`;
+  return qNull(s.b) ? ax : `${ax} ${s.b.z < 0 ? '-' : '+'} ${qTex(Q(Math.abs(s.b.z), s.b.n))}`;
+}
+/* Der übliche Weg: vereinfachen, x nach links, Zahlen nach rechts, durch die Vorzahl teilen, Probe */
+function L_weg(g0){
+  const s = [];
+  const schritt = (g, op) => { const n = L_anwenden(g, op); return [n, FB(`\\begin{array}{rcll} ${L_tex(g.l)} & = & ${L_tex(g.r)} & \\mid\\; ${op.tex} \\\\ ${L_tex(n.l)} & = & ${L_tex(n.r)} & \\end{array}`)]; };
+  let g = { l: g0.l, r: g0.r };
+  if (g0.lt !== L_tex(g.l) || g0.rt !== L_tex(g.r))
+    s.push(['Vereinfachen', FB(`\\begin{aligned} ${g0.lt} &= ${g0.rt} \\\\ ${L_tex(g.l)} &= ${L_tex(g.r)} \\end{aligned}`)]);
+  const kgv = [g.l.a, g.l.b, g.r.a, g.r.b].reduce((k, q) => k / ggT(k, q.n) * q.n, 1);   // Hauptnenner
+  if (kgv > 1){ const op = { art: 'mal', f: Q(kgv), tex: `\\cdot ${kgv}` }; let h; [g, h] = schritt(g, op); s.push(['Brüche weg: mal Hauptnenner', h]); }
+  if (!qNull(g.r.a)){ const op = { art: 'plus', k: { a: qNeg(g.r.a), b: Q(0) }, tex: `${g.r.a.z > 0 ? '-' : '+'} ${L_tex({ a: Q(Math.abs(g.r.a.z), g.r.a.n), b: Q(0) })}` };
+    let h; [g, h] = schritt(g, op); s.push(['x-Terme nach links', h]); }
+  if (!qNull(g.l.b) && !qNull(g.l.a)){ const op = { art: 'plus', k: { a: Q(0), b: qNeg(g.l.b) }, tex: `${g.l.b.z > 0 ? '-' : '+'} ${qTex(Q(Math.abs(g.l.b.z), g.l.b.n))}` };
+    let h; [g, h] = schritt(g, op); s.push(['Zahlen nach rechts', h]); }
+  const L = L_loesung(g0);
+  if (L.art !== 'eine'){
+    s.push([L.art === 'keine' ? 'Widerspruch' : 'Immer wahr', M(`$${L_tex(g.l)} = ${L_tex(g.r)}$ ${L.art === 'keine' ? 'ist nie wahr: <b>keine Lösung</b>.' : 'gilt für jedes $x$: <b>unendlich viele Lösungen</b>.'}`) + F(L_menge(L)), true]);
+    return s;
+  }
+  const A = g.l.a;
+  if (!qGleich(A, Q(1))){
+    const op = A.n === 1 ? { art: 'mal', f: qDiv(Q(1), A), tex: `: ${L_kl(A)}` } : { art: 'mal', f: qDiv(Q(1), A), tex: `\\cdot ${L_kl(qDiv(Q(1), A))}` };
+    let h; [g, h] = schritt(g, op); s.push([A.n === 1 ? 'Durch die Vorzahl teilen' : 'Mit dem Kehrwert malnehmen', h]);
+  }
+  s.push(['Lösung', F(L_menge(L)), true]);
+  s.push(['Probe', FB(`\\begin{aligned} \\text{links: }& ${L_einsetzen(g0.l, L.x)} = ${qTex(L_wert(g0.l, L.x))} \\\\ \\text{rechts: }& ${L_einsetzen(g0.r, L.x)} = ${qTex(L_wert(g0.r, L.x))} \\;\\checkmark \\end{aligned}`)]);
+  return s;
+}
+/* Eigene Gleichung „links = rechts“ lesen */
+/* Leser des Lösungsfelds: „x =“, „L =“, { } abnehmen; dann „keine“ (nicht bei leerem Feld), „alle“ oder Zahl/Bruch (qLies).
+   Liefert { keine, alle, q } oder null (nicht lesbar) – Feld (pruefe) und Eingabehilfe teilen ihn */
+/* Lösung lesen: eine Zahl/Bruch (auch „x = …“, „L = {…}“), „keine“ oder „alle“ – über WZ.liesMenge/liesZahl (technik/mathe/werkzeug.js) */
+function L_liesLoesung(text){
+  const t = String(text).trim().replace(/^L\s*=\s*/i, '').replace(/^\{\s*(.*?)\s*\}$/, '$1').trim();
+  if (/^(alle|unendlich|unendlich viele|ℝ|R|Q|ℚ)$/i.test(t)) return { alle: true };
+  let m; try { m = WZ.liesMenge(text, e => WZ.liesZahl(e), { pm: false }); } catch (e) { return { fehler: e.message }; }
+  if (!m.length) return { keine: true };
+  if (m.length > 1) return { fehler: 'Eine lineare Gleichung hat höchstens eine Lösung – bitte nur eine Zahl eintragen.' };
+  return { q: m[0].q, v: m[0].v, stellen: m[0].stellen };
+}
+function L_gleichung(text){
+  const teile = String(text).split('=');
+  if (teile.length !== 2 || !teile[0].trim() || !teile[1].trim()) throw new Error('Bitte genau ein Gleichheitszeichen, z. B. 2(x − 3) = x + 4.');
+  const seiten = teile.map(t => { const b = T_lies(t), s = L_lin(b); if (!s) throw new Error('Das ist keine lineare Gleichung: nur x, Zahlen, Brüche und Klammern, kein x², kein x im Nenner.'); return { b, s }; });
+  if (seiten.some(({ s }) => L_gross(s.a) || L_gross(s.b))) throw new Error('Die Zahlen sind zu groß.');
+  if (qNull(seiten[0].s.a) && qNull(seiten[1].s.a)) throw new Error('In der Gleichung kommt kein x vor.');
+  return { l: seiten[0].s, r: seiten[1].s, lt: T_tex(seiten[0].b), rt: T_tex(seiten[1].b), text: text };
+}
+
+/* =====================================================================
+   Folie „An der Waage“: nur positive ganze Zahlen, Lösung eine natürliche Zahl
+   ===================================================================== */
+const WAAGE = (() => {
+  const root = document.querySelector('[data-waage]');
   const R = r => root.querySelector(`[data-r="${r}"]`);
-  const S = { a: 1, b: -2, c: -3, art: 'voll', verfahren: null, bild: false };
+  const S = { g0: null, verlauf: [], kipp: null };                     // verlauf: [{ g, op }] – op führt zur nächsten Zeile
+  const aktuell = () => S.verlauf[S.verlauf.length - 1].g;
+  /* passt die Seite als Säckchen und Gewichte auf die Waage? */
+  const darstellbar = s => s.a.n === 1 && s.b.n === 1 && s.a.z >= 0 && s.b.z >= 0 && s.a.z <= 6 && s.b.z <= 16;
+  function neu(){
+    let a, c, x, b, d;
+    do { a = WZ.rnd(2, 5); c = WZ.rnd(0, a - 1); x = WZ.rnd(1, 5); b = WZ.rnd(0, 8); d = (a - c) * x + b; }
+    while (d > 14 || (b === 0 && c === 0) || a * x + b > 22);
+    setze({ l: { a: Q(a), b: Q(b) }, r: { a: Q(c), b: Q(d) } });
+  }
+  function setze(g){
+    S.g0 = g; S.verlauf = [{ g, op: null }]; S.kipp = null;
+    R('term').innerHTML = F(`${L_tex(g.l)} = ${L_tex(g.r)}`);
+    R('op').value = ''; R('op').classList.remove('falsch');
+    WZ.rueck(R('rueck'), '', 'Nimm auf beiden Seiten dasselbe weg – oder teile beide Seiten –, bis ein Säckchen allein liegt.');
+    root.dataset.loesung = qText(L_loesung(g).x);
+    zeichne();
+  }
+  function zeichne(){
+    const g = S.kipp ? S.kipp.g : aktuell(), handy = WZ.handy(), x = L_loesung(S.g0).x;
+    const ok = darstellbar(g.l) && darstellbar(g.r);
+    let kipp = 0;
+    if (S.kipp){ const d = qWert(L_wert(g.l, x)) - qWert(L_wert(g.r, x)); kipp = d > 0 ? 1 : d < 0 ? -1 : 0; }
+    const o = handy ? { W: 320, H: 320, schrift: 14 } : { W: 520, H: 300, schrift: 14 };   // Handy: in Zielbreite neu gezeichnet, nicht verkleinert
+    R('bild').innerHTML = ok ? waageSVG({ ...o, l: [g.l.a.z, g.l.b.z], r: [g.r.a.z, g.r.b.z], kipp }) : waageSVG(o);
+    R('hinweis').innerHTML = ok ? (kipp ? 'Die Waage kippt: Die beiden Seiten sind nicht mehr gleich schwer.' : 'Gleichgewicht: Beide Seiten sind gleich schwer.')
+      : 'Diese Zeile passt nicht mehr auf die Waage (negative Zahl oder Bruch). Rechnerisch bleibt die Gleichung richtig – oder mach die Umformung rückgängig.';
+    root.dataset.kipp = kipp; root.dataset.bild = ok ? 'waage' : 'leer';
+    const zeilen = S.verlauf.map((z, i) => ({ lt: L_tex(z.g.l), rt: L_tex(z.g.r), op: S.verlauf[i + 1] ? S.verlauf[i + 1].op.tex : '' }));
+    R('kette').innerHTML = L_kette(zeilen);
+    R('zurueck').disabled = S.verlauf.length < 2 && !S.kipp;          // nach „nur links“: zurück ins Gleichgewicht
+    root.dataset.schritte = S.verlauf.length - 1;
+  }
+  function lies(){
+    const feld = R('op');
+    try { const op = L_op(feld.value); feld.classList.remove('falsch'); return op; }
+    catch (e) { feld.classList.add('falsch'); WZ.rueck(R('rueck'), 'nein', M(e.message.replace(/x = 0/, '$x = 0$'))); return null; }
+  }
+  function beide(){
+    const op = lies(); if (!op) return;
+    S.kipp = null;
+    const g = L_anwenden(aktuell(), op);
+    S.verlauf.push({ g, op });
+    const st = L_stand(g);
+    if (st.art === 'eine') WZ.rueck(R('rueck'), 'ok', M(`Geschafft: $x = ${qTex(st.x)}$. Ein Säckchen wiegt so viel wie ${qText(st.x)} Gewicht${qGleich(st.x, Q(1)) ? '' : 'e'}.`) + ' ' + F(L_menge(st)));
+    else if (st.art !== 'offen') WZ.rueck(R('rueck'), 'nein', 'Jetzt ist kein x mehr da – mach die letzte Umformung rückgängig.');
+    else WZ.rueck(R('rueck'), '', `Gleichgewicht bleibt: Auf beiden Seiten ${F(op.tex)}. Weiter, bis ein Säckchen allein liegt.`);
+    zeichne();
+  }
+  function nurLinks(){
+    const op = lies(); if (!op) return;
+    const g = aktuell(), n = op.art === 'plus' ? { l: L_plus(g.l, op.k), r: g.r } : { l: L_mal(g.l, op.f), r: g.r };
+    S.kipp = { g: n };
+    WZ.rueck(R('rueck'), 'nein', `Nur links ${F(op.tex)}: Die Waage kippt – aus ${F(`${L_tex(g.l)} = ${L_tex(g.r)}`)} wird eine falsche Aussage. Eine Umformung gilt immer für <b>beide</b> Seiten.`);
+    zeichne();
+  }
+  function tipp(){
+    const g = aktuell(), st = L_stand(g);
+    if (st.art === 'eine') return WZ.rueck(R('rueck'), 'ok', 'x steht schon allein.');
+    let t;
+    if (!qNull(g.r.a) && !qNull(g.l.a)) t = `Rechts liegen Säckchen. Nimm auf beiden Seiten ${F(L_tex({ a: g.r.a, b: Q(0) }))} weg: ${F(`- ${L_tex({ a: g.r.a, b: Q(0) })}`)}`;
+    else if (!qNull(g.l.b) && !qNull(g.l.a)) t = `Links liegen noch Gewichte bei den Säckchen. Nimm sie auf beiden Seiten weg: ${F(`- ${qTex(g.l.b)}`)}`;
+    else if (!qNull(g.r.b) && !qNull(g.r.a)) t = `Rechts liegen Gewichte bei den Säckchen. Nimm sie auf beiden Seiten weg: ${F(`- ${qTex(g.r.b)}`)}`;
+    else { const A = qNull(g.l.a) ? g.r.a : g.l.a; t = `Es liegen ${qText(A)} Säckchen auf einer Seite. Teile beide Seiten durch ${qText(A)}: ${F(`: ${L_kl(A)}`)}`; }
+    WZ.rueck(R('rueck'), 'fast', 'Tipp: ' + t);
+  }
+  R('beide').onclick = beide; R('links').onclick = nurLinks; R('tipp').onclick = tipp; R('neu').onclick = neu;
+  R('op').addEventListener('keydown', e => { if (e.key === 'Enter') beide(); });
+  R('op').addEventListener('input', () => R('op').classList.remove('falsch'));
+  R('zurueck').onclick = () => { if (S.kipp) S.kipp = null; else if (S.verlauf.length > 1) S.verlauf.pop(); WZ.rueck(R('rueck'), '', 'Zurück. Wieder im Gleichgewicht.'); zeichne(); };
+  window.addEventListener('handy-wechsel', zeichne);
+  setze({ l: { a: Q(3), b: Q(2) }, r: { a: Q(1), b: Q(8) } });          // Start: 3x + 2 = x + 8, x = 3
+  return { S, setze, neu, beide, nurLinks, tipp, darstellbar };
+})();
+
+/* =====================================================================
+   Folie „Lineare Gleichungen“: ganze Zahlen, Klammern, Brüche, Sonderfälle, eigene Gleichung
+   ===================================================================== */
+const LINEAR = (() => {
+  const root = document.querySelector('[data-linear]');
+  const R = r => root.querySelector(`[data-r="${r}"]`);
+  const S = { g: null, art: 'ganz', verlauf: [], bild: false };
   const weg = WZ.weg(root);
-  const kl = v => v < 0 ? `(${v})` : String(v);                  // negative Zahl in Klammern
-  const ggt = (a, b) => ggT(a, b);
-
-  /* ---------- exakte Lösungen ---------- */
-  function quadratFrei(t){ let k = 1; for (let i = 2; i * i <= t; i++) while (t % (i * i) === 0) { t /= i * i; k *= i; } return [k, t]; }
-  /* x = r + vz·s·√m als { wert, tex, text } */
-  function zahl(r, s, m_, vz){
-    if (qNull(s)) return { wert: qWert(r), tex: qTex(r), text: qText(r) };
-    if (m_ === 1){ const q = vz > 0 ? qAdd(r, s) : qSub(r, s); return { wert: qWert(q), tex: qTex(q), text: qText(q) }; }
-    const d = r.n * s.n / ggt(r.n, s.n), Rz = r.z * d / r.n, Sz = s.z * d / s.n;
-    const innen = (Rz ? `${Rz}${vz > 0 ? ' + ' : ' - '}` : (vz > 0 ? '' : '-')) + `${Sz === 1 ? '' : Sz}\\sqrt{${m_}}`;
-    return { wert: qWert(r) + vz * qWert(s) * Math.sqrt(m_), tex: d === 1 ? innen : `\\frac{${innen}}{${d}}`, text: `(${Rz}${vz > 0 ? '+' : '-'}${Sz}*sqrt(${m_}))/${d}` };
-  }
-  const D = () => S.b * S.b - 4 * S.a * S.c;                    // für das Vorzeichen (b² − 4ac)
-  const Dpq = () => Q(D(), 4 * S.a * S.a);                         // gezeigt wird D der pq-Formel: (p/2)² − q = (b² − 4ac)/(4a²)
-  function loesungen(){
-    const d = D(); if (d < 0) return [];
-    const r = Q(-S.b, 2 * S.a); if (d === 0) return [zahl(r, Q(0), 1, 1)];
-    const [k, m_] = quadratFrei(d), s = Q(k, 2 * Math.abs(S.a));
-    return [zahl(r, s, m_, -1), zahl(r, s, m_, 1)].sort((p, q) => p.wert - q.wert);
-  }
-  const menge = L => L.length ? `\\left\\{\\, ${L.map(x => x.tex).join(';\\ ')} \\,\\right\\}` : '\\{\\,\\}';   // \\left: wächst mit Brüchen
-  const typ = () => S.b === 0 ? 'rein' : S.c === 0 ? 'ohnec' : 'voll';
-  const gleichung = () => pTex([S.c, S.b, S.a]);
-  const dKlasse = d => d > 0 ? 'qg-plus' : d === 0 ? 'qg-null' : 'qg-minus';
-
-  /* ---------- Aufgaben ---------- */
+  const kf = k => k === 1 ? '' : k === -1 ? '-' : String(k);            // Vorzahl: 1 und −1 nicht hinschreiben
+  const pm = v => `${v < 0 ? ' - ' : ' + '}${Math.abs(v)}`;                 // „ + 3“ / „ - 3“
+  const aus = text => L_gleichung(text);
+  /* Aufgaben als Text (so, wie man sie an die Tafel schreibt); Lösung muss „schön“ sein */
+  const schoen = g => { const L = L_loesung(g); return L.art === 'eine' && L.x.n <= 4 && Math.abs(qWert(L.x)) <= 12; };
   const ARTEN = {
-    rein(){ const a = WZ.eins([1, 1, 2, -1, 3]), w = WZ.eins(['quadrat', 'quadrat', 'wurzel', 'keine']);
-      if (w === 'quadrat') return [a, 0, -a * WZ.rnd(1, 6) ** 2];
-      if (w === 'wurzel') return [a, 0, -a * WZ.eins([2, 3, 5, 6, 7, 8, 12])];
-      return [a, 0, a * WZ.rnd(1, 9)]; },
-    ohnec(){ const a = WZ.eins([1, 1, 2, 3, -1, -2]); let b; do b = WZ.nz(-9, 9); while (Math.abs(b) === Math.abs(a) && Math.random() < 0.5); return [a, b, 0]; },
-    voll(){ const a = WZ.eins([1, 1, 1, 2, -1, 3]), w = WZ.eins(['ganz', 'ganz', 'bruch', 'doppelt', 'keine', 'wurzel']);
-      if (w === 'ganz'){ let p, q; do { p = WZ.rnd(-6, 6); q = WZ.rnd(-6, 6); } while (p === q || p * q === 0); return [a, -a * (p + q), a * p * q]; }
-      if (w === 'bruch'){ const a2 = WZ.eins([2, 3]), p = WZ.nz(-5, 5); let z; do z = WZ.nz(-5, 5); while (z % a2 === 0); return [a2, -(a2 * p + z), p * z]; }   // (a2·x − z)(x − p)
-      if (w === 'doppelt'){ const h = WZ.nz(-5, 5); return [a, -2 * a * h, a * h * h]; }
-      if (w === 'keine'){ const h = WZ.rnd(-4, 4), k = WZ.rnd(1, 5); return [a, -2 * a * h, a * (h * h + k)]; }
-      let b, c; do { b = WZ.nz(-8, 8); c = WZ.nz(-9, 9); } while (b * b - 4 * c <= 0 || Number.isInteger(Math.sqrt(b * b - 4 * c))); return [1, b, c]; },
+    ganz(){ for (;;){ const a = WZ.nz(-9, 9), c = WZ.rnd(-9, 9), x = WZ.rnd(-9, 9), b = WZ.rnd(-12, 12); if (a === c) continue;
+      const d = a * x + b - c * x; if (Math.abs(d) > 40) continue;
+      const g = { l: { a: Q(a), b: Q(b) }, r: { a: Q(c), b: Q(d) } }; return { ...g, lt: L_tex(g.l), rt: L_tex(g.r), text: `${a}x + (${b}) = ${c}x + (${d})` }; } },
+    klammern(){ for (;;){ const k1 = WZ.eins([2, 3, 4, -2, -3, 5]), m1 = WZ.nz(-6, 6), n1 = WZ.rnd(-9, 9), k2 = WZ.eins([1, 2, 3, -1, -2]), m2 = WZ.nz(-6, 6), n2 = WZ.rnd(-9, 9);
+      const form = WZ.eins([0, 1, 2]);
+      const t = form === 0 ? `${kf(k1)}(x${pm(m1)}) ${pm(n1)} = ${kf(k2)}x ${pm(n2)}`
+        : form === 1 ? `${n1} - (x${pm(m1)}) = ${kf(k2)}(x${pm(m2)})`
+        : `${kf(k1)}(x${pm(m1)}) = ${kf(k2)}(${Math.abs(m2)} - x) ${pm(n2)}`;
+      const g = aus(t.replace(/\s[+-] 0$/, '').replace(/\s[+-] 0 =/, ' ='));
+      if (schoen(g)) return g; } },
+    brueche(){ for (;;){ const n1 = WZ.eins([2, 3, 4, 5]), n2 = WZ.eins([2, 3, 4, 6]), z1 = WZ.nz(-5, 5), b = WZ.nz(-6, 6), m = WZ.eins([2, 3, 4]), d = WZ.nz(-6, 6);
+      const t = WZ.eins([0, 1]) === 0 ? `x/${n1} ${b < 0 ? '-' : '+'} ${Math.abs(b)}/${m} = ${kf(z1)}x/${n2} ${pm(d)}`
+        : `(x ${pm(b)})/${n1} = x/${n2} ${pm(d)}`;
+      const g = aus(t); if (schoen(g) && g.l.b.n * g.r.a.n > 1) return g; } },
+    sonder(){ const k = WZ.eins([2, 3, 4, 5]), m = WZ.nz(-6, 6), d = WZ.nz(-5, 5), keine = Math.random() < 0.5;
+      const rechtsB = k * m + (keine ? d : 0);
+      return aus(`${k}(x${m < 0 ? '-' : '+'}${Math.abs(m)}) = ${k}x${rechtsB < 0 ? '-' : '+'}${Math.abs(rechtsB)}`.replace(/\+0$/, '')); },
   };
-  ARTEN.gemischt = () => ARTEN[WZ.eins(['rein', 'ohnec', 'voll', 'voll'])]();
-  function neu(art){ S.art = art; setze(...ARTEN[art]()); }
-  function setze(a, b, c){
-    Object.assign(S, { a, b, c, verfahren: null, bild: false });
-    R('term').innerHTML = F(gleichung());
-    R('antwort').value = ''; R('antwort').className = 'wz-eingabe';
-    root.querySelectorAll('[data-v]').forEach(k => k.classList.remove('gut', 'geht', 'nicht'));
-    WZ.rueck(R('rueck'), '', 'Wähle zuerst ein Verfahren – oder rechne gleich los.');
-    root.querySelectorAll('[data-art]').forEach(k => k.classList.toggle('an', k.dataset.art === S.art));
-    const L = loesungen(); root.dataset.loesung = L.map(x => x.text).join(';'); root.dataset.d = D();
-    baueWeg(); zeichneBild();
+  ARTEN.gemischt = () => ARTEN[WZ.eins(['ganz', 'klammern', 'brueche', 'brueche', 'sonder'])]();
+  function neu(art){ S.art = art; setze(ARTEN[art]()); }
+  function setze(g){
+    S.g = g; S.verlauf = [{ g: { l: g.l, r: g.r }, op: null, lt: g.lt, rt: g.rt }]; S.bild = false;
+    R('term').innerHTML = F(`${g.lt} = ${g.rt}`);
+    R('antwort').value = ''; R('antwort').className = 'wz-eingabe'; R('op').value = ''; R('op').classList.remove('falsch');
+    WZ.rueck(R('rueck'), '', 'Forme selbst um (links) oder deck den Lösungsweg auf. Dann die Lösung eintragen und prüfen.');
+    WZ.rueck(R('oprueck'), '', '');
+    root.querySelectorAll('[data-art]').forEach(b => b.classList.toggle('an', b.dataset.art === S.art));
+    const L = L_loesung(g);
+    root.dataset.loesung = L.art === 'eine' ? qText(L.x) : L.art; root.dataset.text = g.text || `${L_text(g.l)} = ${L_text(g.r)}`;
+    weg.setze(L_weg(g)); zeichneKette(); zeichneBild();
+  }
+  function zeichneKette(){
+    const zeilen = S.verlauf.map((z, i) => ({ lt: z.lt || L_tex(z.g.l), rt: z.rt || L_tex(z.g.r), op: S.verlauf[i + 1] ? S.verlauf[i + 1].op.tex : '' }));
+    R('kette').innerHTML = L_kette(zeilen);
+    R('zurueck').disabled = S.verlauf.length < 2;
+    root.dataset.schritte = S.verlauf.length - 1;
+  }
+  function umformen(){
+    const feld = R('op'); let op;
+    try { op = L_op(feld.value); feld.classList.remove('falsch'); } catch (e) { feld.classList.add('falsch'); return WZ.rueck(R('oprueck'), 'nein', M(e.message.replace(/x = 0/, '$x = 0$'))); }
+    const vor = S.verlauf[S.verlauf.length - 1];
+    if ((vor.lt || L_tex(vor.g.l)) !== L_tex(vor.g.l) || (vor.rt || L_tex(vor.g.r)) !== L_tex(vor.g.r))   // erst Klammern auflösen und zusammenfassen (nur in der Ausgangszeile)
+      S.verlauf.push({ g: vor.g, op: { tex: '\\text{vereinfachen}' } });
+    const g = L_anwenden(S.verlauf[S.verlauf.length - 1].g, op);
+    if ([g.l.a, g.l.b, g.r.a, g.r.b].some(L_gross)) { feld.classList.add('falsch'); return WZ.rueck(R('oprueck'), 'nein', 'Die Zahlen werden zu groß – such eine einfachere Umformung.'); }
+    S.verlauf.push({ g, op });
+    const st = L_stand(g);
+    WZ.rueck(R('oprueck'), st.art === 'offen' ? '' : 'ok', st.art === 'eine' ? M(`$x$ steht allein: $x = ${qTex(st.x)}$. Trag das oben ein und prüfe.`)
+      : st.art === 'keine' ? M(`Kein $x$ mehr, und $${L_tex(g.l)} = ${L_tex(g.r)}$ ist falsch: keine Lösung.`) : st.art === 'alle' ? M(`Kein $x$ mehr, und $${L_tex(g.l)} = ${L_tex(g.r)}$ stimmt immer: alle Zahlen sind Lösungen.`)
+      : 'Auf beiden Seiten umgeformt. Weiter, bis x allein steht.');
+    feld.value = ''; zeichneKette();
+  }
+  /* Antwort prüfen: Zahl, „keine“ oder „alle“; typische Fehler aus dem Aufbau der Gleichung */
+  function pruefe(){
+    const feld = R('antwort'), meld = (art, t) => { WZ.rueck(R('rueck'), art, t); feld.className = 'wz-eingabe ' + art; };
+    const L = L_loesung(S.g), g = S.g, gelesen = L_liesLoesung(feld.value);
+    const { keine, alle, q } = gelesen;
+    if (gelesen.fehler) return meld('nein', gelesen.fehler + ' Oder „keine“ bzw. „alle“.');
+    if (L.art !== 'eine'){
+      if ((L.art === 'keine' && keine) || (L.art === 'alle' && alle)) return meld('ok', `Richtig! ${F(L_menge(L))}` + (L.art === 'keine' ? ' – am Ende steht ein Widerspruch.' : ' – am Ende steht eine wahre Aussage ohne x.'));
+      if (q) return meld('nein', M(`Setz $${qTex(q)}$ ein: links $${qTex(L_wert(g.l, q))}$, rechts $${qTex(L_wert(g.r, q))}$.`) + (L.art === 'alle' ? ' Das passt – und zwar für jede Zahl. Bring alle x auf eine Seite: Was bleibt übrig?' : ' Bring alle x auf eine Seite: Was bleibt übrig?'));
+      return meld('nein', L.art === 'keine' ? 'Nein: Wenn die x verschwinden, bleibt eine falsche Aussage übrig – also keine Lösung.' : 'Nein: Wenn die x verschwinden, bleibt eine wahre Aussage übrig – also alle Zahlen.');
+    }
+    if (keine || alle) return meld('nein', 'Doch: Diese Gleichung hat genau eine Lösung. Bring die x-Terme auf eine Seite – es bleibt ein x übrig.');
+    if (qGleich(q, L.x)) return meld('ok', `Richtig! ${F(L_menge(L))}`);
+    const A = qSub(g.l.a, g.r.a), B = qSub(g.r.b, g.l.b), pr = [];
+    if (!qNull(g.l.b) && !qNull(g.r.b)) pr.push([qDiv(qAdd(g.r.b, g.l.b), A), 'nein', M(`<b>Vorzeichen:</b> Die Zahl ${'$' + qTex(g.l.b) + '$'} kommt nicht einfach hinüber – auf beiden Seiten wird sie abgezogen.`)]);
+    else if (!qNull(g.l.b)) pr.push([qDiv(g.l.b, A), 'nein', M(`<b>Vorzeichen:</b> Auf beiden Seiten $${g.l.b.z > 0 ? '-' : '+'}\\,${qTex(Q(Math.abs(g.l.b.z), g.l.b.n))}$ – rechts steht dann das Gegenteil.`)]);
+    if (!qNull(g.r.a) && !qNull(qAdd(g.l.a, g.r.a))) pr.push([qDiv(B, qAdd(g.l.a, g.r.a)), 'nein', M(`<b>Vorzeichen beim x-Term:</b> Auf beiden Seiten $${g.r.a.z > 0 ? '-' : '+'}\\,${L_tex({ a: Q(Math.abs(g.r.a.z), g.r.a.n), b: Q(0) })}$ – links wird die Vorzahl kleiner, nicht größer.`)]);
+    if (!qGleich(A, Q(1))) pr.push([B, 'fast', M(`Fast: Es steht noch $${L_tex({ a: A, b: Q(0) })} = ${qTex(B)}$ da. Noch durch $${L_kl(A)}$ teilen.`)]);
+    if (!qNull(B) && !qGleich(A, B)) pr.push([qDiv(A, B), 'nein', 'Umgekehrt geteilt: Die Zahl wird durch die Vorzahl von x geteilt, nicht umgekehrt.']);
+    if (!qNull(g.l.b) && !qNull(g.l.a)) pr.push([qDiv(g.r.b, A), 'nein', '<b>Nur auf einer Seite umgeformt:</b> Die Zahl muss auf beiden Seiten weg, nicht nur links.']);
+    if (!qNull(g.r.a) && !qNull(g.l.a)) pr.push([qDiv(B, g.l.a), 'nein', '<b>Nur auf einer Seite umgeformt:</b> Der x-Term muss auf beiden Seiten weg, nicht nur rechts.']);
+    /* nach getippten Stellen (WZ.zahlPruefen): gerundet richtig heißt hier „fast“ (gesucht ist der Bruch); Fehlerbilder auch gerundet, vor „fast“ */
+    const e = { v: gelesen.v, stellen: gelesen.stellen }, art = w => WZ.zahlPruefen(e, qWert(w)).art;
+    if (art(L.x) === 'ok') return meld('fast', 'Gerundet. Gib die Lösung exakt an, als Bruch – z. B. 2/3.');
+    const treffer = pr.find(([w]) => !qGleich(w, L.x) && Math.abs(qWert(w) - qWert(L.x)) > 1e-9 && (qGleich(w, q) || art(w) === 'ok'));
+    if (treffer) return meld(treffer[1], treffer[2]);
+    if (art(L.x) === 'fast') return meld('fast', 'Zu grob gerundet. Gib die Lösung exakt an, als Bruch – z. B. 2/3.');
+    meld('nein', M(`Probe mit $x = ${qTex(q)}$: links $${qTex(L_wert(g.l, q))}$, rechts $${qTex(L_wert(g.r, q))}$ – nicht gleich. Forme Schritt für Schritt um oder deck den Lösungsweg auf.`));
   }
   function uebernehmen(){
     const f = R('eigen');
-    try {
-      const teile = f.value.split('='); if (teile.length > 2) throw new Error('Höchstens ein Gleichheitszeichen.');
-      const l = T_lies(teile[0]), r = teile[1] !== undefined ? T_lies(teile[1]) : { t: 'z', v: 0 };
-      const k = T_koeffizienten({ t: '-', a: l, b: r });
-      if (!k || k.length !== 3) throw new Error('Bitte eine quadratische Gleichung mit ganzen Zahlen, z. B. 2x^2 − 3x − 2 oder x^2 = 5x.');
-      f.classList.remove('falsch'); S.art = 'eigen'; setze(k[2], k[1], k[0]);
-      if (teile[1] !== undefined) WZ.rueck(R('rueck'), '', M(`Erst alles auf eine Seite: $${gleichung()} = 0$. Dann ein Verfahren wählen.`));
-    } catch (e) { f.classList.add('falsch'); WZ.rueck(R('rueck'), 'nein', e.message); }
+    try { const g = L_gleichung(f.value); f.classList.remove('falsch'); S.art = 'eigen'; setze(g); }
+    catch (e) { f.classList.add('falsch'); WZ.rueck(R('rueck'), 'nein', e.message); }
   }
-
-  /* ---------- Verfahren ---------- */
-  const BEWERTUNG = {
-    rein:  { wurzel: ['gut', 'Ohne $x$-Glied: nach $x^{2}$ auflösen, Wurzel ziehen.'], ausklammern: ['nicht', '$x$ steckt nicht in jedem Summanden: Die Zahl hat kein $x$.'],
-             formel: ['geht', 'Geht immer – hier aber umständlicher als Wurzel ziehen ($b = 0$).'], ergaenzung: ['geht', 'Geht, ist aber unnötig: Es gibt kein $x$-Glied zum Ergänzen.'] },
-    ohnec: { ausklammern: ['gut', 'Ohne Zahl: $x$ ausklammern, dann Satz vom Nullprodukt.'], wurzel: ['nicht', 'Das $x$-Glied verhindert das direkte Wurzelziehen.'],
-             formel: ['geht', 'Geht ($c = 0$) – ausklammern ist schneller.'], ergaenzung: ['geht', 'Geht – ausklammern ist schneller.'] },
-    voll:  { formel: ['gut', 'Vollständige Gleichung: Die pq-Formel passt immer.'], ergaenzung: ['gut', 'Quadratische Ergänzung – darauf beruht die pq-Formel.'],
-             wurzel: ['nicht', 'Das $x$-Glied verhindert das direkte Wurzelziehen.'], ausklammern: ['nicht', 'Wegen der Zahl steckt $x$ nicht in jedem Summanden.'] },
-  };
-  const BESTES = { rein: 'wurzel', ohnec: 'ausklammern', voll: 'formel' };
-  function waehle(v){
-    const [art, text] = BEWERTUNG[typ()][v];
-    root.querySelectorAll('[data-v]').forEach(k => k.classList.remove('gut', 'geht', 'nicht'));
-    root.querySelector(`[data-v="${v}"]`).classList.add(art);
-    WZ.rueck(R('rueck'), { gut: 'ok', geht: 'fast', nicht: 'nein' }[art], M(text));
-    root.dataset.verfahren = art;
-    if (art !== 'nicht') { S.verfahren = v; baueWeg(); }
-  }
-
-  /* ---------- Lösungsweg ---------- */
-  function baueWeg(){
-    const v = S.verfahren || BESTES[typ()], { a, b, c } = S, L = loesungen(), s = [];
-    const ende = () => s.push(['Lösungsmenge', FB(`L = ${menge(L)}`), true]);
-    if (v === 'wurzel'){
-      const w = Q(-c, a);
-      s.push(['Umstellen', FB(`${pTex([0, 0, a])} = ${-c}`)]);
-      if (a !== 1) s.push([`Durch ${F(String(a))} teilen`, FB(`x^{2} = ${qTex(w)}`)]);
-      if (w.z < 0) s.push(['Keine Lösung', M('$x^{2}$ ist nie negativ.')]);
-      else if (w.z === 0) s.push(['Eine Lösung', FB('x = 0')]);
-      else { const roh = `\\sqrt{${qTex(w)}}`;                     // „= ±…“ nur, wenn sich die Wurzel vereinfacht
-        s.push(['Wurzel ziehen', FB(`x = \\pm${roh}${roh === L[1].tex ? '' : ` = \\pm ${L[1].tex}`}`) + 'Beide Vorzeichen!']); }
-    }
-    if (v === 'ausklammern'){
-      s.push(['Ausklammern', FB(`x \\cdot ${klTex(pTex([b, a]))} = 0`)]);
-      s.push(['Nullprodukt', FB(`\\begin{array}{rcl} x & = & 0 \\\\ \\text{oder}\\quad ${pTex([b, a])} = 0 \\;\\Rightarrow\\; x & = & ${dTex(Q(-b, a))} \\end{array}`)]);
-    }
-    if (v === 'formel'){                                              // pq-Formel (Peter, 06.10.: „das nutze ich mehr“)
-      const d = D(), p = Q(b, a), q = Q(c, a), h = Q(p.z, 2 * p.n), Dq = Dpq(), kq = x => x.z < 0 ? klTex(qTex(x)) : qTex(x);   // klTex: nur um Brüche mitwachsend
-      const wz = Math.round(Math.sqrt(Math.abs(Dq.z))), wn = Math.round(Math.sqrt(Dq.n)), glatt = Dq.z >= 0 && wz * wz === Dq.z && wn * wn === Dq.n;
-      if (a !== 1) s.push(['Normalform', FB(`${pTex([c, b, a])} = 0 \\quad | : ${kl(a)}`) + FB(`${pTex([q, p, Q(1)])} = 0`)]);
-      s.push(['Ablesen', FB(`p = ${qTex(p)}, \\quad q = ${qTex(q)}`)]);
-      s.push(['Diskriminante', FB(`\\begin{aligned} D &= \\left(\\frac{p}{2}\\right)^{2} - q \\\\ &= ${klTex(qTex(h))}^{2} - ${kq(q)} \\\\ &= ${kTex(dKlasse(d), qTex(Dq))} \\end{aligned}`)
-        + FB(`D ${d > 0 ? '> 0' : d === 0 ? '= 0' : '< 0'} \\quad\\Rightarrow\\quad \\text{${d > 0 ? 'zwei Lösungen' : d === 0 ? 'eine Lösung' : 'keine Lösung'}}`)]);
-      if (d >= 0) s.push(['Einsetzen', FB(`\\begin{aligned} x_{1,2} &= -\\frac{p}{2} \\pm \\sqrt{D} \\\\ &= ${qTex(qNeg(h))} \\pm \\sqrt{${qTex(Dq)}}${glatt ? ` \\\\ &= ${qTex(qNeg(h))} \\pm ${qTex(Q(wz, wn))}` : ''} \\end{aligned}`)]);
-    }
-    if (v === 'ergaenzung'){
-      const p = Q(b, a), q = Q(c, a), h = Q(p.z, 2 * p.n), Rr = qSub(qMul(h, h), q), hq = qNull(h) ? '0' : `${klTex(qTex(h))}^{2}`;
-      if (a !== 1) s.push([`Durch ${F(String(a))} teilen`, FB(`${pTex([q, p, Q(1)])} = 0`)]);
-      s.push(['Ergänzen', FB(`${pTex([Q(0), p, Q(1)])} + ${hq} = ${qTex(qNeg(q))} + ${hq}`)]);
-      s.push(['Binom', FB(`${klTex(pTex([h, Q(1)]))}^{2} = ${qTex(Rr)}`)]);
-      if (Rr.z < 0) s.push(['Keine Lösung', 'Ein Quadrat ist nie negativ.']);
-      else s.push(['Wurzel ziehen', FB(`${pTex([h, Q(1)])} = ${Rr.z === 0 ? '0' : `\\pm\\sqrt{${qTex(Rr)}}`}`)]);
-    }
-    ende(); weg.setze(s);
-  }
-
-  /* ---------- Prüfen ---------- */
-  function lies(text){ return eintraege(text).map(e => e.v); }
-  /* Einträge mit Wert und getippten Nachkommastellen (exakt bei Bruch oder √: Infinity) */
-  function eintraege(text){
-    const t = String(text).trim();
-    if (!t.includes(';') && (/,\s/.test(t) || (t.match(/,/g) || []).length > 1)) throw new Error('Mehrere Lösungen bitte mit Semikolon trennen (das Komma ist für Dezimalzahlen).');
-    return WZ.liesMenge(t, e => {                                                          // technik/mathe/werkzeug.js
-      const pm = e.match(/^([+-])\(([^()]*)\)$/);                                          // „±2,24“ kommt als „+(2,24)“: getippte Stellen behalten
-      const z = pm && !/[a-zπ√∛∜]/i.test(pm[2]) ? WZ.liesZahl(pm[1] === '-' ? '-' + pm[2] : pm[2]) : WZ.liesZahl(e, { term: true });
-      return { v: z.v, stellen: z.stellen };
-    });
-  }
-  /* Eingabehilfe ⓘ: Lösungsmenge mit lies (auch ± und Wurzeln), eigene Aufgabe mit T_lies, höchstens ein „=“ */
-  EH.melde(() => {
-    const aufgabe = s => { const t = String(s).split('='); return t.length > 2 ? null : [T_lies(t[0]), T_lies(t[1] !== undefined ? t[1] : '0')]; };
-    return EH.mit(EH.liste(lies), {
-      zeilen: [...EH.zeilen(lies, [['\\{-1;\\,4\\}', ['-1; 4', 'L = {-1; 4}', 'x1 = -1; x2 = 4']], ['-1 \\pm \\sqrt{2}', ['-1±sqrt(2)', '-1+-√2']]]),
-        ...EH.zeilen(aufgabe, [['2x^{2}-3x-2 = 0', ['2x^2-3x-2', '2x^2-3x-2 = 0']], ['x^{2} = 3x', ['x^2 = 3x', 'x²=3x']]])],
-      hinweise: ['Genau mit Wurzel (`1±√5`) oder gerundet (`3,24; -1,24`).', 'Eigene Aufgabe: Term (dann `= 0`) oder Gleichung mit einem `=`.'],
-    });
-  });
-  function pruefe(){
-    const feld = R('antwort'), aus = (art, t) => { WZ.rueck(R('rueck'), art, t); feld.className = 'wz-eingabe ' + art; };
-    let ist; try { ist = eintraege(feld.value); } catch (e) { return aus('nein', e.message); }
-    ist = ist.sort((p, q) => p.v - q.v).filter((e, i, A) => i === 0 || Math.abs(e.v - A[i - 1].v) > 1e-9);
-    const L = loesungen(), soll = L.map(x => x.wert);
-    /* je Eintrag nach getippten Stellen (WZ.zahlPruefen): exakt, gerundet auf mind. 2 Stellen, oder nur ungefähr („fast“) */
-    const art = (e, w) => WZ.zahlPruefen(e, w).art, passt = (A, B) => A.length === B.length && A.every((e, i) => art(e, B[i]) === 'ok');
-    const drin = e => soll.some(w => art(e, w) === 'ok');
-    if (passt(ist, soll)) return aus('ok', ist.every(e => e.stellen === Infinity) ? `Richtig! ${F(`L = ${menge(L)}`)}` : `Richtig (gerundet). Genau: ${F(`L = ${menge(L)}`)}`);
-    if (!soll.length) return aus('nein', M(typ() === 'rein' ? '$x^{2}$ müsste negativ sein – das geht nicht: keine Lösung.' : `$D = ${qTex(Dpq())} < 0$: keine Lösung.`));
-    if (!ist.length) return aus('nein', M(`Es gibt Lösungen: $D = ${qTex(Dpq())}${D() === 0 ? '$, also genau eine' : ' > 0$'}.`));
-    /* typische Fehler der pq-Formel (unabhängig von der Rechnung oben): −p/2, nicht halbiert, Normalform vergessen */
-    if (passt(ist.map(e => ({ ...e, v: -e.v })).sort((p, q) => p.v - q.v), soll) && typ() !== 'rein') return aus('nein', M('Vorzeichen: In der Formel steht <b>$-\\frac{p}{2}$</b>.'));
-    const w = Math.sqrt(Math.max(0, D())) / (2 * Math.abs(S.a));
-    const ungehalbt = [-1, 1].map(vz => -S.b / S.a + vz * w).sort((p, q) => p - q);
-    if (D() > 0 && typ() !== 'rein' && passt(ist, ungehalbt)) return aus('nein', M('Halbieren: In der Formel steht <b>$-\\frac{p}{2}$</b>, nicht $-p$.'));
-    const roh = S.b * S.b / 4 - S.c, ohneTeilen = [-1, 1].map(vz => -S.b / 2 + vz * Math.sqrt(Math.max(0, roh))).sort((p, q) => p - q);
-    if (S.a !== 1 && roh >= 0 && typ() !== 'rein' && passt(ist, roh === 0 ? [ohneTeilen[0]] : ohneTeilen)) return aus('nein', M(`Erst durch $${S.a}$ teilen: Die pq-Formel braucht $x^{2} + px + q = 0$.`));
-    if (ist.every(drin) && ist.length < soll.length){
-      if (typ() === 'rein') return aus('fast', M('Wurzel ziehen heißt <b>$\\pm$</b>: Auch die negative Zahl ist eine Lösung.'));
-      if (typ() === 'ohnec' && !ist.some(e => Math.abs(e.v) < 1e-12)) return aus('fast', M('<b>$x = 0$ vergessen:</b> Nach dem Ausklammern ist auch der Faktor $x$ selbst null.'));
-      return aus('fast', M('Es gibt zwei Lösungen – das $\\pm$ in der Formel liefert beide.'));
-    }
-    if (ist.length === soll.length && ist.every((e, i) => art(e, soll[i]) !== 'nein')) return aus('fast', 'Fast – zu grob gerundet. Gib die Werte <b>exakt</b> an (mit Bruch oder √) oder auf zwei Nachkommastellen.');
-    aus('nein', 'Nicht richtig. Mach die Probe: Einsetzen muss 0 ergeben. Oder deck den Lösungsweg auf.');
-  }
-
-  /* ---------- Parabel ---------- */
+  /* Bild: beide Seiten als Geraden, Lösung = Schnittstelle */
   function zeichneBild(){
-    if (!S.bild){ R('flaeche').innerHTML = `<p class="wz-leer">${M(`Die Lösungen sind die Nullstellen der Parabel $y = ${gleichung()}$. „Bild zeigen".`)}</p>`; R('bild').textContent = 'Bild zeigen'; return; }
+    if (!S.bild){ R('flaeche').innerHTML = '<p class="wz-leer">Linke und rechte Seite als Geraden: Wo schneiden sie sich? „Bild zeigen“.</p>'; R('bild').textContent = 'Bild zeigen'; return; }
     R('bild').textContent = 'Bild ausblenden';
-    const { a, b, c } = S, f = x => a * x * x + b * x + c, h = -b / (2 * a), yv = f(h), L = loesungen();
-    const w = Math.max(3.5, L.length === 2 ? (L[1].wert - L[0].wert) / 2 + 1.5 : 0);
-    const spanne = Math.max(4, Math.abs(yv) * 2.2), unten = Math.min(0, yv), oben = Math.max(0, yv);   // Scheitel und x-Achse immer im Bild
-    const [y0, y1] = a > 0 ? [unten - 0.15 * spanne, oben + spanne] : [unten - spanne, oben + 0.15 * spanne];
-    const v = G_zoom(R('flaeche'), { xmin: h - w, xmax: h + w, ymin: y0, ymax: y1 }, zeichneBild);   // zoombar (graph.js)
-    const handy = WZ.handy(), K = G_koord({ W: handy ? 340 : 480, H: 240, ...v, xName: 'x', yName: 'y' });
-    let g = K.grund + K.kurve(f, 'g-k1') + `<circle class="qg-scheitel" cx="${K.px(h).toFixed(1)}" cy="${K.py(yv).toFixed(1)}" r="5"/>` + `<text class="qg-t" x="${(K.px(h) + 8).toFixed(1)}" y="${(K.py(yv) + (a > 0 ? 16 : -8)).toFixed(1)}">S</text>`;
-    L.forEach(x => { g += K.punkt(x.wert, 0, 'g-pok', 7); });
-    const d = D();
-    R('flaeche').innerHTML = K.svg(g) + `<p class="qg-regel">${M(`$${kTex(dKlasse(d), `D = ${qTex(Dpq())}`)}$ → ${d > 0 ? 'zwei Schnittpunkte mit der $x$-Achse' : d === 0 ? 'der Scheitel S liegt genau auf der $x$-Achse' : 'die Parabel trifft die $x$-Achse nicht'}.`)}</p>`;
+    const g = S.g, L = L_loesung(g), handy = WZ.handy(), W = handy ? 340 : 460, H = handy ? 280 : 250;
+    const m = L.art === 'eine' ? qWert(L.x) : 0, xmin = Math.floor(m - 5), xmax = Math.ceil(m + 5);
+    const fl = x => qWert(g.l.a) * x + qWert(g.l.b), fr = x => qWert(g.r.a) * x + qWert(g.r.b);
+    const ys = [xmin, xmax, m].flatMap(x => [fl(x), fr(x)]);
+    let ymin = Math.min(...ys), ymax = Math.max(...ys); const pad = Math.max(1, (ymax - ymin) * 0.12); ymin = Math.floor(ymin - pad); ymax = Math.ceil(ymax + pad);
+    if (ymin > 0) ymin = -1; if (ymax < 0) ymax = 1;
+    const v = G_zoom(R('flaeche'), { xmin, xmax, ymin, ymax }, zeichneBild);   // zoombar (graph.js)
+    const K = G_koord({ W, H, ...v, xName: 'x', yName: 'y', rand: { l: 38, r: 12, o: 14, u: 24 } });
+    let inhalt = K.grund + K.kurve(fl, 'g-k1') + K.kurve(fr, 'g-k2');
+    if (L.art === 'eine'){ const y = fl(m); inhalt += K.linie(m, Math.min(0, y), m, Math.max(0, y), 'lg-lot') + K.punkt(m, y, 'g-perg', 6) + K.punkt(m, 0, 'g-perg', 4); }
+    const unter = L.art === 'eine' ? `Schnittstelle bei ${F(`x = ${qTex(L.x)}`)}: Dort sind beide Seiten gleich groß.`
+      : L.art === 'keine' ? 'Die Geraden sind parallel: Es gibt keine Stelle, an der beide Seiten gleich sind.' : 'Beide Seiten sind dieselbe Gerade: An jeder Stelle gleich.';
+    R('flaeche').innerHTML = K.svg(inhalt) + `<p class="lg-legende"><span class="l">links: ${F(L_tex(g.l))}</span> <span class="r">rechts: ${F(L_tex(g.r))}</span></p><p class="lg-erkl">${unter}</p>`;
     G_zoomKnoepfe(R('flaeche'), K);
   }
-
-  /* ---------- Bedienung ---------- */
   R('pruefen').onclick = pruefe;
   R('antwort').addEventListener('keydown', e => { if (e.key === 'Enter') pruefe(); });
-  root.querySelectorAll('[data-v]').forEach(k => k.onclick = () => waehle(k.dataset.v));
-  root.querySelectorAll('[data-art]').forEach(k => k.onclick = () => neu(k.dataset.art));
+  R('beide').onclick = umformen;
+  R('op').addEventListener('keydown', e => { if (e.key === 'Enter') umformen(); });
+  R('zurueck').onclick = () => { if (S.verlauf.length > 1){ S.verlauf.pop(); if (S.verlauf.length > 1 && S.verlauf[S.verlauf.length - 1].op.art === undefined) S.verlauf.pop(); } WZ.rueck(R('oprueck'), '', ''); zeichneKette(); };
+  root.querySelectorAll('[data-art]').forEach(b => b.onclick = () => neu(b.dataset.art));
   R('uebernehmen').onclick = uebernehmen;
   R('eigen').addEventListener('keydown', e => { if (e.key === 'Enter') uebernehmen(); });
   R('bild').onclick = () => { S.bild = !S.bild; zeichneBild(); };
   window.addEventListener('handy-wechsel', zeichneBild);
-  setze(2, -3, -2);                                            // Start: 2x² − 3x − 2 = 0
-  return { S, setze, neu, pruefe, waehle, uebernehmen, loesungen, D };
+  setze(L_gleichung('2(x - 3) + 1 = 5 - (x + 4)'));                       // Start: x = 2
+  return { S, neu, setze, pruefe, umformen, uebernehmen, ARTEN };
 })();
+
+/* Eingabehilfe ⓘ (technik/hilfe/): dieselben Leser wie die Felder – Umformung L_op, Lösung L_liesLoesung, eigene Gleichung L_gleichung */
+EH.melde(() => {
+  const loesung = s => { const r = L_liesLoesung(s); if (r.fehler) throw new Error(r.fehler); return r.keine ? 'keine' : r.alle ? 'alle' : r.q; };
+  const gleichung = s => { const g = L_gleichung(s); return [g.l, g.r]; };
+  return {
+    zeilen: [
+      ...EH.zeilen(L_op, [['\\mid\\; -2', ['-2', '− 2']], ['\\mid\\; +3x', ['+3x']], ['\\mid\\; :(-2)', [':(-2)', ':(−2)', '/(-2)']], ['\\mid\\; \\cdot\\tfrac{1}{2}', ['*1/2', '·1/2']]]),
+      ...EH.zeilen(loesung, [['x = 3', ['3', 'x = 3', 'L = {3}']], ['x = -\\tfrac{2}{3}', ['-2/3']], ['\\mathbb{L} = \\{\\,\\}', ['keine', '∅']], ['\\mathbb{L} = \\mathbb{R}', ['alle', 'ℝ']]]),
+      ...EH.zeilen(gleichung, [['2(x-3) = x+4', ['2(x-3) = x+4', '2(x−3)=x+4']]]),
+    ],
+    hinweise: ['Eine Umformung beginnt mit dem Rechenzeichen: `-2`, `+3x`, `:(-2)`, `*1/2`. Malnehmen und Teilen nur mit Zahlen.',
+               'Lösung als Zahl oder Bruch, `x =` davor erlaubt; ohne Lösung `keine`, für jede Zahl `alle`.'],
+  };
+});
 /* =====================================================================
    Folien-Navigation
    ===================================================================== */

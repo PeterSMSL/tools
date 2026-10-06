@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Erst das passende Verfahren wählen (Wurzel ziehen, x ausklammern, Lösungsformel, quadratische Ergänzung), dann exakt lösen – auch mit Wurzeln. Die Diskriminante entscheidet über 0, 1 oder 2 Lösungen, die Parabel zeigt es.">
-<title>Quadratische Gleichungen · Verfahren wählen</title>
+<meta name="description" content="Gleichungen wie 3e^(2x−1) + 4 = 10 oder 2^x = 10 lösen: erst die Potenz allein stellen, dann ln. Exakt mit ln oder gerundet, mit Fall „keine Lösung“. Typische Fehler werden benannt, die e-Kurve zeigt die Schnittstelle.">
+<title>Exponentialgleichungen · Gleichungen</title>
 <style>
 /* ==== HANDY-SCHICHT: technik/handy/handy.css ==== */
 /* =====================================================================
@@ -852,26 +852,34 @@ html.handy mroot > :last-child{font-size:max(14px, .6em)}     /* Wurzelexponent 
 /* Brüche in Knöpfen in voller Größe */
 .knopf math{math-style:normal}
 
-/* ---------- Quadratische Gleichungen (Farben: technik/mathe/farben.css) ---------- */
-.qg-verfahren{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
-.qg-verfahren .bt{font-size:14px;font-weight:700;color:var(--grau);margin-right:4px}
-.qg-verfahren .knopf{font-size:14px;padding:5px 11px}
-.qg-verfahren .knopf.gut{background:var(--m-ok-h);border-color:var(--m-ok);color:var(--m-ok)}
-.qg-verfahren .knopf.geht{background:var(--m-hinweis-h);border-color:var(--m-hinweis);color:var(--m-hinweis)}
-.qg-verfahren .knopf.nicht{background:var(--m-falsch-h);border-color:var(--m-falsch);color:var(--m-falsch)}
-.qg-menge{display:inline-flex;align-items:center;gap:6px;font-family:var(--m-schrift);font-size:26px}
-.qg-menge .wz-eingabe{width:300px}
-.qg-regel{font-size:15px;color:var(--grau);margin-top:6px}
-.qg-regel b{color:var(--tinte)}
-math .qg-plus{color:var(--m-ok)} math .qg-null{color:var(--m-hinweis)} math .qg-minus{color:var(--m-falsch)}   /* Diskriminante: zwei, eine, keine Lösung */
-svg .qg-scheitel{fill:var(--m-erg);stroke:var(--papier);stroke-width:2}
-svg .qg-t{font-size:13px;font-weight:800;fill:var(--m-erg)}
-html.handy .qg-menge{font-size:22px;width:100%;flex-wrap:wrap}
-html.handy .qg-menge .wz-eingabe{width:auto;flex:1}
-html.handy .qg-verfahren .knopf{font-size:15px}
-html.handy .qg-verfahren .bt{width:100%}
-
-.titelpolster{padding:10px}   /* Titelkarte (Rahmen) mit Innenabstand */
+/* ---------- Exponentialgleichungen (Farben: technik/mathe/farben.css) ---------- */
+.eg-titel{padding:8px 14px 12px;font-size:22px;color:var(--tinte);text-align:center}   /* Karte selbst: .titelkarte (Rahmen) */
+.eg-titel svg{display:block;margin:0 auto}
+.eg-karten{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.eg-karte{background:#fff;border:1px solid var(--linie);border-radius:14px;padding:12px 18px}
+.eg-karte h3{font-size:17px;color:var(--blau-d);margin-bottom:2px}
+.eg-karte p{font-size:15.5px;color:var(--tinte);line-height:1.5}
+.eg-karte math[display="block"]{font-size:1.25em;margin:4px 0}
+.eg-antwort{display:inline-flex;align-items:center;gap:8px;font-size:26px}
+.eg-antwort .wz-eingabe{width:300px}
+.eg-regel{font-size:15px;color:var(--grau);margin-top:6px}
+.eg-regel b{color:var(--tinte)}
+.eg-erkl{font-size:14.5px;color:var(--grau);margin-top:6px;line-height:1.45}
+html:not(.handy) .wz-arten .knopf math{font-size:1em}          /* Handy: Mindestgröße aus formel.css gilt */
+svg .eg-c{stroke:var(--m-2);stroke-width:2.5}
+svg .eg-asym{stroke:var(--m-grau);stroke-width:1.8;stroke-dasharray:7 5}
+svg .eg-lot{stroke:var(--m-erg);stroke-width:2;stroke-dasharray:5 4}
+svg .eg-t{font-size:14px;font-weight:800;font-family:var(--m-schrift)}
+svg .eg-tc{fill:var(--m-2)} svg .eg-ta{fill:var(--m-grau)} svg .eg-tx{fill:var(--m-erg)}
+html.handy .eg-karten{grid-template-columns:minmax(0,1fr);gap:10px}
+html.handy .eg-karte p{font-size:15px}
+html.handy .eg-karte math[display="block"]{font-size:max(1.25em, 20px)}   /* Mindestgröße wie formel.css – die Regel oben ist spezifischer */
+html.handy .eg-antwort{font-size:22px;width:100%}
+html.handy .eg-antwort .wz-eingabe{width:auto;flex:1;min-width:0}
+html.handy .eg-erkl{font-size:15px}
+.eg-antwort{margin-left:14px}
+html.handy .eg-antwort{margin-left:0}
+math .eg-op{color:var(--grau)}
 
 /* Grundregel aller Werkzeuge: hidden gilt immer, auch wenn eine Klasse display:flex/grid setzt */
 [hidden]{display:none!important}
@@ -1963,10 +1971,12 @@ function M(text){ return String(text).replace(/\$\$([^$]+)\$\$/g, (_, t) => F(t,
 const KURS = "Mathematik · Gleichungen";
 const REIHE = "Gleichungen";
 
+/* Titelbild: y = eˣ trifft die Gerade y = 4 bei x = ln 4 */
 function titelBild(){
-  const K = G_koord({ W: 280, H: 200, xmin: -4, xmax: 4, ymin: -4, ymax: 5, rand: { l: 14, r: 10, o: 10, u: 14 } });
-  return K.svg(K.grund + K.kurve(x => x * x - 3, 'g-k1') + K.kurve(x => x * x + 1, 'g-k2') + K.kurve(x => (x - 2) * (x - 2), 'g-k3')
-    + K.punkt(-Math.sqrt(3), 0, 'g-p1', 5) + K.punkt(Math.sqrt(3), 0, 'g-p1', 5) + K.punkt(2, 0, 'g-p3', 5));
+  const K = G_koord({ W: 270, H: 220, xmin: -2.5, xmax: 2.8, ymin: -1, ymax: 7, sx: 1, sy: 1, xName: 'x', yName: 'y', zahlenX: 2, zahlenY: 2 });
+  const x0 = Math.log(4);
+  return K.svg(K.grund + K.linie(-2.5, 4, 2.8, 4, 'eg-c') + K.kurve(x => Math.exp(x), 'g-k1')
+    + K.linie(x0, 4, x0, 0, 'eg-lot') + K.punkt(x0, 4, 'g-pok', 6));
 }
 
 const folien = [
@@ -1976,36 +1986,47 @@ const folien = [
   <div class="links">
     <div class="balken"></div>
     <div class="eyebrow">Gleichungen</div>
-    <h1>Quadratische Gleichungen</h1>
-    <p class="unter">Erst das Verfahren wählen, dann rechnen. Zwei, eine oder keine Lösung – die Diskriminante weiß es vorher.</p>
+    <h1>Exponential&shy;gleichungen</h1>
+    <p class="unter">Steht x im Exponenten, hilft der Logarithmus: erst die Potenz allein stellen, dann ln. Und manchmal gibt es gar keine Lösung.</p>
     <div class="meta"><span>Mathematik</span><span>Gleichungen</span></div>
   </div>
   <div class="rechts">
     <div class="logokachel"><img src="${LOGO}" alt="Logo Montessori-Schule Landau"></div>
-    <div class="titelkarte titelpolster">${titelBild()}</div>
+    <div class="titelkarte eg-titel">${F('e^{x} = 4 \\iff x = \\ln 4', true)}${titelBild()}</div>
   </div>
 `},
 
-{titel:"Quadratische Gleichungen", klasse:"kompakt oben", eyebrow:"Quadratische Gleichungen", h2:"Welches Verfahren passt?", roh:`
-  <div class="interaktiv" data-werkzeug data-quadratisch>
+{titel:"Der Logarithmus hilft", klasse:"kompakt oben", eyebrow:"Der Logarithmus hilft", h2:"ln macht e-hoch rückgängig", roh:`
+  <div class="eg-karten">
+    <div class="eg-karte"><h3>ln hebt e auf</h3>${F('\\ln(e^{z}) = z', true)}
+      <p>${M('Steht die Potenz allein, auf beiden Seiten $\\ln$ anwenden: $e^{2x} = 7 \\Rightarrow 2x = \\ln 7 \\Rightarrow x = \\frac{\\ln 7}{2} \\approx 0{,}97$.')}</p></div>
+    <div class="eg-karte"><h3>Erst isolieren</h3>${F('\\begin{aligned} 3e^{x} + 1 &= 10 \\\\ 3e^{x} &= 9 \\\\ e^{x} &= 3 \\end{aligned}', true)}
+      <p>${M('Dann erst $\\ln$: $x = \\ln 3 \\approx 1{,}10$. Falsch wäre $\\ln(3e^{x} + 1) = \\ln 3 + x + \\ln 1$ – denn $\\ln(u + v) \\neq \\ln u + \\ln v$.')}</p></div>
+    <div class="eg-karte"><h3>Immer positiv</h3>${F('e^{z} > 0 \\quad \\text{für jedes } z', true)}
+      <p>${M('Darum hat $e^{x} = -2$ keine Lösung – und $e^{x} = 0$ auch nicht. Die Kurve kommt der $x$-Achse nur beliebig nahe.')}</p></div>
+    <div class="eg-karte"><h3>Andere Basis</h3>${F('\\begin{aligned} 2^{x} &= 10 \\\\ x \\cdot \\ln 2 &= \\ln 10 \\\\ x &= \\dfrac{\\ln 10}{\\ln 2} \\approx 3{,}32 \\end{aligned}', true)}
+      <p>${M('Es gilt $\\ln(b^{z}) = z \\cdot \\ln b$. Darum zum Schluss noch durch $\\ln b$ teilen.')}</p></div>
+  </div>
+`},
+
+{titel:"Exponentialgleichungen", klasse:"kompakt oben", eyebrow:"Exponentialgleichungen", h2:"Isolieren, ln, auflösen", roh:`
+  <div class="interaktiv" data-werkzeug data-expgl>
     <div class="wz-aufgabe">
       <span class="wz-was">Löse:</span>
-      <span class="wz-term" data-r="term"></span><span class="wz-gleich">= 0</span>
-      <span class="qg-menge">${F('L = \\{')}<input class="wz-eingabe" data-r="antwort" spellcheck="false" autocomplete="off" placeholder="z. B. -2; 3/2 oder 1+√5; 1-√5" aria-label="Lösungsmenge">${F('\\}')}</span>
+      <span class="wz-term" data-r="term"></span>
+      <span class="eg-antwort">${F('x =')}<input class="wz-eingabe" data-r="antwort" spellcheck="false" autocomplete="off" placeholder="z. B. ln(7)/2 oder 0,97" aria-label="Lösung x"></span>
       <div class="knopfleiste"><button class="knopf o" data-r="pruefen">Prüfen</button></div>
     </div>
-    <div class="qg-verfahren"><span class="bt">1. Verfahren wählen:</span>
-      <button class="knopf hell" data-v="wurzel">Wurzel ziehen</button><button class="knopf hell" data-v="ausklammern">${F('x')} ausklammern</button>
-      <button class="knopf hell" data-v="formel">pq-Formel</button><button class="knopf hell" data-v="ergaenzung">quadratische Ergänzung</button></div>
-    <p class="qg-regel">2. Lösungen mit <b>Semikolon</b> trennen, exakt: Brüche als <b>3/2</b>, Wurzeln als <b>√5</b> oder <b>sqrt(5)</b>, auch <b>1±√5</b>. Keine Lösung: leer lassen oder „keine".</p>
+    <p class="eg-regel">Exakt mit <b>ln</b>, z. B. <b>(ln(5)-1)/2</b> oder <b>ln(10)/ln(2)</b> – oder gerundet auf <b>zwei Nachkommastellen</b>. Gibt es keine Lösung: <b>keine</b>.</p>
     <div class="wz-arten"><span class="bt">Neue Aufgabe:</span>
-      <button class="knopf hell" data-art="rein">ohne x-Glied</button><button class="knopf hell" data-art="ohnec">ohne Zahl</button>
-      <button class="knopf hell" data-art="voll">vollständig</button><button class="knopf hell" data-art="gemischt">gemischt</button>
-      <span class="rechts"><input class="wz-eingabe" style="width:190px;font-size:16px" data-r="eigen" spellcheck="false" autocomplete="off" placeholder="eigene, z. B. 2x^2-3x-2" aria-label="eigene Aufgabe"><button class="knopf hell" data-r="uebernehmen">Übernehmen</button></span></div>
+      <button class="knopf hell" data-art="eins">${F('e^{x} = c')}</button><button class="knopf hell" data-art="faktor">${F('a \\cdot e^{kx} = c')}</button>
+      <button class="knopf hell" data-art="summand">mit Summand</button><button class="knopf hell" data-art="basis">andere Basis</button>
+      <button class="knopf hell" data-art="gemischt">gemischt</button>
+      <span class="rechts"><input class="wz-eingabe" style="width:210px;font-size:16px" data-r="eigen" spellcheck="false" autocomplete="off" placeholder="eigene, z. B. 3e^(2x-1)+4=10" aria-label="eigene Gleichung"><button class="knopf hell" data-r="uebernehmen">Übernehmen</button></span></div>
     <div class="wz-rueck" data-r="rueck"></div>
     <div class="wz-zwei">
       <div class="wz-panel"><h3>Lösungsweg <span class="rechts"><button class="knopf hell" data-r="schritt">Nächster Schritt</button><button class="knopf hell" data-r="alle">Alle</button></span></h3><div class="wz-weg" data-r="weg"></div></div>
-      <div class="wz-panel"><h3>Parabel <span class="rechts"><button class="knopf hell" data-r="bild">Bild zeigen</button></span></h3><div class="wz-bild" data-r="flaeche"></div></div>
+      <div class="wz-panel"><h3>Am Graphen <span class="rechts"><button class="knopf hell" data-r="bild">Bild zeigen</button></span></h3><div class="wz-bild" data-r="flaeche"></div></div>
     </div>
   </div>
 `},
@@ -2030,211 +2051,299 @@ folien.forEach((f,i)=>{
 });
 
 /* =====================================================================
-   Quadratische Gleichungen a·x² + b·x + c = 0 (a, b, c ganz)
-   Lösungen exakt: r ± s·√m mit r, s als Bruch (bruch.js), m quadratfrei.
-   Darstellung: LaTeX → MathML (formel.js). In JS jeden Backslash doppelt.
+   Exponentialgleichungen  a · B^(kx + d) + b = c
+     B = e oder 2, 3, 5, 10 · a, b, c Brüche (bruch.js) · k, d ganz, k ≠ 0
+   Lösen: isolieren → B^(kx+d) = r → ln → kx + d = ln r / ln B → x.   r ≤ 0: keine Lösung.
+   Darstellung LaTeX → MathML (formel.js). Antworten liest term.js (ln, e, Brüche) – exakt oder gerundet.
    ===================================================================== */
-const QUADRATISCH = (() => {
-  const root = document.querySelector('[data-quadratisch]');
+const EXPGL = (() => {
+  const root = document.querySelector('[data-expgl]');
   const R = r => root.querySelector(`[data-r="${r}"]`);
-  const S = { a: 1, b: -2, c: -3, art: 'voll', verfahren: null, bild: false };
+  const S = { a: Q(3), B: 'e', k: 2, d: -1, b: Q(1), c: Q(10), art: 'summand', bild: false };
   const weg = WZ.weg(root);
-  const kl = v => v < 0 ? `(${v})` : String(v);                  // negative Zahl in Klammern
-  const ggt = (a, b) => ggT(a, b);
 
-  /* ---------- exakte Lösungen ---------- */
-  function quadratFrei(t){ let k = 1; for (let i = 2; i * i <= t; i++) while (t % (i * i) === 0) { t /= i * i; k *= i; } return [k, t]; }
-  /* x = r + vz·s·√m als { wert, tex, text } */
-  function zahl(r, s, m_, vz){
-    if (qNull(s)) return { wert: qWert(r), tex: qTex(r), text: qText(r) };
-    if (m_ === 1){ const q = vz > 0 ? qAdd(r, s) : qSub(r, s); return { wert: qWert(q), tex: qTex(q), text: qText(q) }; }
-    const d = r.n * s.n / ggt(r.n, s.n), Rz = r.z * d / r.n, Sz = s.z * d / s.n;
-    const innen = (Rz ? `${Rz}${vz > 0 ? ' + ' : ' - '}` : (vz > 0 ? '' : '-')) + `${Sz === 1 ? '' : Sz}\\sqrt{${m_}}`;
-    return { wert: qWert(r) + vz * qWert(s) * Math.sqrt(m_), tex: d === 1 ? innen : `\\frac{${innen}}{${d}}`, text: `(${Rz}${vz > 0 ? '+' : '-'}${Sz}*sqrt(${m_}))/${d}` };
+  /* ---------- Rechnen ---------- */
+  const lnB = () => S.B === 'e' ? 1 : Math.log(S.B);
+  const r = () => qDiv(qSub(S.c, S.b), S.a);                       // B^(kx+d) = r
+  function hochzahl(){                                             // kx + d exakt ganz/rational, wenn r = B^m
+    const rr = r(); if (rr.z <= 0) return null;
+    if (qGleich(rr, Q(1))) return Q(0);
+    if (S.B === 'e') return null;
+    for (let m = -12; m <= 12; m++){ if (m && qGleich(rr, m > 0 ? Q(S.B ** m) : Q(1, S.B ** -m))) return Q(m); }
+    return null;
   }
-  const D = () => S.b * S.b - 4 * S.a * S.c;                    // für das Vorzeichen (b² − 4ac)
-  const Dpq = () => Q(D(), 4 * S.a * S.a);                         // gezeigt wird D der pq-Formel: (p/2)² − q = (b² − 4ac)/(4a²)
-  function loesungen(){
-    const d = D(); if (d < 0) return [];
-    const r = Q(-S.b, 2 * S.a); if (d === 0) return [zahl(r, Q(0), 1, 1)];
-    const [k, m_] = quadratFrei(d), s = Q(k, 2 * Math.abs(S.a));
-    return [zahl(r, s, m_, -1), zahl(r, s, m_, 1)].sort((p, q) => p.wert - q.wert);
+  const loesbar = () => r().z > 0;
+  const xWert = () => loesbar() ? (Math.log(qWert(r())) / lnB() - S.d) / S.k : NaN;
+
+  /* ---------- Schreibweisen (LaTeX) ---------- */
+  const B = () => S.B === 'e' ? 'e' : String(S.B);
+  const expo = () => pTex([S.d, S.k]);                            // kx + d
+  const pot = () => `${B()}^{${expo()}}`;
+  const faktor = a => qGleich(a, Q(1)) ? '' : qGleich(a, Q(-1)) ? '-' : qTex(a);
+  const summand = b => qNull(b) ? '' : b.z > 0 ? ` + ${qTex(b)}` : ` - ${qTex(qNeg(b))}`;
+  const vorPot = () => { const f = faktor(S.a); return f && f !== '-' && S.B !== 'e' ? `${f} \\cdot ` : f; };   // 2 · 5^x, nicht 25^x
+  const links = () => `${vorPot()}${pot()}${summand(S.b)}`;
+  const gleichung = () => `${links()} = ${qTex(S.c)}`;
+  const lnT = q => q.n === 1 ? `\\ln ${q.z}` : `\\ln\\frac{${q.z}}{${q.n}}`;
+  const lnS = q => q.n === 1 ? `\\ln ${q.z}` : `\\ln(${q.z}/${q.n})`;   // in einem Bruch: Schrägstrich, sonst wird der Doppelbruch winzig
+  const lnTxt = q => `ln(${qText(q)})`;
+  const zahl2 = v => zTex(v, 2);
+  const voll = t => t.replace(/^(-?)\\frac/, '$1\\dfrac');       // Bruch in voller Größe (Rückmeldung im Fließtext)
+  const nk = t => /^-/.test(t) ? klTex(t) : t;                  // Klammer nur um negative Zahlen
+  /* exakte Lösung als { tex, text } */
+  function exakt(){
+    const rr = r(), m = hochzahl(), k = S.k, d = S.d;
+    if (m) { const x = qDiv(qSub(m, Q(d)), Q(k)); return { tex: qTex(x), text: qText(x), rational: true }; }
+    const dTeil = d === 0 ? '' : d > 0 ? ` - ${d}` : ` + ${-d}`;
+    if (S.B === 'e'){
+      const text = `(${lnTxt(rr)}-(${d}))/(${k})`;
+      if (k === 1) return { tex: `${lnT(rr)}${dTeil}`, text };
+      if (k === -1) return { tex: d === 0 ? `-${lnT(rr)}` : `${d} - ${lnT(rr)}`, text };
+      if (k > 0) return { tex: `\\frac{${lnS(rr)}${dTeil}}{${k}}`, text };
+      return { tex: d === 0 ? `-\\frac{${lnS(rr)}}{${-k}}` : `\\frac{${d} - ${lnS(rr)}}{${-k}}`, text };
+    }
+    const lb = `\\ln ${S.B}`, ad = Math.abs(d), dB = d === 0 ? '' : ` ${d > 0 ? '-' : '+'} ${ad === 1 ? '' : ad}${lb}`;
+    const nenner = Math.abs(k) === 1 ? lb : `${Math.abs(k)}${lb}`, text = `(${lnTxt(rr)}-(${d})*ln(${S.B}))/((${k})*ln(${S.B}))`;
+    if (k > 0) return { tex: `\\frac{${lnS(rr)}${dB}}{${nenner}}`, text };
+    if (d === 0) return { tex: `-\\frac{${lnS(rr)}}{${nenner}}`, text };
+    return { tex: `\\frac{${d === 1 ? '' : d === -1 ? '-' : d}${lb} - ${lnS(rr)}}{${nenner}}`, text };   // k < 0: ohne Minus vor dem Bruch
   }
-  const menge = L => L.length ? `\\left\\{\\, ${L.map(x => x.tex).join(';\\ ')} \\,\\right\\}` : '\\{\\,\\}';   // \\left: wächst mit Brüchen
-  const typ = () => S.b === 0 ? 'rein' : S.c === 0 ? 'ohnec' : 'voll';
-  const gleichung = () => pTex([S.c, S.b, S.a]);
-  const dKlasse = d => d > 0 ? 'qg-plus' : d === 0 ? 'qg-null' : 'qg-minus';
 
   /* ---------- Aufgaben ---------- */
+  const zuf = l => WZ.eins(l);
   const ARTEN = {
-    rein(){ const a = WZ.eins([1, 1, 2, -1, 3]), w = WZ.eins(['quadrat', 'quadrat', 'wurzel', 'keine']);
-      if (w === 'quadrat') return [a, 0, -a * WZ.rnd(1, 6) ** 2];
-      if (w === 'wurzel') return [a, 0, -a * WZ.eins([2, 3, 5, 6, 7, 8, 12])];
-      return [a, 0, a * WZ.rnd(1, 9)]; },
-    ohnec(){ const a = WZ.eins([1, 1, 2, 3, -1, -2]); let b; do b = WZ.nz(-9, 9); while (Math.abs(b) === Math.abs(a) && Math.random() < 0.5); return [a, b, 0]; },
-    voll(){ const a = WZ.eins([1, 1, 1, 2, -1, 3]), w = WZ.eins(['ganz', 'ganz', 'bruch', 'doppelt', 'keine', 'wurzel']);
-      if (w === 'ganz'){ let p, q; do { p = WZ.rnd(-6, 6); q = WZ.rnd(-6, 6); } while (p === q || p * q === 0); return [a, -a * (p + q), a * p * q]; }
-      if (w === 'bruch'){ const a2 = WZ.eins([2, 3]), p = WZ.nz(-5, 5); let z; do z = WZ.nz(-5, 5); while (z % a2 === 0); return [a2, -(a2 * p + z), p * z]; }   // (a2·x − z)(x − p)
-      if (w === 'doppelt'){ const h = WZ.nz(-5, 5); return [a, -2 * a * h, a * h * h]; }
-      if (w === 'keine'){ const h = WZ.rnd(-4, 4), k = WZ.rnd(1, 5); return [a, -2 * a * h, a * (h * h + k)]; }
-      let b, c; do { b = WZ.nz(-8, 8); c = WZ.nz(-9, 9); } while (b * b - 4 * c <= 0 || Number.isInteger(Math.sqrt(b * b - 4 * c))); return [1, b, c]; },
+    eins(){ return { a: Q(1), B: 'e', k: 1, d: 0, b: Q(0), c: zuf([Q(2), Q(3), Q(5), Q(7), Q(10), Q(20), Q(1, 2), Q(3, 4)]) }; },
+    faktor(){
+      const a = Q(zuf([2, 3, 4, 5, -2])), k = zuf([1, 2, 3, -1, -2]);
+      const rr = Math.random() < 0.15 ? Q(zuf([-1, -3])) : zuf([Q(2), Q(3), Q(5), Q(7), Q(1, 2), Q(1, 3)]);
+      return { a, B: 'e', k, d: 0, b: Q(0), c: qMul(a, rr) };
+    },
+    summand(){
+      const a = Q(zuf([1, 2, 3, 4, -1])), k = zuf([1, 2, 3, -1, -2]), d = zuf([-3, -2, -1, 1, 2, 3]), b = Q(WZ.nz(-5, 5));
+      const rr = Math.random() < 0.2 ? Q(zuf([0, -1, -2])) : zuf([Q(1), Q(2), Q(3), Q(5), Q(7), Q(1, 2), Q(2, 3)]);
+      return { a, B: 'e', k, d, b, c: qAdd(qMul(a, rr), b) };
+    },
+    basis(){
+      const B = zuf([2, 3, 5, 10]), a = Q(zuf([1, 1, 2, 3])), k = zuf([1, 1, 2, -1]), d = zuf([0, 0, 1, -1, 2]), b = Q(zuf([0, 0, 1, -3]));
+      let rr;
+      if (Math.random() < 0.5) { const m = zuf([-2, -1, 1, 2, 3, 4].filter(m => B ** Math.abs(m) <= 1000)); rr = m > 0 ? Q(B ** m) : Q(1, B ** -m); }
+      else do rr = Q(zuf([3, 5, 6, 7, 10, 12, 20, 100])); while ([1, 2, 3, 4].some(m => qGleich(rr, Q(B ** m))));
+      return { a, B, k, d, b, c: qAdd(qMul(a, rr), b) };
+    },
   };
-  ARTEN.gemischt = () => ARTEN[WZ.eins(['rein', 'ohnec', 'voll', 'voll'])]();
-  function neu(art){ S.art = art; setze(...ARTEN[art]()); }
-  function setze(a, b, c){
-    Object.assign(S, { a, b, c, verfahren: null, bild: false });
+  ARTEN.gemischt = () => ARTEN[zuf(['eins', 'faktor', 'summand', 'summand', 'basis'])]();
+  function neu(art){ S.art = art; setze(ARTEN[art]()); }
+  function setze(p){
+    Object.assign(S, p, { bild: false });
     R('term').innerHTML = F(gleichung());
     R('antwort').value = ''; R('antwort').className = 'wz-eingabe';
-    root.querySelectorAll('[data-v]').forEach(k => k.classList.remove('gut', 'geht', 'nicht'));
-    WZ.rueck(R('rueck'), '', 'Wähle zuerst ein Verfahren – oder rechne gleich los.');
+    WZ.rueck(R('rueck'), '', M('Erst die Potenz allein stellen, dann $\\ln$ – oder gleich lösen.'));
     root.querySelectorAll('[data-art]').forEach(k => k.classList.toggle('an', k.dataset.art === S.art));
-    const L = loesungen(); root.dataset.loesung = L.map(x => x.text).join(';'); root.dataset.d = D();
+    root.dataset.x = loesbar() ? String(xWert()) : 'keine';
+    root.dataset.exakt = loesbar() ? exakt().text : 'keine';
+    root.dataset.param = JSON.stringify({ a: qText(S.a), B: S.B, k: S.k, d: S.d, b: qText(S.b), c: qText(S.c) });
     baueWeg(); zeichneBild();
+  }
+
+  /* ---------- eigene Gleichung: a·B^(kx+d) + b = c erkennen ---------- */
+  const hatX = t => t.t === 'x' || ['a', 'b'].some(k => t[k] && hatX(t[k]));
+  const ohneKl = t => { while (t.t === '()') t = t.a; return t; };
+  function alsQ(v){                                               // Zahl → Bruch mit kleinem Nenner, sonst null
+    if (!Number.isFinite(v)) return null;
+    for (let n = 1; n <= 100; n++){ const z = Math.round(v * n); if (Math.abs(v - z / n) < 1e-9 * Math.max(1, Math.abs(v))) return Q(z, n); }
+    return null;
+  }
+  function erkenne(text){
+    const teile = text.split('=');
+    if (teile.length !== 2) throw new Error('Bitte genau ein Gleichheitszeichen, z. B. 3e^(2x-1)+4=10.');
+    let l = T_lies(teile[0]), rr = T_lies(teile[1]);
+    if (hatX(rr) && !hatX(l)) [l, rr] = [rr, l];
+    if (hatX(rr)) throw new Error('x darf nur auf einer Seite stehen.');
+    const c = alsQ(T_wert(rr, NaN)); if (!c) throw new Error('Rechts muss eine Zahl stehen (ganz oder Bruch).');
+    let b = Q(0), pt = null;
+    for (const s of T_summanden(l)){
+      if (!hatX(s)) { const v = alsQ(T_wert(s, NaN)); if (!v) throw new Error('Die Zahlen bitte ganz oder als Bruch.'); b = qAdd(b, v); continue; }
+      if (pt) throw new Error('Nur eine Potenz mit x, z. B. 3e^(2x-1)+4=10.'); pt = s;
+    }
+    if (!pt) throw new Error('Wo ist das x?');
+    let a = Q(1), potenz = null;
+    for (const f0 of T_faktoren(ohneKl(pt))){
+      const f = ohneKl(f0);
+      if (!hatX(f)) { const v = alsQ(T_wert(f, NaN)); if (!v) throw new Error('Der Faktor vor der Potenz bitte ganz oder als Bruch.'); a = qMul(a, v); continue; }
+      if (potenz) throw new Error('x darf nur im Exponenten stehen – genau einmal.'); potenz = f;
+    }
+    let basis, ex;
+    if (potenz.t === 'fn' && potenz.f === 'exp') { basis = 'e'; ex = potenz.a; }
+    else if (potenz.t === '^' && !hatX(potenz.a)) {
+      const w = T_wert(potenz.a, NaN);
+      if (Math.abs(w - Math.E) < 1e-12) basis = 'e';
+      else if ([2, 3, 4, 5, 6, 7, 8, 9, 10].includes(w)) basis = w;
+      else throw new Error('Als Basis bitte e oder eine ganze Zahl von 2 bis 10.');
+      ex = potenz.b;
+    } else throw new Error('x muss im Exponenten stehen, z. B. e^(2x) oder 2^x.');
+    const e0 = T_wert(ex, 0), e1 = T_wert(ex, 1), e2 = T_wert(ex, 2), k = e1 - e0;
+    if (![e0, e1, e2].every(Number.isFinite) || Math.abs(e2 - 2 * e1 + e0) > 1e-9) throw new Error('Im Exponenten bitte kx + d, z. B. 2x − 1.');
+    if (!Number.isInteger(Math.round(k * 1e9) / 1e9) || !Number.isInteger(Math.round(e0 * 1e9) / 1e9) || Math.round(k) === 0 || Math.abs(k) > 9 || Math.abs(e0) > 20)
+      throw new Error('Im Exponenten bitte ganze Zahlen: kx + d mit k ≠ 0.');
+    if (qNull(a)) throw new Error('Der Faktor vor der Potenz darf nicht 0 sein.');
+    return { a, B: basis, k: Math.round(k), d: Math.round(e0), b, c };
   }
   function uebernehmen(){
     const f = R('eigen');
-    try {
-      const teile = f.value.split('='); if (teile.length > 2) throw new Error('Höchstens ein Gleichheitszeichen.');
-      const l = T_lies(teile[0]), r = teile[1] !== undefined ? T_lies(teile[1]) : { t: 'z', v: 0 };
-      const k = T_koeffizienten({ t: '-', a: l, b: r });
-      if (!k || k.length !== 3) throw new Error('Bitte eine quadratische Gleichung mit ganzen Zahlen, z. B. 2x^2 − 3x − 2 oder x^2 = 5x.');
-      f.classList.remove('falsch'); S.art = 'eigen'; setze(k[2], k[1], k[0]);
-      if (teile[1] !== undefined) WZ.rueck(R('rueck'), '', M(`Erst alles auf eine Seite: $${gleichung()} = 0$. Dann ein Verfahren wählen.`));
-    } catch (e) { f.classList.add('falsch'); WZ.rueck(R('rueck'), 'nein', e.message); }
-  }
-
-  /* ---------- Verfahren ---------- */
-  const BEWERTUNG = {
-    rein:  { wurzel: ['gut', 'Ohne $x$-Glied: nach $x^{2}$ auflösen, Wurzel ziehen.'], ausklammern: ['nicht', '$x$ steckt nicht in jedem Summanden: Die Zahl hat kein $x$.'],
-             formel: ['geht', 'Geht immer – hier aber umständlicher als Wurzel ziehen ($b = 0$).'], ergaenzung: ['geht', 'Geht, ist aber unnötig: Es gibt kein $x$-Glied zum Ergänzen.'] },
-    ohnec: { ausklammern: ['gut', 'Ohne Zahl: $x$ ausklammern, dann Satz vom Nullprodukt.'], wurzel: ['nicht', 'Das $x$-Glied verhindert das direkte Wurzelziehen.'],
-             formel: ['geht', 'Geht ($c = 0$) – ausklammern ist schneller.'], ergaenzung: ['geht', 'Geht – ausklammern ist schneller.'] },
-    voll:  { formel: ['gut', 'Vollständige Gleichung: Die pq-Formel passt immer.'], ergaenzung: ['gut', 'Quadratische Ergänzung – darauf beruht die pq-Formel.'],
-             wurzel: ['nicht', 'Das $x$-Glied verhindert das direkte Wurzelziehen.'], ausklammern: ['nicht', 'Wegen der Zahl steckt $x$ nicht in jedem Summanden.'] },
-  };
-  const BESTES = { rein: 'wurzel', ohnec: 'ausklammern', voll: 'formel' };
-  function waehle(v){
-    const [art, text] = BEWERTUNG[typ()][v];
-    root.querySelectorAll('[data-v]').forEach(k => k.classList.remove('gut', 'geht', 'nicht'));
-    root.querySelector(`[data-v="${v}"]`).classList.add(art);
-    WZ.rueck(R('rueck'), { gut: 'ok', geht: 'fast', nicht: 'nein' }[art], M(text));
-    root.dataset.verfahren = art;
-    if (art !== 'nicht') { S.verfahren = v; baueWeg(); }
+    try { const p = erkenne(f.value); f.classList.remove('falsch'); S.art = 'eigen'; setze(p); }
+    catch (e) { f.classList.add('falsch'); WZ.rueck(R('rueck'), 'nein', e.message); }
   }
 
   /* ---------- Lösungsweg ---------- */
   function baueWeg(){
-    const v = S.verfahren || BESTES[typ()], { a, b, c } = S, L = loesungen(), s = [];
-    const ende = () => s.push(['Lösungsmenge', FB(`L = ${menge(L)}`), true]);
-    if (v === 'wurzel'){
-      const w = Q(-c, a);
-      s.push(['Umstellen', FB(`${pTex([0, 0, a])} = ${-c}`)]);
-      if (a !== 1) s.push([`Durch ${F(String(a))} teilen`, FB(`x^{2} = ${qTex(w)}`)]);
-      if (w.z < 0) s.push(['Keine Lösung', M('$x^{2}$ ist nie negativ.')]);
-      else if (w.z === 0) s.push(['Eine Lösung', FB('x = 0')]);
-      else { const roh = `\\sqrt{${qTex(w)}}`;                     // „= ±…“ nur, wenn sich die Wurzel vereinfacht
-        s.push(['Wurzel ziehen', FB(`x = \\pm${roh}${roh === L[1].tex ? '' : ` = \\pm ${L[1].tex}`}`) + 'Beide Vorzeichen!']); }
+    const s = [], rr = r(), a = S.a, b = S.b, z = expo();
+    // 1. isolieren: Umformungskette wie im Heft (rechts | Umformung)
+    const zeilen = [[links(), qTex(S.c)]], ops = [];
+    if (!qNull(b)) { ops.push(b.z > 0 ? `- ${qTex(b)}` : `+ ${qTex(qNeg(b))}`); zeilen.push([`${vorPot()}${pot()}`, qTex(qSub(S.c, b))]); }
+    if (!qGleich(a, Q(1))) { ops.push(qGleich(a, Q(-1)) ? '\\cdot (-1)' : `: ${nk(qTex(a))}`); zeilen.push([pot(), qTex(rr)]); }
+    // Umformungskette wie im Heft: rechts „| Umformung“. Auf dem Handy steht die Umformung in einer eigenen Zeile darunter (sonst zu breit).
+    const gross = t => t.replace(/^(-?)\\frac/, '$1\\dfrac');
+    const kette = (Z, O) => WZ.handy()
+      ? `\\begin{array}{rcl} ${Z.map(([l, rt], i) => `${l} & = & ${gross(rt)}${O[i] ? ` \\\\ & & ${kTex('eg-op', `\\mid\\; ${O[i]}`)}` : ''}`).join(' \\\\ ')} \\end{array}`
+      : `\\begin{array}{rcll} ${Z.map(([l, rt], i) => `${l} & = & ${gross(rt)} & ${O[i] ? `\\mid\\; ${O[i]}` : ''}`).join(' \\\\ ')} \\end{array}`;
+    if (ops.length) s.push(['Potenz allein', FB(kette(zeilen, ops))]);
+    if (rr.z <= 0){
+      s.push(['Keine Lösung', M(`$${B()}^{z}$ ist für jedes $z$ positiv – es kann nie $${qTex(rr)}$ ergeben.`) + FB('\\mathbb{L} = \\{\\,\\}'), true]);
+      weg.setze(s); return;
     }
-    if (v === 'ausklammern'){
-      s.push(['Ausklammern', FB(`x \\cdot ${klTex(pTex([b, a]))} = 0`)]);
-      s.push(['Nullprodukt', FB(`\\begin{array}{rcl} x & = & 0 \\\\ \\text{oder}\\quad ${pTex([b, a])} = 0 \\;\\Rightarrow\\; x & = & ${dTex(Q(-b, a))} \\end{array}`)]);
+    // 2. ln anwenden
+    const m = hochzahl(), zKl = (S.k === 1 && S.d === 0) ? 'x' : klTex(z);
+    let L;                                                          // kx + d = L (LaTeX)
+    if (S.B === 'e'){
+      L = qGleich(rr, Q(1)) ? '0' : lnT(rr);
+      s.push(['ln anwenden', FB(kette([[pot(), qTex(rr)], [z, qGleich(rr, Q(1)) ? `\\ln 1 = 0` : lnT(rr)]], ['\\ln'])) + M(' Denn $\\ln(e^{z}) = z$.')]);
+    } else {
+      const q = `\\dfrac{${lnS(rr)}}{\\ln ${S.B}}`;
+      L = m ? qTex(m) : q;
+      s.push(['ln anwenden', FB(kette([[pot(), qTex(rr)], [`${zKl} \\cdot \\ln ${S.B}`, lnT(rr)], [z, m ? `${q} = ${qTex(m)}` : q]], ['\\ln', `: \\ln ${S.B}`]))
+        + (m ? M(`Denn $${qTex(rr)} = ${S.B}^{${m.z}}$.`) : M(` Denn $\\ln(${S.B}^{z}) = z \\cdot \\ln ${S.B}$.`))]);
     }
-    if (v === 'formel'){                                              // pq-Formel (Peter, 06.10.: „das nutze ich mehr“)
-      const d = D(), p = Q(b, a), q = Q(c, a), h = Q(p.z, 2 * p.n), Dq = Dpq(), kq = x => x.z < 0 ? klTex(qTex(x)) : qTex(x);   // klTex: nur um Brüche mitwachsend
-      const wz = Math.round(Math.sqrt(Math.abs(Dq.z))), wn = Math.round(Math.sqrt(Dq.n)), glatt = Dq.z >= 0 && wz * wz === Dq.z && wn * wn === Dq.n;
-      if (a !== 1) s.push(['Normalform', FB(`${pTex([c, b, a])} = 0 \\quad | : ${kl(a)}`) + FB(`${pTex([q, p, Q(1)])} = 0`)]);
-      s.push(['Ablesen', FB(`p = ${qTex(p)}, \\quad q = ${qTex(q)}`)]);
-      s.push(['Diskriminante', FB(`\\begin{aligned} D &= \\left(\\frac{p}{2}\\right)^{2} - q \\\\ &= ${klTex(qTex(h))}^{2} - ${kq(q)} \\\\ &= ${kTex(dKlasse(d), qTex(Dq))} \\end{aligned}`)
-        + FB(`D ${d > 0 ? '> 0' : d === 0 ? '= 0' : '< 0'} \\quad\\Rightarrow\\quad \\text{${d > 0 ? 'zwei Lösungen' : d === 0 ? 'eine Lösung' : 'keine Lösung'}}`)]);
-      if (d >= 0) s.push(['Einsetzen', FB(`\\begin{aligned} x_{1,2} &= -\\frac{p}{2} \\pm \\sqrt{D} \\\\ &= ${qTex(qNeg(h))} \\pm \\sqrt{${qTex(Dq)}}${glatt ? ` \\\\ &= ${qTex(qNeg(h))} \\pm ${qTex(Q(wz, wn))}` : ''} \\end{aligned}`)]);
+    // 3. nach x auflösen
+    const ex = exakt(), xv = xWert(), k = S.k, d = S.d;
+    if (k !== 1 || d !== 0){
+      const Z = [[z, L]], O = [];
+      const mitD = d === 0 ? L : (m ? qTex(qSub(m, Q(d))) : `${L} ${d > 0 ? '-' : '+'} ${Math.abs(d)}`);
+      if (d !== 0) { O.push(d > 0 ? `- ${d}` : `+ ${-d}`); Z.push([k === 1 ? 'x' : k === -1 ? '-x' : `${k}x`, mitD]); }
+      if (k !== 1) { O.push(k === -1 ? '\\cdot (-1)' : `: ${nk(String(k))}`); Z.push(['x', ex.tex]); }
+      s.push(['Nach x auflösen', FB(kette(Z, O))]);
     }
-    if (v === 'ergaenzung'){
-      const p = Q(b, a), q = Q(c, a), h = Q(p.z, 2 * p.n), Rr = qSub(qMul(h, h), q), hq = qNull(h) ? '0' : `${klTex(qTex(h))}^{2}`;
-      if (a !== 1) s.push([`Durch ${F(String(a))} teilen`, FB(`${pTex([q, p, Q(1)])} = 0`)]);
-      s.push(['Ergänzen', FB(`${pTex([Q(0), p, Q(1)])} + ${hq} = ${qTex(qNeg(q))} + ${hq}`)]);
-      s.push(['Binom', FB(`${klTex(pTex([h, Q(1)]))}^{2} = ${qTex(Rr)}`)]);
-      if (Rr.z < 0) s.push(['Keine Lösung', 'Ein Quadrat ist nie negativ.']);
-      else s.push(['Wurzel ziehen', FB(`${pTex([h, Q(1)])} = ${Rr.z === 0 ? '0' : `\\pm\\sqrt{${qTex(Rr)}}`}`)]);
-    }
-    ende(); weg.setze(s);
+    // 4. Ergebnis, Probe
+    const genau = Number.isInteger(Math.round(xv * 1e9) / 1e9) && ex.rational;
+    s.push(['Ergebnis', FB(`x = ${ex.tex}${genau ? '' : ` \\approx ${zahl2(xv)}`}`) + FB(`\\mathbb{L} = ${/\\frac/.test(ex.tex) ? `\\left\\{${ex.tex}\\right\\}` : `\\{${ex.tex}\\}`}`), true]);
+    const zv = S.k * xv + S.d, wert = qWert(a) * Math.pow(S.B === 'e' ? Math.E : S.B, zv) + qWert(b);
+    s.push(['Probe', FB(`${vorPot()}${B()}^{${zTex(zv, 4)}}${summand(b)} \\approx ${zahl2(wert)} \\quad\\checkmark`) + 'Mit dem gerundeten Exponenten eingesetzt.']);
+    weg.setze(s);
   }
 
   /* ---------- Prüfen ---------- */
-  function lies(text){ return eintraege(text).map(e => e.v); }
-  /* Einträge mit Wert und getippten Nachkommastellen (exakt bei Bruch oder √: Infinity) */
-  function eintraege(text){
-    const t = String(text).trim();
-    if (!t.includes(';') && (/,\s/.test(t) || (t.match(/,/g) || []).length > 1)) throw new Error('Mehrere Lösungen bitte mit Semikolon trennen (das Komma ist für Dezimalzahlen).');
-    return WZ.liesMenge(t, e => {                                                          // technik/mathe/werkzeug.js
-      const pm = e.match(/^([+-])\(([^()]*)\)$/);                                          // „±2,24“ kommt als „+(2,24)“: getippte Stellen behalten
-      const z = pm && !/[a-zπ√∛∜]/i.test(pm[2]) ? WZ.liesZahl(pm[1] === '-' ? '-' + pm[2] : pm[2]) : WZ.liesZahl(e, { term: true });
-      return { v: z.v, stellen: z.stellen };
-    });
+  function fehlerbilder(){                                         // [Wert, Meldung] in didaktischer Reihenfolge
+    const f = [], a = qWert(S.a), b = qWert(S.b), c = qWert(S.c), lb = lnB(), k = S.k, d = S.d, x = xWert();
+    const zuX = z => (z / lb - d) / k;                              // aus ln(Wert) die x-Lösung
+    if (!qGleich(S.a, Q(1)) && c - b > 0) f.push([zuX(Math.log(c - b)), M(`Erst durch $${qTex(S.a)}$ teilen, dann $\\ln$: Der Faktor vor der Potenz bleibt sonst stehen – $\\ln$ hebt nur das $${B()}$-hoch auf.`)]);
+    if (b !== 0 && c / a > 0) f.push([zuX(Math.log(c / a)), M(`Erst $${summand(S.b).trim()}$ auf die andere Seite bringen: $\\ln$ erst, wenn die Potenz allein steht.`)]);
+    if (b > 0 && a > 0 && c > 0) f.push([(Math.log(c) - Math.log(a) - Math.log(b)) / lb / k - d / k, M('$\\ln$ einer Summe ist nicht die Summe der $\\ln$: $\\ln(u + v) \\neq \\ln u + \\ln v$. Erst die Potenz allein stellen.')]);
+    if (S.B !== 'e') f.push([(Math.log(qWert(r())) - d) / k, M(`Bei der Basis $${S.B}$ gilt $\\ln(${S.B}^{z}) = z \\cdot \\ln ${S.B}$ – noch durch $\\ln ${S.B}$ teilen.`)]);
+    if (k !== 1) f.push([x * k, M(`Noch durch $${k}$ teilen: Aus $${k === -1 ? '-x' : `${k}x`} = \\ldots$ folgt $x = \\ldots : ${nk(String(k))}$.`)]);
+    if (d !== 0) f.push([(Math.log(qWert(r())) / lb + d) / k, M(`Vorzeichen: $${d > 0 ? '+' : '-'}\\,${Math.abs(d)}$ kommt mit $${d > 0 ? '-' : '+'}\\,${Math.abs(d)}$ auf die andere Seite.`)]);
+    if (S.B === 'e') f.push([(Math.exp(qWert(r())) - d) / k, M('Die Umkehrung von $e^{z}$ ist $\\ln$ – nicht noch einmal $e$-hoch.')]);
+    f.push([-x, 'Das Vorzeichen stimmt nicht. Mach die Probe: Einsetzen muss die rechte Seite ergeben.']);
+    return f.filter(([v]) => Number.isFinite(v) && Math.abs(v - x) > 0.02);
   }
-  /* Eingabehilfe ⓘ: Lösungsmenge mit lies (auch ± und Wurzeln), eigene Aufgabe mit T_lies, höchstens ein „=“ */
-  EH.melde(() => {
-    const aufgabe = s => { const t = String(s).split('='); return t.length > 2 ? null : [T_lies(t[0]), T_lies(t[1] !== undefined ? t[1] : '0')]; };
-    return EH.mit(EH.liste(lies), {
-      zeilen: [...EH.zeilen(lies, [['\\{-1;\\,4\\}', ['-1; 4', 'L = {-1; 4}', 'x1 = -1; x2 = 4']], ['-1 \\pm \\sqrt{2}', ['-1±sqrt(2)', '-1+-√2']]]),
-        ...EH.zeilen(aufgabe, [['2x^{2}-3x-2 = 0', ['2x^2-3x-2', '2x^2-3x-2 = 0']], ['x^{2} = 3x', ['x^2 = 3x', 'x²=3x']]])],
-      hinweise: ['Genau mit Wurzel (`1±√5`) oder gerundet (`3,24; -1,24`).', 'Eigene Aufgabe: Term (dann `= 0`) oder Gleichung mit einem `=`.'],
-    });
-  });
+  function lies(t){                                                 // → { keine } | { wert, gerundet, stellen }
+    const roh = String(t).trim();
+    if (/^(x\s*(=|≈)\s*)?(keine|keine lösung|leer|∅|\{\s*\})$/i.test(roh)) return { keine: true };
+    if (roh.replace(/^x\s*(=|≈)\s*/i, '').replace(/^≈\s*/, '').trim() === '') throw new Error('Bitte x eingeben – oder „keine“, wenn es keine Lösung gibt.');
+    let z;
+    try { z = WZ.liesZahl(roh, { praefix: 'x', term: true }); }        // technik/mathe/werkzeug.js: Zahl, Bruch oder ln-Term
+    catch (e) {
+      if (/kein Term mit x/.test(e.message)) throw new Error('Bitte nur die Zahl für x, ohne x.');
+      if (/nicht definiert/.test(e.message)) throw new Error(`„${roh}“ ist keine Zahl – ln nur von positiven Zahlen.`);
+      throw e;
+    }
+    return { wert: z.v, gerundet: z.stellen !== Infinity, stellen: z.stellen };
+  }
+  /* Eingabehilfe ⓘ: Lösung mit lies, eigene Gleichung mit erkenne */
+  EH.melde(() => ({
+    zeilen: [
+      ...EH.zeilen(lies, [
+        ['x = \\dfrac{\\ln(7)}{2}', ['ln(7)/2', 'x = ln(7)/2']], ['x \\approx 0{,}97', ['0,97', 'x ≈ 0,97', '≈ 0,97']],
+        ['x = \\dfrac{\\ln(3)+1}{2}', ['(ln(3)+1)/2']], ['\\text{keine Lösung}', ['keine', '∅', '{}']],
+      ]),
+      ...EH.zeilen(erkenne, [['3e^{2x-1}+4=10', ['3e^(2x-1)+4=10', '3e^(2x-1) + 4 = 10']]]),
+    ],
+    hinweise: ['Lösung genau mit `ln(…)` oder gerundet als Dezimalzahl. `x =` oder `≈` davor ist erlaubt.',
+               'Hochzahl in Klammern: `e^(2x-1)`. Eigene Gleichung mit genau einem `=`, x nur auf einer Seite.'],
+  }));
   function pruefe(){
     const feld = R('antwort'), aus = (art, t) => { WZ.rueck(R('rueck'), art, t); feld.className = 'wz-eingabe ' + art; };
-    let ist; try { ist = eintraege(feld.value); } catch (e) { return aus('nein', e.message); }
-    ist = ist.sort((p, q) => p.v - q.v).filter((e, i, A) => i === 0 || Math.abs(e.v - A[i - 1].v) > 1e-9);
-    const L = loesungen(), soll = L.map(x => x.wert);
-    /* je Eintrag nach getippten Stellen (WZ.zahlPruefen): exakt, gerundet auf mind. 2 Stellen, oder nur ungefähr („fast“) */
-    const art = (e, w) => WZ.zahlPruefen(e, w).art, passt = (A, B) => A.length === B.length && A.every((e, i) => art(e, B[i]) === 'ok');
-    const drin = e => soll.some(w => art(e, w) === 'ok');
-    if (passt(ist, soll)) return aus('ok', ist.every(e => e.stellen === Infinity) ? `Richtig! ${F(`L = ${menge(L)}`)}` : `Richtig (gerundet). Genau: ${F(`L = ${menge(L)}`)}`);
-    if (!soll.length) return aus('nein', M(typ() === 'rein' ? '$x^{2}$ müsste negativ sein – das geht nicht: keine Lösung.' : `$D = ${qTex(Dpq())} < 0$: keine Lösung.`));
-    if (!ist.length) return aus('nein', M(`Es gibt Lösungen: $D = ${qTex(Dpq())}${D() === 0 ? '$, also genau eine' : ' > 0$'}.`));
-    /* typische Fehler der pq-Formel (unabhängig von der Rechnung oben): −p/2, nicht halbiert, Normalform vergessen */
-    if (passt(ist.map(e => ({ ...e, v: -e.v })).sort((p, q) => p.v - q.v), soll) && typ() !== 'rein') return aus('nein', M('Vorzeichen: In der Formel steht <b>$-\\frac{p}{2}$</b>.'));
-    const w = Math.sqrt(Math.max(0, D())) / (2 * Math.abs(S.a));
-    const ungehalbt = [-1, 1].map(vz => -S.b / S.a + vz * w).sort((p, q) => p - q);
-    if (D() > 0 && typ() !== 'rein' && passt(ist, ungehalbt)) return aus('nein', M('Halbieren: In der Formel steht <b>$-\\frac{p}{2}$</b>, nicht $-p$.'));
-    const roh = S.b * S.b / 4 - S.c, ohneTeilen = [-1, 1].map(vz => -S.b / 2 + vz * Math.sqrt(Math.max(0, roh))).sort((p, q) => p - q);
-    if (S.a !== 1 && roh >= 0 && typ() !== 'rein' && passt(ist, roh === 0 ? [ohneTeilen[0]] : ohneTeilen)) return aus('nein', M(`Erst durch $${S.a}$ teilen: Die pq-Formel braucht $x^{2} + px + q = 0$.`));
-    if (ist.every(drin) && ist.length < soll.length){
-      if (typ() === 'rein') return aus('fast', M('Wurzel ziehen heißt <b>$\\pm$</b>: Auch die negative Zahl ist eine Lösung.'));
-      if (typ() === 'ohnec' && !ist.some(e => Math.abs(e.v) < 1e-12)) return aus('fast', M('<b>$x = 0$ vergessen:</b> Nach dem Ausklammern ist auch der Faktor $x$ selbst null.'));
-      return aus('fast', M('Es gibt zwei Lösungen – das $\\pm$ in der Formel liefert beide.'));
+    let e; try { e = lies(feld.value); } catch (err) { return aus('nein', err.message); }
+    if (!loesbar()){
+      if (e.keine) return aus('ok', M(`Richtig: keine Lösung. $${B()}^{z}$ ist immer positiv, kann also nie $${qTex(r())}$ sein.`));
+      return aus('nein', M(`Mach die Probe – es gibt keine Lösung: Nach dem Isolieren steht $${pot()} = ${qTex(r())}$, und $${B()}^{z}$ ist immer positiv.`));
     }
-    if (ist.length === soll.length && ist.every((e, i) => art(e, soll[i]) !== 'nein')) return aus('fast', 'Fast – zu grob gerundet. Gib die Werte <b>exakt</b> an (mit Bruch oder √) oder auf zwei Nachkommastellen.');
-    aus('nein', 'Nicht richtig. Mach die Probe: Einsetzen muss 0 ergeben. Oder deck den Lösungsweg auf.');
+    const x = xWert(), ex = exakt();
+    if (e.keine) return aus('nein', M(`Es gibt eine Lösung: Rechts steht nach dem Isolieren $${qTex(r())} > 0$, und $${B()}$-hoch erreicht jede positive Zahl.`));
+    /* zentraler Prüfer: gerundet nach getippten Stellen (mindestens zwei), exakt (ln-Term) genau; Fehlerbilder vor „fast“ */
+    const fastText = e.gerundet ? 'Fast – runde auf zwei Nachkommastellen genau.' : 'Nah dran, aber nicht exakt. Exakt mit ln – oder als Dezimalzahl auf zwei Stellen.';
+    const pr = WZ.zahlPruefen({ v: e.wert, stellen: e.stellen }, x, { fehler: fehlerbilder(), textStellen: fastText, textGenauer: fastText });
+    if (pr.art === 'ok') return aus('ok', e.gerundet ? 'Richtig (gerundet)! Exakt: ' + F(`x = ${voll(ex.tex)}`) : 'Richtig – exakt! ' + F(`x = ${voll(ex.tex)}`));
+    if (pr.text) return aus(pr.art, pr.text);
+    aus('nein', 'Nicht richtig. Mach die Probe: Einsetzen muss die rechte Seite ergeben. Oder deck den Lösungsweg auf.');
   }
 
-  /* ---------- Parabel ---------- */
+  /* ---------- Graph ---------- */
   function zeichneBild(){
-    if (!S.bild){ R('flaeche').innerHTML = `<p class="wz-leer">${M(`Die Lösungen sind die Nullstellen der Parabel $y = ${gleichung()}$. „Bild zeigen".`)}</p>`; R('bild').textContent = 'Bild zeigen'; return; }
+    const p = R('flaeche');
+    if (!S.bild){ p.innerHTML = `<p class="wz-leer">${M(`Linke Seite als Kurve, rechte Seite als Gerade $y = ${qTex(S.c)}$: Die Lösung ist die Schnittstelle. „Bild zeigen“.`)}</p>`; R('bild').textContent = 'Bild zeigen'; return; }
     R('bild').textContent = 'Bild ausblenden';
-    const { a, b, c } = S, f = x => a * x * x + b * x + c, h = -b / (2 * a), yv = f(h), L = loesungen();
-    const w = Math.max(3.5, L.length === 2 ? (L[1].wert - L[0].wert) / 2 + 1.5 : 0);
-    const spanne = Math.max(4, Math.abs(yv) * 2.2), unten = Math.min(0, yv), oben = Math.max(0, yv);   // Scheitel und x-Achse immer im Bild
-    const [y0, y1] = a > 0 ? [unten - 0.15 * spanne, oben + spanne] : [unten - spanne, oben + 0.15 * spanne];
-    const v = G_zoom(R('flaeche'), { xmin: h - w, xmax: h + w, ymin: y0, ymax: y1 }, zeichneBild);   // zoombar (graph.js)
-    const handy = WZ.handy(), K = G_koord({ W: handy ? 340 : 480, H: 240, ...v, xName: 'x', yName: 'y' });
-    let g = K.grund + K.kurve(f, 'g-k1') + `<circle class="qg-scheitel" cx="${K.px(h).toFixed(1)}" cy="${K.py(yv).toFixed(1)}" r="5"/>` + `<text class="qg-t" x="${(K.px(h) + 8).toFixed(1)}" y="${(K.py(yv) + (a > 0 ? 16 : -8)).toFixed(1)}">S</text>`;
-    L.forEach(x => { g += K.punkt(x.wert, 0, 'g-pok', 7); });
-    const d = D();
-    R('flaeche').innerHTML = K.svg(g) + `<p class="qg-regel">${M(`$${kTex(dKlasse(d), `D = ${qTex(Dpq())}`)}$ → ${d > 0 ? 'zwei Schnittpunkte mit der $x$-Achse' : d === 0 ? 'der Scheitel S liegt genau auf der $x$-Achse' : 'die Parabel trifft die $x$-Achse nicht'}.`)}</p>`;
-    G_zoomKnoepfe(R('flaeche'), K);
+    const a = qWert(S.a), b = qWert(S.b), c = qWert(S.c), Bz = S.B === 'e' ? Math.E : S.B, f = x => a * Math.pow(Bz, S.k * x + S.d) + b;
+    const ok = loesbar(), x0 = ok ? xWert() : -S.d / S.k;
+    const lo = Math.min(b, c), hi = Math.max(b, c), m = Math.max(2, (hi - lo) * 0.6);
+    const handy = WZ.handy(), W = handy ? 340 : 480, H = 260;
+    const v = G_zoom(p, { xmin: x0 - 3.5, xmax: x0 + 3.5, ymin: lo - m, ymax: hi + m }, zeichneBild);   // zoombar (graph.js)
+    const K = G_koord({ W, H, ...v, xName: 'x', yName: 'y', teileX: handy ? 5 : 7 });
+    const z = v => String(Math.round(v * 100) / 100).replace('-', '−').replace('.', ',');
+    let g = K.grund + K.linie(v.xmin, b, v.xmax, b, 'eg-asym') + K.linie(v.xmin, c, v.xmax, c, 'eg-c') + K.kurve(f, 'g-k1');
+    const rechts = K.px(v.xmax) - 4, oben = (y, unter) => K.py(y) + (unter ? 17 : -7);
+    const cUnter = c < b;                                            // Beschriftungen nicht aufeinander
+    g += `<text class="eg-t eg-tc" x="${rechts.toFixed(1)}" y="${oben(c, cUnter).toFixed(1)}" text-anchor="end">y = ${z(c)}</text>`;
+    // Asymptote beschriften, wo die Kurve weit weg ist (dort, wohin der Exponent wächst), auf der Seite ohne Kurve
+    const achse = v.ymin < 0 && v.ymax > 0 ? K.py(0) : null;      // dicht an der x-Achse: keine Beschriftung (Zahlen, Achsenname); der Text darunter nennt sie
+    if (Math.abs(K.py(b) - K.py(c)) > 20 && (achse === null || Math.abs(K.py(b) - achse) >= 34)){
+      const wachsRechts = S.k > 0, ax = wachsRechts ? K.px(v.xmax) - 4 : K.px(v.xmin) + 4;
+      const ay = oben(b, a < 0);                                    // auf die Seite der Kurve – dort ist sie an diesem Ende weit weg
+      g += `<text class="eg-t eg-ta" x="${ax.toFixed(1)}" y="${ay.toFixed(1)}" text-anchor="${wachsRechts ? 'end' : 'start'}">Asymptote y = ${z(b)}</text>`;
+    }
+    if (ok){
+      const yAchse = Math.min(Math.max(0, v.ymin), v.ymax);
+      g += K.linie(x0, c, x0, yAchse, 'eg-lot') + K.punkt(x0, c, 'g-pok', 7)
+        + `<text class="eg-t eg-tx" x="${(K.px(x0) + 8).toFixed(1)}" y="${(K.py(c) + (cUnter ? -10 : 20)).toFixed(1)}">x ≈ ${z(x0)}</text>`;
+    }
+    const seite = a > 0 ? 'über' : 'unter';
+    p.innerHTML = K.svg(g) + `<p class="eg-erkl">${ok
+      ? M(`Die Kurve trifft die Gerade $y = ${qTex(S.c)}$ genau einmal – bei $x \\approx ${zahl2(xWert())}$. Gestrichelt: die Asymptote $y = ${qTex(S.b)}$.`)
+      : M(`Die Kurve bleibt immer ${seite} der Asymptote $y = ${qTex(S.b)}$ – die Gerade $y = ${qTex(S.c)}$ liegt auf der anderen Seite. Darum keine Lösung.`)}</p>`;
+    G_zoomKnoepfe(p, K);
   }
 
   /* ---------- Bedienung ---------- */
   R('pruefen').onclick = pruefe;
   R('antwort').addEventListener('keydown', e => { if (e.key === 'Enter') pruefe(); });
-  root.querySelectorAll('[data-v]').forEach(k => k.onclick = () => waehle(k.dataset.v));
   root.querySelectorAll('[data-art]').forEach(k => k.onclick = () => neu(k.dataset.art));
   R('uebernehmen').onclick = uebernehmen;
   R('eigen').addEventListener('keydown', e => { if (e.key === 'Enter') uebernehmen(); });
   R('bild').onclick = () => { S.bild = !S.bild; zeichneBild(); };
-  window.addEventListener('handy-wechsel', zeichneBild);
-  setze(2, -3, -2);                                            // Start: 2x² − 3x − 2 = 0
-  return { S, setze, neu, pruefe, waehle, uebernehmen, loesungen, D };
+  window.addEventListener('handy-wechsel', () => {                // Weg neu setzen (Handy-Layout der Ketten), aufgedeckte Schritte bleiben offen
+    const n = weg.offen(); baueWeg(); for (let i = 0; i < n; i++) R('schritt').click();
+    zeichneBild();
+  });
+  setze({ a: Q(3), B: 'e', k: 2, d: -1, b: Q(1), c: Q(10) });       // Start: 3e^(2x−1) + 1 = 10
+  return { S, setze, neu, pruefe, uebernehmen, erkenne, xWert, exakt, loesbar, r };
 })();
 /* =====================================================================
    Folien-Navigation

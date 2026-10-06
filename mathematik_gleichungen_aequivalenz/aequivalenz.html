@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Erst das passende Verfahren wählen (Wurzel ziehen, x ausklammern, Lösungsformel, quadratische Ergänzung), dann exakt lösen – auch mit Wurzeln. Die Diskriminante entscheidet über 0, 1 oder 2 Lösungen, die Parabel zeigt es.">
-<title>Quadratische Gleichungen · Verfahren wählen</title>
+<meta name="description" content="Erlaubt oder Falle? Gleichungen umformen und am Graphen sehen, ob die Lösungsmenge gleich bleibt: Teilen durch x, Quadrieren, Wurzel ziehen, Malnehmen mit Termen.">
+<title>Äquivalenzumformung · Gleichungen</title>
 <style>
 /* ==== HANDY-SCHICHT: technik/handy/handy.css ==== */
 /* =====================================================================
@@ -852,26 +852,45 @@ html.handy mroot > :last-child{font-size:max(14px, .6em)}     /* Wurzelexponent 
 /* Brüche in Knöpfen in voller Größe */
 .knopf math{math-style:normal}
 
-/* ---------- Quadratische Gleichungen (Farben: technik/mathe/farben.css) ---------- */
-.qg-verfahren{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
-.qg-verfahren .bt{font-size:14px;font-weight:700;color:var(--grau);margin-right:4px}
-.qg-verfahren .knopf{font-size:14px;padding:5px 11px}
-.qg-verfahren .knopf.gut{background:var(--m-ok-h);border-color:var(--m-ok);color:var(--m-ok)}
-.qg-verfahren .knopf.geht{background:var(--m-hinweis-h);border-color:var(--m-hinweis);color:var(--m-hinweis)}
-.qg-verfahren .knopf.nicht{background:var(--m-falsch-h);border-color:var(--m-falsch);color:var(--m-falsch)}
-.qg-menge{display:inline-flex;align-items:center;gap:6px;font-family:var(--m-schrift);font-size:26px}
-.qg-menge .wz-eingabe{width:300px}
-.qg-regel{font-size:15px;color:var(--grau);margin-top:6px}
-.qg-regel b{color:var(--tinte)}
-math .qg-plus{color:var(--m-ok)} math .qg-null{color:var(--m-hinweis)} math .qg-minus{color:var(--m-falsch)}   /* Diskriminante: zwei, eine, keine Lösung */
-svg .qg-scheitel{fill:var(--m-erg);stroke:var(--papier);stroke-width:2}
-svg .qg-t{font-size:13px;font-weight:800;fill:var(--m-erg)}
-html.handy .qg-menge{font-size:22px;width:100%;flex-wrap:wrap}
-html.handy .qg-menge .wz-eingabe{width:auto;flex:1}
-html.handy .qg-verfahren .knopf{font-size:15px}
-html.handy .qg-verfahren .bt{width:100%}
+/* ---------- Äquivalenzumformung (Präfix ae-; Farben nur aus technik/mathe/farben.css) ----------
+   linke Seite = --m-1, rechte Seite = --m-2, echte Lösung = --m-ok, Scheinlösung = --m-falsch, verloren = --m-grau */
+.ae-kopf{justify-content:space-between}
+.ae-haupt{margin-top:8px}
+.ae-gl{font-size:30px}
+.ae-gl .li{color:var(--m-1)} .ae-gl .re{color:var(--m-2)}
+.ae-lm{margin-left:auto;font-size:17px;font-weight:700;color:var(--grau);text-align:right}
+.ae-lm math{font-size:20px;color:var(--tinte)}
+.ae-wahl{font:inherit;font-size:15px;border:1px solid var(--blau-linie);border-radius:8px;padding:5px 8px;background:#fff;max-width:360px}
+.ae-eigen.wz-eingabe{font-size:18px;width:220px}
+.ae-ops{display:flex;flex-direction:column;gap:7px}
+.ae-ops .reihe{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ae-ops .bt{font-size:14px;font-weight:800;color:var(--grau);min-width:84px}
+.ae-ops .wz-eingabe.klein{font-size:18px}
+.ae-ops .knopf{font-size:15px;padding:6px 12px;min-width:44px}
+.ae-frage{background:var(--orange-pastell);border:1px solid var(--m-hinweis-h);border-radius:12px;padding:8px 12px;font-size:16px;font-weight:700;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.ae-urteil{border-radius:12px;padding:9px 13px;font-size:15.5px;line-height:1.4;background:var(--m-grau-h);border:1px solid var(--linie);min-height:64px;margin-top:8px}
+.ae-urteil h4{font-size:17px;margin-bottom:2px}
+.ae-urteil.ja{background:var(--m-ok-h);border-color:var(--m-ok)} .ae-urteil.ja h4{color:var(--m-ok)}
+.ae-urteil.nein{background:var(--m-falsch-h);border-color:var(--m-falsch)} .ae-urteil.nein h4{color:var(--m-falsch)}
+.ae-urteil .geschaetzt{font-weight:800;margin-bottom:4px}
+.ae-verlauf{font-size:14px;color:var(--grau);line-height:1.5;margin-top:6px}
+.ae-verlauf math{color:var(--tinte);font-size:17px}
+.ae-verlauf math *, .ae-gl math *{math-style:normal}     /* Brüche in voller Größe */
+.ae-verlauf math mtd:last-child{color:var(--grau)}
+svg .ae-pv{stroke:var(--m-grau);stroke-width:2;stroke-dasharray:4 4}
+svg .ae-tv{fill:var(--m-grau)} svg .ae-ts{fill:var(--m-falsch)} svg .ae-tl{fill:var(--m-ok)}
+svg .ae-leg{font-size:14px;font-weight:700} svg .ae-leg1{fill:var(--m-1)} svg .ae-leg2{fill:var(--m-2)}
+.ae-titel svg .g-k1, .ae-titel svg .g-k2{stroke-width:3}
 
-.titelpolster{padding:10px}   /* Titelkarte (Rahmen) mit Innenabstand */
+/* ---------- Handy-Ansicht ---------- */
+html.handy .ae-gl{font-size:24px;white-space:normal}
+html.handy .ae-lm{margin-left:0;text-align:left;font-size:16px}
+html.handy .ae-wahl{max-width:100%;flex:1;font-size:16px;min-height:40px}
+html.handy .ae-kopf .rechts, html.handy .wz-arten .rechts{flex-wrap:wrap}
+html.handy .ae-eigen.wz-eingabe{flex:1;min-width:0;width:auto}
+html.handy .ae-ops .bt{min-width:0;width:100%;font-size:14px}
+html.handy .ae-verlauf{font-size:15px}
+html.handy svg .ae-leg{font-size:14px}
 
 /* Grundregel aller Werkzeuge: hidden gilt immer, auch wenn eine Klasse display:flex/grid setzt */
 [hidden]{display:none!important}
@@ -1963,10 +1982,23 @@ function M(text){ return String(text).replace(/\$\$([^$]+)\$\$/g, (_, t) => F(t,
 const KURS = "Mathematik · Gleichungen";
 const REIHE = "Gleichungen";
 
+/* Beispiele: jedes zeigt eine typische Falle (oder keine) */
+const BEISPIELE = [
+  { name: 'Alles erlaubt', gl: '2x + 3 = 7', tipp: 'Probiere $-\\,3$, dann $:\\,2$.' },
+  { name: 'Teilen durch x', gl: 'x^2 = 3x', tipp: 'Probiere $:\\,x$. Was passiert mit $x = 0$?' },
+  { name: 'Wurzel ziehen', gl: 'x^2 = 4', tipp: 'Probiere „Wurzel ziehen“.' },
+  { name: 'Quadrieren', gl: 'sqrt(x + 2) = x', tipp: 'Probiere „quadrieren". Woher kommt die neue Lösung?' },
+  { name: 'Mal einem Term', gl: 'x/(x - 2) = 2/(x - 2)', tipp: 'Probiere $\\cdot\\,(x - 2)$. Darf $x = 2$ sein?' },
+  { name: 'Ausklammern statt teilen', gl: 'x^3 = 4x', tipp: 'Probiere erst $:\\,x$ – und vergleiche mit $-\\,4x$.' },
+];
+
 function titelBild(){
-  const K = G_koord({ W: 280, H: 200, xmin: -4, xmax: 4, ymin: -4, ymax: 5, rand: { l: 14, r: 10, o: 10, u: 14 } });
-  return K.svg(K.grund + K.kurve(x => x * x - 3, 'g-k1') + K.kurve(x => x * x + 1, 'g-k2') + K.kurve(x => (x - 2) * (x - 2), 'g-k3')
-    + K.punkt(-Math.sqrt(3), 0, 'g-p1', 5) + K.punkt(Math.sqrt(3), 0, 'g-p1', 5) + K.punkt(2, 0, 'g-p3', 5));
+  const W = 280, H = 170, px = x => 140 + x * 34, py = y => 150 - y * 14;
+  let a = '', b = '';
+  for (let x = -3.6; x <= 3.6; x += 0.1) { a += `${a ? 'L' : 'M'}${px(x).toFixed(1)} ${py(x * x).toFixed(1)}`; }
+  b = `M${px(-3.6)} ${py(4)}L${px(3.6)} ${py(4)}`;
+  return `<svg class="titelkarte" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><path class="g-k1" d="${a}"/><path class="g-k2" d="${b}"/>
+    <circle class="g-pok" cx="${px(-2)}" cy="${py(4)}" r="7"/><circle class="g-pok" cx="${px(2)}" cy="${py(4)}" r="7"/></svg>`;
 }
 
 const folien = [
@@ -1976,36 +2008,46 @@ const folien = [
   <div class="links">
     <div class="balken"></div>
     <div class="eyebrow">Gleichungen</div>
-    <h1>Quadratische Gleichungen</h1>
-    <p class="unter">Erst das Verfahren wählen, dann rechnen. Zwei, eine oder keine Lösung – die Diskriminante weiß es vorher.</p>
+    <h1>Erlaubt<br>oder Falle?</h1>
+    <p class="unter">Äquivalenzumformungen am Graphen: Bleibt die Lösungsmenge gleich – oder geht beim Teilen, Quadrieren und Wurzelziehen etwas verloren?</p>
     <div class="meta"><span>Mathematik</span><span>Gleichungen</span></div>
   </div>
   <div class="rechts">
     <div class="logokachel"><img src="${LOGO}" alt="Logo Montessori-Schule Landau"></div>
-    <div class="titelkarte titelpolster">${titelBild()}</div>
+    <div class="ae-titel">${titelBild()}</div>
   </div>
 `},
 
-{titel:"Quadratische Gleichungen", klasse:"kompakt oben", eyebrow:"Quadratische Gleichungen", h2:"Welches Verfahren passt?", roh:`
-  <div class="interaktiv" data-werkzeug data-quadratisch>
-    <div class="wz-aufgabe">
-      <span class="wz-was">Löse:</span>
-      <span class="wz-term" data-r="term"></span><span class="wz-gleich">= 0</span>
-      <span class="qg-menge">${F('L = \\{')}<input class="wz-eingabe" data-r="antwort" spellcheck="false" autocomplete="off" placeholder="z. B. -2; 3/2 oder 1+√5; 1-√5" aria-label="Lösungsmenge">${F('\\}')}</span>
-      <div class="knopfleiste"><button class="knopf o" data-r="pruefen">Prüfen</button></div>
+{titel:"Äquivalenzumformung", klasse:"kompakt oben", eyebrow:"Äquivalenzumformung", h2:"Bleibt die Lösungsmenge gleich?", roh:`
+  <div class="interaktiv" data-aequivalenz>
+    <div class="wz-aufgabe ae-kopf"><span class="wz-term ae-gl" data-r="gl"></span><span class="ae-lm" data-r="lm"></span></div>
+    <div class="wz-arten">
+      <span class="bt">Beispiel</span><select class="ae-wahl" data-r="beispiel" aria-label="Beispiel"></select>
+      <span class="rechts"><span class="bt">oder eigene Gleichung</span>
+        <input class="wz-eingabe ae-eigen" data-r="eigen" spellcheck="false" autocomplete="off" placeholder="z. B. x^2 = 2x" aria-label="eigene Gleichung">
+        <button class="knopf hell" data-r="start">Start</button></span>
     </div>
-    <div class="qg-verfahren"><span class="bt">1. Verfahren wählen:</span>
-      <button class="knopf hell" data-v="wurzel">Wurzel ziehen</button><button class="knopf hell" data-v="ausklammern">${F('x')} ausklammern</button>
-      <button class="knopf hell" data-v="formel">pq-Formel</button><button class="knopf hell" data-v="ergaenzung">quadratische Ergänzung</button></div>
-    <p class="qg-regel">2. Lösungen mit <b>Semikolon</b> trennen, exakt: Brüche als <b>3/2</b>, Wurzeln als <b>√5</b> oder <b>sqrt(5)</b>, auch <b>1±√5</b>. Keine Lösung: leer lassen oder „keine".</p>
-    <div class="wz-arten"><span class="bt">Neue Aufgabe:</span>
-      <button class="knopf hell" data-art="rein">ohne x-Glied</button><button class="knopf hell" data-art="ohnec">ohne Zahl</button>
-      <button class="knopf hell" data-art="voll">vollständig</button><button class="knopf hell" data-art="gemischt">gemischt</button>
-      <span class="rechts"><input class="wz-eingabe" style="width:190px;font-size:16px" data-r="eigen" spellcheck="false" autocomplete="off" placeholder="eigene, z. B. 2x^2-3x-2" aria-label="eigene Aufgabe"><button class="knopf hell" data-r="uebernehmen">Übernehmen</button></span></div>
-    <div class="wz-rueck" data-r="rueck"></div>
-    <div class="wz-zwei">
-      <div class="wz-panel"><h3>Lösungsweg <span class="rechts"><button class="knopf hell" data-r="schritt">Nächster Schritt</button><button class="knopf hell" data-r="alle">Alle</button></span></h3><div class="wz-weg" data-r="weg"></div></div>
-      <div class="wz-panel"><h3>Parabel <span class="rechts"><button class="knopf hell" data-r="bild">Bild zeigen</button></span></h3><div class="wz-bild" data-r="flaeche"></div></div>
+    <div class="wz-zwei ae-haupt">
+      <div class="wz-panel">
+        <h3>Umformen</h3>
+        <div class="ae-ops">
+          <div class="reihe"><span class="bt">Beide Seiten</span>
+            <input class="wz-eingabe klein" data-r="wert" value="3" spellcheck="false" autocomplete="off" aria-label="Zahl oder Term">
+            <button class="knopf" data-op="+">+</button><button class="knopf" data-op="-">−</button>
+            <button class="knopf" data-op="*">·</button><button class="knopf" data-op="/">:</button></div>
+          <div class="reihe"><span class="bt">Oder</span>
+            <button class="knopf hell" data-op="hoch2">quadrieren</button>
+            <button class="knopf hell" data-op="wurzel">Wurzel ziehen</button></div>
+          <div class="reihe"><span class="bt"></span>
+            <button class="knopf hell" data-r="zurueck">Rückgängig</button>
+            <button class="knopf hell" data-r="tippmodus">Vorher schätzen: aus</button></div>
+        </div>
+        <div class="ae-frage" data-r="frage" hidden>Ist das eine Äquivalenzumformung?
+          <button class="knopf" data-antwort="ja">Ja</button><button class="knopf" data-antwort="nein">Nein</button></div>
+        <div class="ae-urteil" data-r="urteil"></div>
+        <div class="ae-verlauf" data-r="verlauf"></div>
+      </div>
+      <div class="wz-panel wz-bild"><h3>Beide Seiten als Graphen</h3><svg data-r="graph" width="600" height="360" viewBox="0 0 600 360"></svg></div>
     </div>
   </div>
 `},
@@ -2030,211 +2072,246 @@ folien.forEach((f,i)=>{
 });
 
 /* =====================================================================
-   Quadratische Gleichungen a·x² + b·x + c = 0 (a, b, c ganz)
-   Lösungen exakt: r ± s·√m mit r, s als Bruch (bruch.js), m quadratfrei.
-   Darstellung: LaTeX → MathML (formel.js). In JS jeden Backslash doppelt.
+   Äquivalenzumformung
    ===================================================================== */
-const QUADRATISCH = (() => {
-  const root = document.querySelector('[data-quadratisch]');
+const AEQUIVALENZ = (() => {
+  const root = document.querySelector('[data-aequivalenz]');
   const R = r => root.querySelector(`[data-r="${r}"]`);
-  const S = { a: 1, b: -2, c: -3, art: 'voll', verfahren: null, bild: false };
-  const weg = WZ.weg(root);
-  const kl = v => v < 0 ? `(${v})` : String(v);                  // negative Zahl in Klammern
-  const ggt = (a, b) => ggT(a, b);
+  const S = { verlauf: [], tippen: false, wartend: null };   // verlauf: [{l, r, op, L}]
 
-  /* ---------- exakte Lösungen ---------- */
-  function quadratFrei(t){ let k = 1; for (let i = 2; i * i <= t; i++) while (t % (i * i) === 0) { t /= i * i; k *= i; } return [k, t]; }
-  /* x = r + vz·s·√m als { wert, tex, text } */
-  function zahl(r, s, m_, vz){
-    if (qNull(s)) return { wert: qWert(r), tex: qTex(r), text: qText(r) };
-    if (m_ === 1){ const q = vz > 0 ? qAdd(r, s) : qSub(r, s); return { wert: qWert(q), tex: qTex(q), text: qText(q) }; }
-    const d = r.n * s.n / ggt(r.n, s.n), Rz = r.z * d / r.n, Sz = s.z * d / s.n;
-    const innen = (Rz ? `${Rz}${vz > 0 ? ' + ' : ' - '}` : (vz > 0 ? '' : '-')) + `${Sz === 1 ? '' : Sz}\\sqrt{${m_}}`;
-    return { wert: qWert(r) + vz * qWert(s) * Math.sqrt(m_), tex: d === 1 ? innen : `\\frac{${innen}}{${d}}`, text: `(${Rz}${vz > 0 ? '+' : '-'}${Sz}*sqrt(${m_}))/${d}` };
-  }
-  const D = () => S.b * S.b - 4 * S.a * S.c;                    // für das Vorzeichen (b² − 4ac)
-  const Dpq = () => Q(D(), 4 * S.a * S.a);                         // gezeigt wird D der pq-Formel: (p/2)² − q = (b² − 4ac)/(4a²)
-  function loesungen(){
-    const d = D(); if (d < 0) return [];
-    const r = Q(-S.b, 2 * S.a); if (d === 0) return [zahl(r, Q(0), 1, 1)];
-    const [k, m_] = quadratFrei(d), s = Q(k, 2 * Math.abs(S.a));
-    return [zahl(r, s, m_, -1), zahl(r, s, m_, 1)].sort((p, q) => p.wert - q.wert);
-  }
-  const menge = L => L.length ? `\\left\\{\\, ${L.map(x => x.tex).join(';\\ ')} \\,\\right\\}` : '\\{\\,\\}';   // \\left: wächst mit Brüchen
-  const typ = () => S.b === 0 ? 'rein' : S.c === 0 ? 'ohnec' : 'voll';
-  const gleichung = () => pTex([S.c, S.b, S.a]);
-  const dKlasse = d => d > 0 ? 'qg-plus' : d === 0 ? 'qg-null' : 'qg-minus';
-
-  /* ---------- Aufgaben ---------- */
-  const ARTEN = {
-    rein(){ const a = WZ.eins([1, 1, 2, -1, 3]), w = WZ.eins(['quadrat', 'quadrat', 'wurzel', 'keine']);
-      if (w === 'quadrat') return [a, 0, -a * WZ.rnd(1, 6) ** 2];
-      if (w === 'wurzel') return [a, 0, -a * WZ.eins([2, 3, 5, 6, 7, 8, 12])];
-      return [a, 0, a * WZ.rnd(1, 9)]; },
-    ohnec(){ const a = WZ.eins([1, 1, 2, 3, -1, -2]); let b; do b = WZ.nz(-9, 9); while (Math.abs(b) === Math.abs(a) && Math.random() < 0.5); return [a, b, 0]; },
-    voll(){ const a = WZ.eins([1, 1, 1, 2, -1, 3]), w = WZ.eins(['ganz', 'ganz', 'bruch', 'doppelt', 'keine', 'wurzel']);
-      if (w === 'ganz'){ let p, q; do { p = WZ.rnd(-6, 6); q = WZ.rnd(-6, 6); } while (p === q || p * q === 0); return [a, -a * (p + q), a * p * q]; }
-      if (w === 'bruch'){ const a2 = WZ.eins([2, 3]), p = WZ.nz(-5, 5); let z; do z = WZ.nz(-5, 5); while (z % a2 === 0); return [a2, -(a2 * p + z), p * z]; }   // (a2·x − z)(x − p)
-      if (w === 'doppelt'){ const h = WZ.nz(-5, 5); return [a, -2 * a * h, a * h * h]; }
-      if (w === 'keine'){ const h = WZ.rnd(-4, 4), k = WZ.rnd(1, 5); return [a, -2 * a * h, a * (h * h + k)]; }
-      let b, c; do { b = WZ.nz(-8, 8); c = WZ.nz(-9, 9); } while (b * b - 4 * c <= 0 || Number.isInteger(Math.sqrt(b * b - 4 * c))); return [1, b, c]; },
-  };
-  ARTEN.gemischt = () => ARTEN[WZ.eins(['rein', 'ohnec', 'voll', 'voll'])]();
-  function neu(art){ S.art = art; setze(...ARTEN[art]()); }
-  function setze(a, b, c){
-    Object.assign(S, { a, b, c, verfahren: null, bild: false });
-    R('term').innerHTML = F(gleichung());
-    R('antwort').value = ''; R('antwort').className = 'wz-eingabe';
-    root.querySelectorAll('[data-v]').forEach(k => k.classList.remove('gut', 'geht', 'nicht'));
-    WZ.rueck(R('rueck'), '', 'Wähle zuerst ein Verfahren – oder rechne gleich los.');
-    root.querySelectorAll('[data-art]').forEach(k => k.classList.toggle('an', k.dataset.art === S.art));
-    const L = loesungen(); root.dataset.loesung = L.map(x => x.text).join(';'); root.dataset.d = D();
-    baueWeg(); zeichneBild();
-  }
-  function uebernehmen(){
-    const f = R('eigen');
-    try {
-      const teile = f.value.split('='); if (teile.length > 2) throw new Error('Höchstens ein Gleichheitszeichen.');
-      const l = T_lies(teile[0]), r = teile[1] !== undefined ? T_lies(teile[1]) : { t: 'z', v: 0 };
-      const k = T_koeffizienten({ t: '-', a: l, b: r });
-      if (!k || k.length !== 3) throw new Error('Bitte eine quadratische Gleichung mit ganzen Zahlen, z. B. 2x^2 − 3x − 2 oder x^2 = 5x.');
-      f.classList.remove('falsch'); S.art = 'eigen'; setze(k[2], k[1], k[0]);
-      if (teile[1] !== undefined) WZ.rueck(R('rueck'), '', M(`Erst alles auf eine Seite: $${gleichung()} = 0$. Dann ein Verfahren wählen.`));
-    } catch (e) { f.classList.add('falsch'); WZ.rueck(R('rueck'), 'nein', e.message); }
-  }
-
-  /* ---------- Verfahren ---------- */
-  const BEWERTUNG = {
-    rein:  { wurzel: ['gut', 'Ohne $x$-Glied: nach $x^{2}$ auflösen, Wurzel ziehen.'], ausklammern: ['nicht', '$x$ steckt nicht in jedem Summanden: Die Zahl hat kein $x$.'],
-             formel: ['geht', 'Geht immer – hier aber umständlicher als Wurzel ziehen ($b = 0$).'], ergaenzung: ['geht', 'Geht, ist aber unnötig: Es gibt kein $x$-Glied zum Ergänzen.'] },
-    ohnec: { ausklammern: ['gut', 'Ohne Zahl: $x$ ausklammern, dann Satz vom Nullprodukt.'], wurzel: ['nicht', 'Das $x$-Glied verhindert das direkte Wurzelziehen.'],
-             formel: ['geht', 'Geht ($c = 0$) – ausklammern ist schneller.'], ergaenzung: ['geht', 'Geht – ausklammern ist schneller.'] },
-    voll:  { formel: ['gut', 'Vollständige Gleichung: Die pq-Formel passt immer.'], ergaenzung: ['gut', 'Quadratische Ergänzung – darauf beruht die pq-Formel.'],
-             wurzel: ['nicht', 'Das $x$-Glied verhindert das direkte Wurzelziehen.'], ausklammern: ['nicht', 'Wegen der Zahl steckt $x$ nicht in jedem Summanden.'] },
-  };
-  const BESTES = { rein: 'wurzel', ohnec: 'ausklammern', voll: 'formel' };
-  function waehle(v){
-    const [art, text] = BEWERTUNG[typ()][v];
-    root.querySelectorAll('[data-v]').forEach(k => k.classList.remove('gut', 'geht', 'nicht'));
-    root.querySelector(`[data-v="${v}"]`).classList.add(art);
-    WZ.rueck(R('rueck'), { gut: 'ok', geht: 'fast', nicht: 'nein' }[art], M(text));
-    root.dataset.verfahren = art;
-    if (art !== 'nicht') { S.verfahren = v; baueWeg(); }
-  }
-
-  /* ---------- Lösungsweg ---------- */
-  function baueWeg(){
-    const v = S.verfahren || BESTES[typ()], { a, b, c } = S, L = loesungen(), s = [];
-    const ende = () => s.push(['Lösungsmenge', FB(`L = ${menge(L)}`), true]);
-    if (v === 'wurzel'){
-      const w = Q(-c, a);
-      s.push(['Umstellen', FB(`${pTex([0, 0, a])} = ${-c}`)]);
-      if (a !== 1) s.push([`Durch ${F(String(a))} teilen`, FB(`x^{2} = ${qTex(w)}`)]);
-      if (w.z < 0) s.push(['Keine Lösung', M('$x^{2}$ ist nie negativ.')]);
-      else if (w.z === 0) s.push(['Eine Lösung', FB('x = 0')]);
-      else { const roh = `\\sqrt{${qTex(w)}}`;                     // „= ±…“ nur, wenn sich die Wurzel vereinfacht
-        s.push(['Wurzel ziehen', FB(`x = \\pm${roh}${roh === L[1].tex ? '' : ` = \\pm ${L[1].tex}`}`) + 'Beide Vorzeichen!']); }
+  /* ---------- Lösungen suchen (numerisch, −8 … 8) ---------- */
+  const X0 = -8, X1 = 8, N = 4000;                          // Gitter x = (i − 2000)/250: ganze und halbe Zahlen exakt
+  function loesungen(l, r){
+    const h = x => { const a = T_wert(l, x), b = T_wert(r, x); return Number.isFinite(a) && Number.isFinite(b) ? { d: a - b, s: 1 + Math.abs(a) + Math.abs(b) } : null; };
+    const xs = [...Array(N + 1)].map((_, i) => (i - N / 2) / 250), hs = xs.map(h);
+    const def = hs.filter(Boolean), null0 = def.filter(v => Math.abs(v.d) <= 1e-9 * v.s).length;
+    if (def.length > 50 && null0 > 0.5 * def.length) return { alle: true, x: [] };
+    const gef = [];
+    const neu = x => { if (!gef.some(y => Math.abs(y - x) < 1e-6)) gef.push(x); };
+    hs.forEach((v, i) => { if (v && Math.abs(v.d) <= 1e-9 * v.s) neu(xs[i]); });
+    for (let i = 0; i < N; i++){
+      const a = hs[i], b = hs[i + 1];
+      if (!a || !b || a.d * b.d >= 0 || Math.abs(a.d) <= 1e-9 * a.s || Math.abs(b.d) <= 1e-9 * b.s) continue;
+      let lo = xs[i], hi = xs[i + 1], flo = a.d;
+      for (let k = 0; k < 80; k++){ const m = (lo + hi) / 2, v = h(m); if (!v) { lo = null; break; } if ((v.d < 0) === (flo < 0)) { lo = m; flo = v.d; } else hi = m; }
+      if (lo === null) continue;
+      const m = (lo + hi) / 2, v = h(m);
+      if (v && Math.abs(v.d) < 1e-7 * v.s) neu(m);             // sonst Sprungstelle (Polstelle), keine Lösung
     }
-    if (v === 'ausklammern'){
-      s.push(['Ausklammern', FB(`x \\cdot ${klTex(pTex([b, a]))} = 0`)]);
-      s.push(['Nullprodukt', FB(`\\begin{array}{rcl} x & = & 0 \\\\ \\text{oder}\\quad ${pTex([b, a])} = 0 \\;\\Rightarrow\\; x & = & ${dTex(Q(-b, a))} \\end{array}`)]);
+    return { alle: false, x: gef.map(schoen).sort((p, q) => p - q) };
+  }
+  function schoen(x){                                         // auf einen einfachen Bruch runden, wenn es passt
+    for (let q = 1; q <= 12; q++){ const p = Math.round(x * q); if (Math.abs(x - p / q) < 1e-7) return p / q; }
+    return x;
+  }
+  function zahlHtml(x){
+    for (let q = 1; q <= 12; q++){
+      const p = Math.round(x * q);
+      if (Math.abs(x - p / q) < 1e-9){
+        if (q === 1) return String(p).replace('-', '−');
+        if ([2, 4, 5, 8, 10].includes(q)) return String(p / q).replace('.', ',').replace('-', '−');
+        const g = (a, b) => b ? g(b, a % b) : Math.abs(a); const t = g(p, q);
+        return `${p < 0 ? '−' : ''}${Math.abs(p) / t}/${q / t}`;
+      }
     }
-    if (v === 'formel'){                                              // pq-Formel (Peter, 06.10.: „das nutze ich mehr“)
-      const d = D(), p = Q(b, a), q = Q(c, a), h = Q(p.z, 2 * p.n), Dq = Dpq(), kq = x => x.z < 0 ? klTex(qTex(x)) : qTex(x);   // klTex: nur um Brüche mitwachsend
-      const wz = Math.round(Math.sqrt(Math.abs(Dq.z))), wn = Math.round(Math.sqrt(Dq.n)), glatt = Dq.z >= 0 && wz * wz === Dq.z && wn * wn === Dq.n;
-      if (a !== 1) s.push(['Normalform', FB(`${pTex([c, b, a])} = 0 \\quad | : ${kl(a)}`) + FB(`${pTex([q, p, Q(1)])} = 0`)]);
-      s.push(['Ablesen', FB(`p = ${qTex(p)}, \\quad q = ${qTex(q)}`)]);
-      s.push(['Diskriminante', FB(`\\begin{aligned} D &= \\left(\\frac{p}{2}\\right)^{2} - q \\\\ &= ${klTex(qTex(h))}^{2} - ${kq(q)} \\\\ &= ${kTex(dKlasse(d), qTex(Dq))} \\end{aligned}`)
-        + FB(`D ${d > 0 ? '> 0' : d === 0 ? '= 0' : '< 0'} \\quad\\Rightarrow\\quad \\text{${d > 0 ? 'zwei Lösungen' : d === 0 ? 'eine Lösung' : 'keine Lösung'}}`)]);
-      if (d >= 0) s.push(['Einsetzen', FB(`\\begin{aligned} x_{1,2} &= -\\frac{p}{2} \\pm \\sqrt{D} \\\\ &= ${qTex(qNeg(h))} \\pm \\sqrt{${qTex(Dq)}}${glatt ? ` \\\\ &= ${qTex(qNeg(h))} \\pm ${qTex(Q(wz, wn))}` : ''} \\end{aligned}`)]);
+    return '≈ ' + (Math.round(x * 1000) / 1000).toString().replace('.', ',').replace('-', '−');
+  }
+  function zahlTex(x){                                        // dasselbe als LaTeX (formel.js)
+    for (let q = 1; q <= 12; q++){
+      const p = Math.round(x * q);
+      if (Math.abs(x - p / q) < 1e-9){
+        if (q === 1) return String(p);
+        if ([2, 4, 5, 8, 10].includes(q)) return zTex(p / q);
+        const g = (a, b) => b ? g(b, a % b) : Math.abs(a); const t = g(p, q);
+        return `${p < 0 ? '-' : ''}\\frac{${Math.abs(p) / t}}{${q / t}}`;
+      }
     }
-    if (v === 'ergaenzung'){
-      const p = Q(b, a), q = Q(c, a), h = Q(p.z, 2 * p.n), Rr = qSub(qMul(h, h), q), hq = qNull(h) ? '0' : `${klTex(qTex(h))}^{2}`;
-      if (a !== 1) s.push([`Durch ${F(String(a))} teilen`, FB(`${pTex([q, p, Q(1)])} = 0`)]);
-      s.push(['Ergänzen', FB(`${pTex([Q(0), p, Q(1)])} + ${hq} = ${qTex(qNeg(q))} + ${hq}`)]);
-      s.push(['Binom', FB(`${klTex(pTex([h, Q(1)]))}^{2} = ${qTex(Rr)}`)]);
-      if (Rr.z < 0) s.push(['Keine Lösung', 'Ein Quadrat ist nie negativ.']);
-      else s.push(['Wurzel ziehen', FB(`${pTex([h, Q(1)])} = ${Rr.z === 0 ? '0' : `\\pm\\sqrt{${qTex(Rr)}}`}`)]);
+    return '\\approx ' + zTex(x, 3);
+  }
+  const mengeHtml = L => L.alle ? 'alle x' : L.x.length ? `{${L.x.map(zahlHtml).join('; ')}}` : '{ }';     // Text (data-loesung, Probe)
+  const mengeTex = L => L.alle ? '\\mathbb{R}' : L.x.length ? `\\{${L.x.map(zahlTex).join(';\\, ')}\\}` : '\\{\\,\\}';
+  const ohne = (A, B) => A.x.filter(x => !B.x.some(y => Math.abs(x - y) < 1e-6));
+
+  /* ---------- Umformen wie die Kinder: kürzen ohne auf die Definitionsmenge zu achten ---------- */
+  const H = b => T_html(b);                                  // nur als Schlüssel zum Vergleichen
+  const TX = b => T_tex(b), FX = b => F(T_tex(b));          // Anzeige
+  const Z = v => ({ t: 'z', v });
+  const istZahl = b => b.t === 'z' && !b.name;
+  const ohneKlammer = b => b.t === '()' ? ohneKlammer(b.a) : b;
+  function einfach(seite, op, T){
+    const s = ohneKlammer(seite), t = ohneKlammer(T);
+    if (istZahl(s) && istZahl(t)){
+      const v = op === '+' ? s.v + t.v : op === '-' ? s.v - t.v : op === '*' ? s.v * t.v : t.v !== 0 ? s.v / t.v : NaN;
+      if (Number.isFinite(v)) return Z(Math.round(v * 1e9) / 1e9);
     }
-    ende(); weg.setze(s);
+    if (op === '-' && s.t === '+' && H(ohneKlammer(s.b)) === H(t)) return s.a;          // (A + c) − c → A
+    if (op === '+' && s.t === '-' && H(ohneKlammer(s.b)) === H(t)) return s.a;          // (A − c) + c → A
+    if (op === '*' && s.t === '/' && H(ohneKlammer(s.b)) === H(t)) return s.a;          // A/T · T → A
+    if (op === '/'){
+      if (H(s) === H(t)) return Z(1);
+      const f = T_faktoren(s), i = f.findIndex(x => H(ohneKlammer(x)) === H(t));
+      if (i >= 0 && f.length > 1){ const rest = f.filter((_, j) => j !== i); return rest.reduce((a, b) => ({ t: '*', a, b, still: true })); }
+      if (s.t === '^' && H(t) === H(s.a) && istZahl(s.b) && Number.isInteger(s.b.v) && s.b.v >= 2)
+        return s.b.v === 2 ? s.a : { t: '^', a: s.a, b: Z(s.b.v - 1) };             // x³ : x → x²
+      if (istZahl(t) && s.t === '*' && istZahl(s.a) && t.v !== 0 && Number.isInteger(s.a.v / t.v))
+        return s.a.v / t.v === 1 ? s.b : { t: '*', a: Z(s.a.v / t.v), b: s.b, still: true };   // 4x : 2 → 2x
+    }
+    return { t: op, a: seite, b: T };
   }
 
-  /* ---------- Prüfen ---------- */
-  function lies(text){ return eintraege(text).map(e => e.v); }
-  /* Einträge mit Wert und getippten Nachkommastellen (exakt bei Bruch oder √: Infinity) */
-  function eintraege(text){
-    const t = String(text).trim();
-    if (!t.includes(';') && (/,\s/.test(t) || (t.match(/,/g) || []).length > 1)) throw new Error('Mehrere Lösungen bitte mit Semikolon trennen (das Komma ist für Dezimalzahlen).');
-    return WZ.liesMenge(t, e => {                                                          // technik/mathe/werkzeug.js
-      const pm = e.match(/^([+-])\(([^()]*)\)$/);                                          // „±2,24“ kommt als „+(2,24)“: getippte Stellen behalten
-      const z = pm && !/[a-zπ√∛∜]/i.test(pm[2]) ? WZ.liesZahl(pm[1] === '-' ? '-' + pm[2] : pm[2]) : WZ.liesZahl(e, { term: true });
-      return { v: z.v, stellen: z.stellen };
+  /* ---------- Schritte ---------- */
+  function start(l, r, name){
+    S.verlauf = [{ l, r, op: name, L: loesungen(l, r) }];
+    zeige(null);
+  }
+  function anwenden(op){
+    const v = S.verlauf[S.verlauf.length - 1];
+    let l, r, label, T = null;
+    if (op === 'hoch2'){
+      l = { t: '^', a: v.l, b: Z(2) }; r = { t: '^', a: v.r, b: Z(2) }; label = '(\\ldots)^{2}';
+    } else if (op === 'wurzel'){
+      const q = b => { const o = ohneKlammer(b); return o.t === '^' && istZahl(o.b) && o.b.v === 2 ? o.a : null; };
+      const ql = q(v.l), qr = q(v.r);
+      if (!ql && !qr) return urteil('nein', 'Geht hier nicht', M('„Wurzel ziehen“ braucht eine Seite, die ein Quadrat ist, z. B. $x^{2} = 4$.'));
+      l = ql || { t: 'fn', f: 'sqrt', a: v.l }; r = qr || { t: 'fn', f: 'sqrt', a: v.r }; label = '\\sqrt{\\ldots}';
+      if (istZahl(ohneKlammer(r.a || {})) && r.t === 'fn' && Number.isInteger(Math.sqrt(ohneKlammer(r.a).v))) r = Z(Math.sqrt(ohneKlammer(r.a).v));
+    } else {
+      try { T = T_lies(R('wert').value); R('wert').classList.remove('falsch'); } catch (e) { R('wert').classList.add('falsch'); return urteil('nein', 'Eingabe', e.message); }
+      l = einfach(v.l, op, T); r = einfach(v.r, op, T);
+      label = { '+': '+ ', '-': '- ', '*': '\\cdot ', '/': ': ' }[op] + T_tex(T, op === '+' ? 0 : 2);   // · (x − 2) mit Klammer
+    }
+    S.verlauf.push({ l, r, op: label, art: op, T, L: loesungen(l, r) });
+    zeige(op);
+  }
+
+  /* ---------- Urteil ---------- */
+  function urteil(art, titel, text){
+    R('urteil').className = 'ae-urteil ' + art;
+    R('urteil').innerHTML = `<h4>${titel}</h4>${text}`;
+  }
+  function beurteile(op){
+    const n = S.verlauf.length, jetzt = S.verlauf[n - 1], vorher = S.verlauf[n - 2];
+    if (!vorher) return urteil('', 'Los geht\'s', 'Wähle eine Umformung. Das Bild zeigt beide Seiten als Graphen, die Lösungen sind die Schnittstellen.');
+    const weg = ohne(vorher.L, jetzt.L), dazu = ohne(jetzt.L, vorher.L), liste = xs => xs.map(x => F('x = ' + zahlTex(x))).join(', ');
+    const aequi = !weg.length && !dazu.length && vorher.L.alle === jetzt.L.alle;
+    const T = jetzt.T, tHat = T && JSON.stringify(T).includes('"t":"x"');
+    let text;
+    if (jetzt.L.alle && !vorher.L.alle) text = M('Jetzt ist jedes $x$ eine Lösung. Malnehmen mit 0 macht aus jeder Gleichung $0 = 0$ – das ist verboten.');
+    else if (op === '+' || op === '-') text = aequi ? 'Auf beiden Seiten dasselbe addieren oder subtrahieren ändert die Lösungen nie.'
+      : `Der Term ist bei ${liste([...weg, ...dazu])} nicht definiert – dort ändert sich etwas.`;
+    else if (op === '*' || op === '/'){
+      if (!tHat) text = aequi ? (op === '*' ? 'Malnehmen' : 'Teilen') + ' mit einer Zahl ungleich 0 ist immer erlaubt.' : 'Mit 0 malnehmen oder durch 0 teilen ist verboten.';
+      else if (op === '/' && weg.length) text = `Durch ${FX(T)} geteilt: Für ${liste(weg)} wird ${FX(T)} zu 0 – dort hat man durch 0 geteilt, diese Lösung ist weg. Besser: alles auf eine Seite bringen und ausklammern.`;
+      else if (op === '*' && dazu.length) text = `Mit ${FX(T)} malgenommen: Für ${liste(dazu)} wird ${FX(T)} zu 0, dort steht dann ${F('0 = 0')} – eine <b>Scheinlösung</b> kommt dazu. Definitionsmenge beachten oder Probe machen!`;
+      else text = aequi ? `Diesmal ging es gut: ${FX(T)} ist dort, wo es darauf ankommt, nicht 0. Das ist aber Glück, keine Regel – bei Termen mit ${F('x')} immer prüfen!`
+        : `Die Lösungsmenge hat sich geändert: ${weg.length ? 'verloren ' + liste(weg) : ''} ${dazu.length ? 'dazugekommen ' + liste(dazu) : ''}`;
+    } else if (op === 'hoch2') text = dazu.length ? M(`Quadrieren ist keine Äquivalenzumformung: Aus $a = b$ folgt $a^{2} = b^{2}$, aber $a^{2} = b^{2}$ gilt auch, wenn $a = -b$. `) + `Bei ${liste(dazu)} war das so – eine <b>Scheinlösung</b>. Probe machen!`
+      : 'Diesmal kam nichts dazu. Trotzdem ist Quadrieren keine Äquivalenzumformung: immer die Probe machen.';
+    else if (op === 'wurzel') text = weg.length ? M('$\\sqrt{x^{2}}$ ist $|x|$, nicht $x$. Aus $x^{2} = c$ folgt $x = \\sqrt{c}$ <b>oder</b> $x = -\\sqrt{c}$. ') + `Verloren: ${liste(weg)}.`
+      : M('Hier ging nichts verloren – aber denk daran: $\\sqrt{x^{2}} = |x|$, es gibt meist zwei Lösungen.');
+    urteil(aequi ? 'ja' : 'nein', aequi ? 'Äquivalenzumformung ✓' : 'Keine Äquivalenzumformung', text);
+    root.dataset.urteil = aequi ? 'ja' : 'nein';
+    return aequi;
+  }
+
+  /* ---------- Anzeige ---------- */
+  function zeige(op){
+    const v = S.verlauf[S.verlauf.length - 1], o = S.verlauf[0];
+    zeigeGl();
+    R('lm').innerHTML = M(`jetzt $\\mathbb{L} = ${mengeTex(v.L)}$`) + (S.verlauf.length > 1 ? '<br>' + M(`am Anfang $\\mathbb{L} = ${mengeTex(o.L)}$`) : '');
+    const V = S.verlauf;                                       // Umformungskette wie im Heft: Gleichung, rechts | Umformung
+    R('verlauf').innerHTML = V.length > 1 ? F(`\\begin{array}{rcll} ${V.map((s, i) => `${TX(s.l)} & = & ${TX(s.r)} & ${i + 1 < V.length ? `\\mid\\; ${V[i + 1].op}` : ''}`).join(' \\\\ ')} \\end{array}`, true) : '';
+    const aequi = beurteile(op);
+    zeichne();
+    root.dataset.loesung = mengeHtml(v.L);
+    R('zurueck').disabled = S.verlauf.length < 2;
+    return aequi;
+  }
+  /* Gleichung im Kopf: auf dem Handy zweizeilig (linke Seite, darunter „= rechte Seite“), sonst ragt sie heraus */
+  function zeigeGl(){
+    const v = S.verlauf[S.verlauf.length - 1], l = kTex('li', TX(v.l)), r = kTex('re', TX(v.r));
+    R('gl').innerHTML = F(WZ.handy() ? `\\begin{aligned} & ${l} \\\\ & = ${r} \\end{aligned}` : `${l} = ${r}`);
+  }
+  function zeichne(){
+    const handy = WZ.handy(), W = handy ? 320 : 600, Hh = handy ? 300 : 360;
+    const v = S.verlauf[S.verlauf.length - 1], o = S.verlauf[0];
+    const X0 = -6, X1 = 6, ys = [];
+    for (let i = 0; i <= 600; i++){ const x = X0 + i * (X1 - X0) / 600; [T_wert(v.l, x), T_wert(v.r, x)].forEach(y => { if (Number.isFinite(y) && Math.abs(y) < 50) ys.push(y); }); }
+    v.L.x.forEach(x => { const y = T_wert(v.l, x); if (Number.isFinite(y)) ys.push(y); });
+    let y0 = Math.max(-12, Math.min(-1, ...ys)), y1 = Math.min(12, Math.max(1, ...ys));
+    const pad = (y1 - y0) * 0.08; y0 -= pad; y1 += pad;
+    const { xmin, xmax, ymin, ymax } = G_zoom(R('graph').closest('.wz-panel'), { xmin: X0, xmax: X1, ymin: y0, ymax: y1 }, zeichne);   // zoombar (graph.js)
+    const K = G_koord({ W, H: Hh, xmin, xmax, ymin, ymax, rand: { l: 34, r: 12, o: 30, u: 24 }, sx: 1, zahlenX: 2, xName: 'x', yName: 'y' });
+    let g = K.grund + K.kurve(x => T_wert(v.l, x), 'g-k1') + K.kurve(x => T_wert(v.r, x), 'g-k2');
+    // verlorene Lösungen (gegenüber dem Anfang), dann aktuelle: echt oder Schein
+    ohne(o.L, v.L).filter(x => x >= xmin && x <= xmax).forEach(x => {
+      g += K.linie(x, ymin, x, ymax, 'ae-pv') + `<text class="g-t ae-tv" x="${(K.px(x) + 4).toFixed(1)}" y="${K.R.o + 14}">verloren: ${zahlHtml(x)}</text>`;
+      const y0 = T_wert(o.l, x);                               // wo die Lösung am Anfang lag: grauer offener Kreis
+      if (Number.isFinite(y0) && y0 >= ymin && y0 <= ymax) g += K.punkt(x, y0, 'g-pgrau', 7); });
+    let letzt = -1e9, unten = false;                           // nahe beieinander: Beschriftung abwechselnd oben/unten
+    v.L.x.filter(x => x >= xmin && x <= xmax).forEach(x => {
+      unten = K.px(x) - letzt < 90 ? !unten : false; letzt = K.px(x);
+      const echt = o.L.alle || o.L.x.some(y => Math.abs(x - y) < 1e-6), y = T_wert(v.l, x), yy = Number.isFinite(y) ? Math.min(ymax, Math.max(ymin, y)) : 0;
+      g += K.punkt(x, yy, echt ? 'g-pok' : 'g-pfalsch', 7);
+      g += `<text class="g-t ${echt ? 'ae-tl' : 'ae-ts'}" x="${(K.px(x) + 9).toFixed(1)}" y="${(K.py(yy) + (unten ? 24 : -9)).toFixed(1)}">${echt ? '' : 'Schein: '}x = ${zahlHtml(x)}</text>`;
     });
-  }
-  /* Eingabehilfe ⓘ: Lösungsmenge mit lies (auch ± und Wurzeln), eigene Aufgabe mit T_lies, höchstens ein „=“ */
-  EH.melde(() => {
-    const aufgabe = s => { const t = String(s).split('='); return t.length > 2 ? null : [T_lies(t[0]), T_lies(t[1] !== undefined ? t[1] : '0')]; };
-    return EH.mit(EH.liste(lies), {
-      zeilen: [...EH.zeilen(lies, [['\\{-1;\\,4\\}', ['-1; 4', 'L = {-1; 4}', 'x1 = -1; x2 = 4']], ['-1 \\pm \\sqrt{2}', ['-1±sqrt(2)', '-1+-√2']]]),
-        ...EH.zeilen(aufgabe, [['2x^{2}-3x-2 = 0', ['2x^2-3x-2', '2x^2-3x-2 = 0']], ['x^{2} = 3x', ['x^2 = 3x', 'x²=3x']]])],
-      hinweise: ['Genau mit Wurzel (`1±√5`) oder gerundet (`3,24; -1,24`).', 'Eigene Aufgabe: Term (dann `= 0`) oder Gleichung mit einem `=`.'],
-    });
-  });
-  function pruefe(){
-    const feld = R('antwort'), aus = (art, t) => { WZ.rueck(R('rueck'), art, t); feld.className = 'wz-eingabe ' + art; };
-    let ist; try { ist = eintraege(feld.value); } catch (e) { return aus('nein', e.message); }
-    ist = ist.sort((p, q) => p.v - q.v).filter((e, i, A) => i === 0 || Math.abs(e.v - A[i - 1].v) > 1e-9);
-    const L = loesungen(), soll = L.map(x => x.wert);
-    /* je Eintrag nach getippten Stellen (WZ.zahlPruefen): exakt, gerundet auf mind. 2 Stellen, oder nur ungefähr („fast“) */
-    const art = (e, w) => WZ.zahlPruefen(e, w).art, passt = (A, B) => A.length === B.length && A.every((e, i) => art(e, B[i]) === 'ok');
-    const drin = e => soll.some(w => art(e, w) === 'ok');
-    if (passt(ist, soll)) return aus('ok', ist.every(e => e.stellen === Infinity) ? `Richtig! ${F(`L = ${menge(L)}`)}` : `Richtig (gerundet). Genau: ${F(`L = ${menge(L)}`)}`);
-    if (!soll.length) return aus('nein', M(typ() === 'rein' ? '$x^{2}$ müsste negativ sein – das geht nicht: keine Lösung.' : `$D = ${qTex(Dpq())} < 0$: keine Lösung.`));
-    if (!ist.length) return aus('nein', M(`Es gibt Lösungen: $D = ${qTex(Dpq())}${D() === 0 ? '$, also genau eine' : ' > 0$'}.`));
-    /* typische Fehler der pq-Formel (unabhängig von der Rechnung oben): −p/2, nicht halbiert, Normalform vergessen */
-    if (passt(ist.map(e => ({ ...e, v: -e.v })).sort((p, q) => p.v - q.v), soll) && typ() !== 'rein') return aus('nein', M('Vorzeichen: In der Formel steht <b>$-\\frac{p}{2}$</b>.'));
-    const w = Math.sqrt(Math.max(0, D())) / (2 * Math.abs(S.a));
-    const ungehalbt = [-1, 1].map(vz => -S.b / S.a + vz * w).sort((p, q) => p - q);
-    if (D() > 0 && typ() !== 'rein' && passt(ist, ungehalbt)) return aus('nein', M('Halbieren: In der Formel steht <b>$-\\frac{p}{2}$</b>, nicht $-p$.'));
-    const roh = S.b * S.b / 4 - S.c, ohneTeilen = [-1, 1].map(vz => -S.b / 2 + vz * Math.sqrt(Math.max(0, roh))).sort((p, q) => p - q);
-    if (S.a !== 1 && roh >= 0 && typ() !== 'rein' && passt(ist, roh === 0 ? [ohneTeilen[0]] : ohneTeilen)) return aus('nein', M(`Erst durch $${S.a}$ teilen: Die pq-Formel braucht $x^{2} + px + q = 0$.`));
-    if (ist.every(drin) && ist.length < soll.length){
-      if (typ() === 'rein') return aus('fast', M('Wurzel ziehen heißt <b>$\\pm$</b>: Auch die negative Zahl ist eine Lösung.'));
-      if (typ() === 'ohnec' && !ist.some(e => Math.abs(e.v) < 1e-12)) return aus('fast', M('<b>$x = 0$ vergessen:</b> Nach dem Ausklammern ist auch der Faktor $x$ selbst null.'));
-      return aus('fast', M('Es gibt zwei Lösungen – das $\\pm$ in der Formel liefert beide.'));
-    }
-    if (ist.length === soll.length && ist.every((e, i) => art(e, soll[i]) !== 'nein')) return aus('fast', 'Fast – zu grob gerundet. Gib die Werte <b>exakt</b> an (mit Bruch oder √) oder auf zwei Nachkommastellen.');
-    aus('nein', 'Nicht richtig. Mach die Probe: Einsetzen muss 0 ergeben. Oder deck den Lösungsweg auf.');
-  }
-
-  /* ---------- Parabel ---------- */
-  function zeichneBild(){
-    if (!S.bild){ R('flaeche').innerHTML = `<p class="wz-leer">${M(`Die Lösungen sind die Nullstellen der Parabel $y = ${gleichung()}$. „Bild zeigen".`)}</p>`; R('bild').textContent = 'Bild zeigen'; return; }
-    R('bild').textContent = 'Bild ausblenden';
-    const { a, b, c } = S, f = x => a * x * x + b * x + c, h = -b / (2 * a), yv = f(h), L = loesungen();
-    const w = Math.max(3.5, L.length === 2 ? (L[1].wert - L[0].wert) / 2 + 1.5 : 0);
-    const spanne = Math.max(4, Math.abs(yv) * 2.2), unten = Math.min(0, yv), oben = Math.max(0, yv);   // Scheitel und x-Achse immer im Bild
-    const [y0, y1] = a > 0 ? [unten - 0.15 * spanne, oben + spanne] : [unten - spanne, oben + 0.15 * spanne];
-    const v = G_zoom(R('flaeche'), { xmin: h - w, xmax: h + w, ymin: y0, ymax: y1 }, zeichneBild);   // zoombar (graph.js)
-    const handy = WZ.handy(), K = G_koord({ W: handy ? 340 : 480, H: 240, ...v, xName: 'x', yName: 'y' });
-    let g = K.grund + K.kurve(f, 'g-k1') + `<circle class="qg-scheitel" cx="${K.px(h).toFixed(1)}" cy="${K.py(yv).toFixed(1)}" r="5"/>` + `<text class="qg-t" x="${(K.px(h) + 8).toFixed(1)}" y="${(K.py(yv) + (a > 0 ? 16 : -8)).toFixed(1)}">S</text>`;
-    L.forEach(x => { g += K.punkt(x.wert, 0, 'g-pok', 7); });
-    const d = D();
-    R('flaeche').innerHTML = K.svg(g) + `<p class="qg-regel">${M(`$${kTex(dKlasse(d), `D = ${qTex(Dpq())}`)}$ → ${d > 0 ? 'zwei Schnittpunkte mit der $x$-Achse' : d === 0 ? 'der Scheitel S liegt genau auf der $x$-Achse' : 'die Parabel trifft die $x$-Achse nicht'}.`)}</p>`;
-    G_zoomKnoepfe(R('flaeche'), K);
+    g += `<text class="ae-leg ae-leg1" x="${K.R.l}" y="18">linke Seite</text><text class="ae-leg ae-leg2" x="${K.R.l + 100}" y="18">rechte Seite</text>`;
+    R('graph').setAttribute('width', W); R('graph').setAttribute('height', Hh); R('graph').setAttribute('viewBox', `0 0 ${W} ${Hh}`);
+    R('graph').innerHTML = g;
+    G_zoomKnoepfe(R('graph').closest('.wz-panel'), K);
   }
 
   /* ---------- Bedienung ---------- */
-  R('pruefen').onclick = pruefe;
-  R('antwort').addEventListener('keydown', e => { if (e.key === 'Enter') pruefe(); });
-  root.querySelectorAll('[data-v]').forEach(k => k.onclick = () => waehle(k.dataset.v));
-  root.querySelectorAll('[data-art]').forEach(k => k.onclick = () => neu(k.dataset.art));
-  R('uebernehmen').onclick = uebernehmen;
-  R('eigen').addEventListener('keydown', e => { if (e.key === 'Enter') uebernehmen(); });
-  R('bild').onclick = () => { S.bild = !S.bild; zeichneBild(); };
-  window.addEventListener('handy-wechsel', zeichneBild);
-  setze(2, -3, -2);                                            // Start: 2x² − 3x − 2 = 0
-  return { S, setze, neu, pruefe, waehle, uebernehmen, loesungen, D };
+  R('beispiel').innerHTML = BEISPIELE.map((b, i) => `<option value="${i}">${b.name}: ${b.gl.replace(/\^2/g, '²').replace(/\^3/g, '³').replace('sqrt', '√')}</option>`).join('');
+  /* Leser der eigenen Gleichung: genau ein „=“, jede Seite T_lies – benutzt von ladeGleichung und der Eingabehilfe */
+  function liesGleichung(text){
+    const teile = String(text).split('=');
+    if (teile.length !== 2) throw new Error('Bitte genau ein Gleichheitszeichen.');
+    return [T_lies(teile[0]), T_lies(teile[1])];
+  }
+  function ladeGleichung(text, name){ start(...liesGleichung(text), name); }
+  /* Eingabehilfe ⓘ (technik/hilfe/): eigene Gleichung mit liesGleichung, Wert der Umformung mit T_lies */
+  EH.melde(() => EH.mit({ zeilen: EH.zeilen(liesGleichung, [['x^{2} = 2x', ['x^2 = 2x', 'x²=2x']], ['\\dfrac{1}{x} = x', ['1/x = x']]]),
+    hinweise: ['Eigene Gleichung mit genau einem `=`.'] }, EH.terme()));
+  function beispiel(i){
+    const b = BEISPIELE[i]; R('beispiel').value = i; ladeGleichung(b.gl, b.name);
+    R('eigen').classList.remove('falsch'); R('wert').classList.remove('falsch');
+    urteil('', b.name, M(b.tipp));
+  }
+  R('beispiel').onchange = () => beispiel(+R('beispiel').value);
+  R('start').onclick = () => {
+    try { ladeGleichung(R('eigen').value, 'eigene Gleichung'); R('eigen').classList.remove('falsch'); }
+    catch (e) { R('eigen').classList.add('falsch'); urteil('nein', 'Eingabe', e.message); }
+  };
+  R('eigen').addEventListener('keydown', e => { if (e.key === 'Enter') R('start').click(); });
+  root.querySelectorAll('[data-op]').forEach(b => b.onclick = () => {
+    if (!S.tippen) return anwenden(b.dataset.op);
+    S.wartend = b.dataset.op; R('frage').hidden = false;
+  });
+  root.querySelectorAll('[data-antwort]').forEach(b => b.onclick = () => {
+    if (!S.wartend) return;
+    const op = S.wartend; S.wartend = null; R('frage').hidden = true;
+    anwenden(op);
+    const ja = root.dataset.urteil === 'ja', getippt = b.dataset.antwort === 'ja';
+    R('urteil').insertAdjacentHTML('afterbegin', `<p class="geschaetzt">${ja === getippt ? 'Richtig geschätzt!' : 'Falsch geschätzt.'}</p>`);
+  });
+  R('tippmodus').onclick = () => { S.tippen = !S.tippen; R('tippmodus').textContent = 'Vorher schätzen: ' + (S.tippen ? 'an' : 'aus'); R('tippmodus').classList.toggle('an', S.tippen); R('frage').hidden = true; S.wartend = null; };
+  R('zurueck').onclick = () => { if (S.verlauf.length > 1) { S.verlauf.pop(); zeige(null); } };
+  /* Rechnung (technik/rechnung/): Umformungskette wie im Heft, je Schritt die Lösungsmenge und ob sie gleich blieb */
+  RE.knopf(R('tippmodus'), () => {
+    const V = S.verlauf, o = V[0], gleich = (a, b) => !ohne(a.L, b.L).length && !ohne(b.L, a.L).length && a.L.alle === b.L.alle;
+    const urteilEl = R('urteil').cloneNode(true);
+    const abschnitte = [{ titel: 'Gleichung', absaetze: [`$$${TX(o.l)} = ${TX(o.r)}$$`, `Lösungsmenge: $\\mathbb{L} = ${mengeTex(o.L)}$`] }];
+    if (V.length > 1){
+      abschnitte.push({ titel: 'Umformungen', absaetze: [`$$\\begin{array}{rcll} ${V.map((s, i) => `${TX(s.l)} & = & ${TX(s.r)} & ${i + 1 < V.length ? `\\mid\\; ${V[i + 1].op}` : ''}`).join(' \\\\ ')} \\end{array}$$`] });
+      abschnitte.push({ titel: 'Lösungsmenge nach jedem Schritt', absaetze: V.slice(1).map((s, i) => `Nach $${s.op}$: $\\mathbb{L} = ${mengeTex(s.L)}$ – ${gleich(V[i], s) ? '**gleich geblieben**' : '**verändert**: keine Äquivalenzumformung'}.`) });
+    } else abschnitte.push({ titel: 'Umformungen', absaetze: ['Noch keine Umformung angewendet.'] });
+    if (urteilEl.textContent.trim()) abschnitte.push({ titel: 'Beurteilung des letzten Schritts', absaetze: [{ html: urteilEl.innerHTML, tex: RE.ausHtml(urteilEl) }] });
+    return { titel: 'Äquivalenzumformungen', datei: 'aequivalenzumformungen.tex', abschnitte };
+  });
+  window.addEventListener('handy-wechsel', () => { zeigeGl(); zeichne(); });
+  beispiel(1);
+  return { S, beispiel, anwenden, ladeGleichung, loesungen };
 })();
 /* =====================================================================
    Folien-Navigation
