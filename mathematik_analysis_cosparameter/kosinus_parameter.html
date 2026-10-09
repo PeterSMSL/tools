@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Regler für a, b, c und d: Amplitude, Periode, Verschiebung und Mittellinie im Bild sehen. Parameter aus dem Graphen ablesen, Funktionsterm aus einer Beschreibung aufstellen, Periode berechnen, Riesenrad als Sachaufgabe – geprüft wird, ob die Funktion stimmt, nicht die Schreibweise.">
-<title>a · sin(b(x − c)) + d · Parameter verstehen</title>
+<meta name="description" content="Regler für a, b, c und d an der Kosinuskurve: Amplitude, Periode, Verschiebung und Mittellinie im Bild sehen. Parameter ablesen, Funktionsterm aufstellen, Periode berechnen, Riesenrad als Sachaufgabe, Nullstellen und Extrempunkte periodisch – geprüft wird, ob die Funktion stimmt, nicht die Schreibweise.">
+<title>a · cos(b(x − c)) + d · Parameter verstehen</title>
 <style>
 /* ==== HANDY-SCHICHT: technik/handy/handy.css ==== */
 /* =====================================================================
@@ -2031,7 +2031,7 @@ const KURS = "Mathematik · Funktionen";
 const REIHE = "Trigonometrische Funktionen";
 
 /* =====================================================================
-   a·sin(b(x − c)) + d – gemeinsame Teile (Titelbild, Labor, Trainer)
+   a·cos(b(x − c)) + d – gemeinsame Teile (Titelbild, Labor, Trainer)
    Ein Parameter ist { w (Zahl), tex (LaTeX), txt (Text fürs SVG) }.
    a, d: Zahlen in Halbschritten · b: Bruch · c: Vielfaches von π (bzw. Zahl beim Riesenrad).
    ===================================================================== */
@@ -2055,8 +2055,8 @@ const TP_bruch = q => ({ w: q.z / q.n, tex: qTex(q), txt: q.n === 1 ? String(q.z
 const TP_pi = q => ({ w: q.z / q.n * TP_PI, tex: TP_piTex(q), txt: TP_piText(q), q, pi: true });
 
 /* f als JS-Funktion und als Text für T_lies (Probe, Vergleich) */
-const TP_fn = P => x => P.a.w * Math.sin(P.b.w * (x - P.c.w)) + P.d.w;
-const TP_text = (P, v = 'x') => `(${P.a.w})*sin((${P.b.w})*(${v}-(${P.c.w})))+(${P.d.w})`;
+const TP_fn = P => x => P.a.w * Math.cos(P.b.w * (x - P.c.w)) + P.d.w;
+const TP_text = (P, v = 'x') => `(${P.a.w})*cos((${P.b.w})*(${v}-(${P.c.w})))+(${P.d.w})`;
 
 /* Funktionsterm als LaTeX. farbe: Parameter in ihren Farben (tp-a … tp-d) */
 function TP_term(P, v = 'x', farbe = false, name = 'f(x)'){
@@ -2069,20 +2069,20 @@ function TP_term(P, v = 'x', farbe = false, name = 'f(x)'){
   if (Math.abs(P.b.w - 1) < 1e-12) arg = innen;
   else arg = Math.abs(P.c.w) < 1e-12 ? `${k('tp-b', P.b.tex)}${v}` : `${k('tp-b', P.b.tex)}${klTex(innen)}`;
   const d = Math.abs(P.d.w) < 1e-12 ? '' : P.d.w > 0 ? ` + ${k('tp-d', P.d.tex)}` : ` - ${k('tp-d', P.d.tex.replace(/^-/, ''))}`;
-  return `${name ? name + ' = ' : ''}${a}\\sin${klTex(arg)}${d}`;
+  return `${name ? name + ' = ' : ''}${a}\\cos${klTex(arg)}${d}`;
 }
 
 /* Periode p = 2π/b als Parameter (b Bruch) */
 const TP_periode = P => !P.b.q ? TP_zahl(2 * TP_PI / P.b.w) : P.b.pi ? TP_bruch(qDiv(Q(2), P.b.q)) : TP_pi(qDiv(Q(2), P.b.q));
 
 /* ---------- Graph ----------
-   o: { W, H, P, normal (sin x blass), masse (Amplitude, Periode, Verschiebung, Mittellinie), xmax, ymin, ymax,
+   o: { W, H, P, normal (cos x blass), masse (Amplitude, Periode, Verschiebung, Mittellinie), xmax, ymin, ymax,
         bogen (x-Achse in π), xName, yName, kurve (Klasse) }
    Die x-Achse wächst mit, bis eine ganze Periode ab dem Startpunkt zu sehen ist. */
 function TP_graph(o){
   const P = o.P, f = TP_fn(P), p = 2 * TP_PI / Math.abs(P.b.w), bogen = o.bogen !== false;
   const xmin = o.xmin !== undefined ? o.xmin : -TP_PI;
-  /* Startpunkt (Argument 0, f geht durch die Mittellinie) im Bild: kleinstes c + k·p ≥ xmin + 0,2 */
+  /* Startpunkt (Argument 0: Hochpunkt bei a > 0, Tiefpunkt bei a < 0) im Bild: kleinstes c + k·p ≥ xmin + 0,2 */
   let s0 = P.c.w; while (s0 - p >= xmin + 0.2) s0 -= p; while (s0 < xmin + 0.2) s0 += p;
   let xmax = o.xmax !== undefined ? o.xmax : 4 * TP_PI;
   if (o.masse && s0 + p > xmax - 0.3) xmax = s0 + p + 0.6;
@@ -2110,7 +2110,7 @@ function TP_graph(o){
       g += `<text class="g-tick" x="${f1(K.px(x))}" y="${f1(y0)}" text-anchor="middle">${TP_piText(viel ? Q(k * n) : Q(k, n))}</text>`;
     }
   }
-  if (o.normal) g += K.kurve(Math.sin, 'tp-normal');
+  if (o.normal) g += K.kurve(Math.cos, 'tp-normal');
   if (o.masse){
     const yd = K.py(P.d.w);
     g += `<line class="tp-mitte" x1="${K.R.l}" y1="${f1(yd)}" x2="${o.W - K.R.r}" y2="${f1(yd)}"/>`;
@@ -2121,7 +2121,7 @@ function TP_graph(o){
     const yd = K.py(P.d.w), pf = (x1, y1, x2, y2, klasse) => K.pfeil(x1, y1, x2, y2, { klasse, doppelt: true });   // Maßpfeil aus graph.js
     /* Mittellinie beschriften (rechts über der Linie; liegt sie auf der x-Achse, genügt die Achse) */
     /* Hochpunkt nach dem Startpunkt (dort steht die Amplitude); liegt er rechts, wandern beide Beschriftungen nach links */
-    let xh = s0 + (P.a.w > 0 ? p / 4 : 3 * p / 4) * Math.sign(P.b.w);
+    let xh = s0 + (P.a.w > 0 ? 0 : p / 2);   // Kosinus: Hochpunkt am Startpunkt (a > 0) bzw. eine halbe Periode weiter (a < 0)
     /* liegt dieser Hochpunkt außerhalb des Bildes, eine ganze Periode zurück oder vor */
     while (K.px(xh) > o.W - K.R.r - 8 && K.px(xh - p) >= K.R.l + 8) xh -= p;
     while (K.px(xh) < K.R.l + 8 && K.px(xh + p) <= o.W - K.R.r - 8) xh += p;
@@ -2140,7 +2140,7 @@ function TP_graph(o){
     if (Math.abs(P.c.w) > 1e-9 && P.c.w >= xmin && P.c.w <= xmax){
       g += pf(0, P.d.w, P.c.w, P.d.w, 'tp-pc') + `<text class="tp-t tp-tc" x="${f1(K.px(P.c.w / 2))}" y="${f1(yd + 18)}" text-anchor="middle">c = ${P.c.txt}</text>`;
     }
-    g += K.punkt(s0, P.d.w, 'tp-start', 6);
+    g += K.punkt(s0, P.d.w + P.a.w, 'tp-start', 6);   // Startpunkt: Hoch- bzw. Tiefpunkt bei x = c
   }
   if (gezoomt) g = g.slice(0, g0) + `<g clip-path="url(#${K.id})">${g.slice(g0)}</g>`;   // gezoomt: Maße nicht über die Achsenzahlen
   return { svg: `<svg width="${o.W}" height="${o.H}" viewBox="0 0 ${o.W} ${o.H}">${g}</svg>`, K, s0, xmax };
@@ -2158,7 +2158,7 @@ const folien = [
   <div class="links">
     <div class="balken"></div>
     <div class="eyebrow">Trigonometrische Funktionen</div>
-    <h1>a · sin(b(x − c)) + d</h1>
+    <h1>a · cos(b(x − c)) + d</h1>
     <p class="unter">Vier Parameter, vier Wirkungen: Amplitude, Periode, Verschiebung und Mittellinie. Erst sehen, dann ablesen, dann aufstellen.</p>
     <div class="meta"><span>Mathematik</span><span>Funktionen</span></div>
   </div>
@@ -2168,7 +2168,7 @@ const folien = [
   </div>
 `},
 
-{titel:"Parameter", klasse:"kompakt oben", eyebrow:"Die vier Parameter", h2:"Was a, b, c und d mit der Sinuskurve machen", roh:`
+{titel:"Parameter", klasse:"kompakt oben", eyebrow:"Die vier Parameter", h2:"Was a, b, c und d mit der Kosinuskurve machen", roh:`
   <div class="interaktiv" data-tparam>
     <div class="tp-labor">
       <div class="tp-links">
@@ -2181,7 +2181,7 @@ const folien = [
         </div>
       </div>
       <div class="tp-rechts">
-        <div class="tp-schalter"><button class="knopf hell an" data-r="normal">sin x zum Vergleich</button><button class="knopf hell an" data-r="masse">Maße zeigen</button><button class="knopf hell" data-r="zurueck">Zurücksetzen</button></div>
+        <div class="tp-schalter"><button class="knopf hell an" data-r="normal">cos x zum Vergleich</button><button class="knopf hell an" data-r="masse">Maße zeigen</button><button class="knopf hell" data-r="zurueck">Zurücksetzen</button></div>
         <div class="tp-formel" data-r="formel"></div>
         <div class="tp-liste" data-r="liste"></div>
       </div>
@@ -2290,7 +2290,7 @@ const TPARAM = (() => {
     return null; };
   const uebernimm = (k, p) => { S.v[k] = p; S.i[k] = naechste(k, p.w); zeichne(); return null; };
   const bis = (w, g) => Math.abs(w) <= g + 1e-12;
-  WZ.reglerEingabe(R('wa'), z => z.v === 0 ? 'Mit a = 0 gibt es keine Sinuskurve mehr.' : !bis(z.v, 3) ? 'Für a bitte eine Zahl zwischen −3 und 3.' : uebernimm('a', zahlParam(z.q)));
+  WZ.reglerEingabe(R('wa'), z => z.v === 0 ? 'Mit a = 0 gibt es keine Kosinuskurve mehr.' : !bis(z.v, 3) ? 'Für a bitte eine Zahl zwischen −3 und 3.' : uebernimm('a', zahlParam(z.q)));
   WZ.reglerEingabe(R('wb'), z => z.v <= 0 ? 'b muss größer als 0 sein.' : z.v > 4 ? 'Für b bitte eine Zahl bis 4.' : uebernimm('b', TP_bruch(z.q)));
   WZ.reglerEingabe(R('wc'), z => { const p = piParam(z);
     if (!p) return 'c bitte als Zahl oder als Vielfaches von π, z. B. π/4 oder −2π/3.';
@@ -2345,7 +2345,7 @@ const TRAINER = (() => {
         A = { art, P: { ...zufallP({ neg: 0.2 }), b } };
       } else {
         const D = WZ.eins([20, 30, 40, 50, 60, 80, 100]), H = D / 2 + WZ.eins([1, 2, 3, 5]), T = WZ.eins([20, 24, 30, 40, 60, 90, 120]);
-        A = { art: 'riesenrad', D, H, T, P: { a: TP_zahl(D / 2), b: TP_pi(Q(2, T)), c: TP_zahl(T / 4), d: TP_zahl(H) } };
+        A = { art: 'riesenrad', D, H, T, P: { a: TP_zahl(-D / 2), b: TP_pi(Q(2, T)), c: TP_zahl(0), d: TP_zahl(H) } };   // Start unten: −r·cos
       }
       if (!alt || JSON.stringify(alt) !== JSON.stringify(A)) return A;
     }
@@ -2354,25 +2354,25 @@ const TRAINER = (() => {
 
   const feld = (k, label, breit = false, ph = '') => `<span class="tp-f"><span class="tp-l">${F(label)}</span><input class="wz-eingabe${breit ? ' tp-breit' : ' tp-kurz'}" data-k="${k}" spellcheck="false" autocomplete="off" placeholder="${ph}" aria-label="${k}"></span>`;
   function beschreibung(A){
-    const P = A.P, per = TP_periode(P), start = `bei $x = ${P.c.tex}$ ${P.a.w > 0 ? 'steigend' : 'fallend'} durch die Mittellinie`;
+    const P = A.P, per = TP_periode(P), start = `Bei $x = ${P.c.tex}$ liegt ein ${P.a.w > 0 ? 'Hochpunkt' : 'Tiefpunkt'}`;
     if (A.form === 'maxmin'){
       const ymax = P.d.w + Math.abs(P.a.w), ymin = P.d.w - Math.abs(P.a.w);
-      return M(`Größter Wert $${zTex(ymax, 3)}$, kleinster Wert $${zTex(ymin, 3)}$, Periode $${per.tex}$. Der Graph geht ${start}.`);
+      return M(`Größter Wert $${zTex(ymax, 3)}$, kleinster Wert $${zTex(ymin, 3)}$, Periode $${per.tex}$. ${start}.`);
     }
-    return M(`Amplitude $${zTex(Math.abs(P.a.w), 3)}$, Periode $${per.tex}$, Mittellinie $y = ${P.d.tex}$. Der Graph geht ${start}.`);
+    return M(`Amplitude $${zTex(Math.abs(P.a.w), 3)}$, Periode $${per.tex}$, Mittellinie $y = ${P.d.tex}$. ${start}.`);
   }
   function setze(A){
     S.A = A; S.bild = A.art === 'ablesen'; S.geloest = false;
     const P = A.P;
     R('was').textContent = { ablesen: 'Lies ab:', aufstellen: 'Stelle auf:', periode: 'Periode:', riesenrad: 'Riesenrad:' }[A.art];
-    R('auftrag').innerHTML = A.art === 'ablesen' ? M('Der Graph rechts gehört zu $f(x) = a\\sin(b(x - c)) + d$. Lies $a$, $b$, $c$ und $d$ ab.')
+    R('auftrag').innerHTML = A.art === 'ablesen' ? M('Der Graph rechts gehört zu $f(x) = a\\cos(b(x - c)) + d$. Lies $a$, $b$, $c$ und $d$ ab.')
       : A.art === 'aufstellen' ? beschreibung(A)
       : A.art === 'periode' ? `<span class="tp-gross">${F('f(x) =')} ${F(TP_term(P, 'x', false, ''))}</span>`
       : M(`Ein Riesenrad hat $${A.D}\\,\\text{m}$ Durchmesser, seine Achse liegt $${zTex(A.H, 1)}\\,\\text{m}$ hoch, eine Umdrehung dauert $${A.T}\\,\\text{s}$. Eine Gondel startet bei $t = 0$ ganz unten. Gib ihre Höhe $h(t)$ in Metern an.`);
     R('ein').innerHTML = A.art === 'ablesen' ? feld('a', 'a =') + feld('b', 'b =') + feld('c', 'c =', false, 'z. B. pi/4') + feld('d', 'd =')
-      : A.art === 'aufstellen' ? feld('f', 'f(x) =', true, 'z. B. 2sin(3(x-pi/4))+1')
+      : A.art === 'aufstellen' ? feld('f', 'f(x) =', true, 'z. B. 2cos(3(x-pi/4))+1')
       : A.art === 'periode' ? feld('p', 'p =', false, 'z. B. 2pi/3')
-      : feld('h', 'h(t) =', true, 'z. B. 5sin(pi/10(t-5))+7');
+      : feld('h', 'h(t) =', true, 'z. B. -5cos(pi/10*t)+7');
     root.querySelectorAll('[data-k]').forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') pruefe(); }));
     WZ.rueck(R('rueck'), '', A.art === 'periode' ? 'Exakt mit π (z. B. 2pi/3) oder als Dezimalzahl auf zwei Stellen.'
       : 'Mit π und Brüchen schreiben: pi/4, 3pi/2, 0,5. Jede gleichwertige Form zählt.');
@@ -2395,18 +2395,18 @@ const TRAINER = (() => {
     if (A.art === 'ablesen' || (A.art === 'aufstellen' && A.form === 'maxmin')){
       s.push(['Mittellinie', F(`\\begin{aligned} y_{\\max} &= ${ymaxT} \\\\ y_{\\min} &= ${yminT} \\\\ d &= \\frac{y_{\\max} + y_{\\min}}{2} \\\\ &= \\frac{${ymaxT} + ${neg(yminT)}}{2} = ${P.d.tex} \\end{aligned}`)]);
       s.push(['Amplitude', F(`\\begin{aligned} |a| &= \\frac{y_{\\max} - y_{\\min}}{2} \\\\ &= \\frac{${ymaxT} - ${neg(yminT)}}{2} = ${zTex(Aw, 3)} \\end{aligned}`)
-        + `<span class="tp-zeile">${M(P.a.w > 0 ? 'Am Startpunkt steigt der Graph: $a > 0$.' : `Am Startpunkt fällt der Graph: $a = ${P.a.tex}$.`)}</span>`]);
+        + `<span class="tp-zeile">${M(P.a.w > 0 ? 'Am Startpunkt liegt ein Hochpunkt: $a > 0$.' : `Am Startpunkt liegt ein Tiefpunkt: $a = ${P.a.tex}$.`)}</span>`]);
     } else if (A.art === 'aufstellen'){
-      s.push(['Amplitude', M(`$|a| = ${zTex(Aw, 3)}$. ${P.a.w > 0 ? 'Steigend durch die Mittellinie: $a > 0$.' : `Fallend durch die Mittellinie: $a = ${P.a.tex}$.`}`)]);
+      s.push(['Amplitude', M(`$|a| = ${zTex(Aw, 3)}$. ${P.a.w > 0 ? 'Hochpunkt am Startpunkt: $a > 0$.' : `Tiefpunkt am Startpunkt: $a = ${P.a.tex}$.`}`)]);
       s.push(['Mittellinie', F(`d = ${P.d.tex}`)]);
     }
     if (A.art === 'ablesen'){
       s.push(['Periode', M('Abstand zweier Hochpunkte: ') + F(`\\begin{aligned} p &= ${per.tex} \\\\ b &= 2\\pi : p = 2\\pi : ${klTex(per.tex)} = ${P.b.tex} \\end{aligned}`)]);
-      s.push(['Verschiebung', M(`Der Graph geht bei $x = ${P.c.tex}$ ${P.a.w > 0 ? 'steigend' : 'fallend'} durch die Mittellinie: $c = ${P.c.tex}$. Ein Startpunkt eine Periode weiter passt genauso.`)]);
+      s.push(['Verschiebung', M(`Bei $x = ${P.c.tex}$ liegt ein ${P.a.w > 0 ? 'Hochpunkt' : 'Tiefpunkt'}: $c = ${P.c.tex}$. Ein Startpunkt eine Periode weiter passt genauso.`)]);
       s.push(['Ergebnis', F(TP_term(P)), true]);
     } else if (A.art === 'aufstellen'){
       s.push(bWeg);
-      s.push(['Verschiebung', M(`Startpunkt bei $x = ${P.c.tex}$: $c = ${P.c.tex}$.`)]);
+      s.push(['Verschiebung', M(`${P.a.w > 0 ? 'Hochpunkt' : 'Tiefpunkt'} bei $x = ${P.c.tex}$: $c = ${P.c.tex}$.`)]);
       s.push(['Ergebnis', F(TP_term(P)), true]);
     } else if (A.art === 'periode'){
       s.push(['Formel', F('p = \\frac{2\\pi}{b}')]);
@@ -2415,10 +2415,10 @@ const TRAINER = (() => {
       s.push(['Ergebnis', M(`Nach $${per.tex}$ wiederholt sich der Graph. Nur $b$ bestimmt die Periode – $a$, $c$ und $d$ nicht.`), true]);
     } else {
       s.push(['Mittellinie', M(`Die Achse ist die Mitte der Bewegung: $d = ${P.d.tex}$.`)]);
-      s.push(['Amplitude', F(`a = \\frac{D}{2} = \\frac{${A.D}}{2} = ${P.a.tex}`) + M(' (der Radius).')]);
+      s.push(['Amplitude', F(`|a| = \\frac{D}{2} = \\frac{${A.D}}{2} = ${zTex(A.D / 2, 3)}`) + M(' (der Radius).')]);
       s.push(['Periode', F(`\\begin{aligned} p &= T = ${A.T} \\\\ b &= \\frac{2\\pi}{T} = ${P.b.tex} \\end{aligned}`)]);
-      s.push(['Start unten', M(`Steigend durch die Mittellinie geht die Gondel eine Viertelumdrehung nach dem Start: $c = \\frac{T}{4} = ${P.c.tex}$.`)]);
-      s.push(['Ergebnis', F(`\\begin{aligned} h(t) &= ${TP_term(P, 't', false, '')} \\\\ h(0) &= ${P.d.tex} - ${P.a.tex} = ${zTex(A.H - A.D / 2, 3)} \\end{aligned}`) + `<span class="tp-zeile">${M('Probe: ganz unten, wie verlangt.')}</span>`, true]);
+      s.push(['Start unten', M(`Der Kosinus beginnt bei $t = 0$ ganz oben. Die Gondel beginnt ganz unten: Das Minus spiegelt an der Mittellinie, $a = ${P.a.tex}$. Keine Verschiebung: $c = 0$.`)]);
+      s.push(['Ergebnis', F(`\\begin{aligned} h(t) &= ${TP_term(P, 't', false, '')} \\\\ h(0) &= ${P.d.tex} - ${zTex(A.D / 2, 3)} = ${zTex(A.H - A.D / 2, 3)} \\end{aligned}`) + `<span class="tp-zeile">${M('Probe: ganz unten, wie verlangt.')}</span>`, true]);
     }
     return s;
   }
@@ -2436,7 +2436,7 @@ const TRAINER = (() => {
     o.zoomFeld = kasten; o.zeichne = zeichneBild; const gb = TP_graph(o);
     kasten.innerHTML = gb.svg
       + `<p class="tp-erkl">${A.art === 'ablesen' && !masse ? 'Hoch- und Tiefpunkte, Mittellinie, Startpunkt: Was lässt sich ablesen?'
-        : A.art === 'riesenrad' ? M('Ganz unten bei $t = 0$, ganz oben nach einer halben Umdrehung.') : M('Startpunkt (Punkt): steigend bzw. fallend durch die Mittellinie.')}</p>`;
+        : A.art === 'riesenrad' ? M('Ganz unten bei $t = 0$, ganz oben nach einer halben Umdrehung.') : M('Startpunkt (Punkt): Hochpunkt ($a > 0$) bzw. Tiefpunkt ($a < 0$) bei $x = c$.')}</p>`;
     G_zoomKnoepfe(kasten, gb.K);
   }
 
@@ -2472,11 +2472,11 @@ const TRAINER = (() => {
     return {
       zeilen: [
         ...EH.zeilen(zahl, [['\\dfrac{\\pi}{4}', ['pi/4', 'π/4']], ['\\dfrac{2\\pi}{3}', ['2pi/3', '2π/3']], ['\\dfrac{1}{2}', ['1/2', '0,5']]]),
-        ...EH.zeilen(term('x'), [['f(x) = 2\\sin(3x)+1', ['2sin(3x)+1', 'f(x)=2sin(3x)+1']], ['\\sin\\bigl(2(x-\\tfrac{\\pi}{4})\\bigr)', ['sin(2(x-pi/4))']]]),
-        ...EH.zeilen(term('t'), [['h(t) = 5\\sin(\\tfrac{\\pi}{10}t)+7', ['5sin(pi/10*t)+7']]]),
+        ...EH.zeilen(term('x'), [['f(x) = 2\\cos(3x)+1', ['2cos(3x)+1', 'f(x)=2cos(3x)+1']], ['\\cos\\bigl(2(x-\\tfrac{\\pi}{4})\\bigr)', ['cos(2(x-pi/4))']]]),
+        ...EH.zeilen(term('t'), [['h(t) = -5\\cos(\\tfrac{\\pi}{10}t)+7', ['-5cos(pi/10*t)+7']]]),
       ],
       hinweise: ['Winkel im Bogenmaß, ohne `°`: `pi/4` statt 45°.', 'Vor dem Term darf `f(x) =`, `h(t) =` oder `y =` stehen. Bei h(t) heißt die Variable `t`.',
-                 'Der Malpunkt darf fehlen: `2sin(3x)`. Hochzahl mit `^`, Brüche mit `/`.'],
+                 'Der Malpunkt darf fehlen: `2cos(3x)`. Hochzahl mit `^`, Brüche mit `/`.'],
     };
   });
 
@@ -2484,23 +2484,24 @@ const TRAINER = (() => {
   const abw = (f, g, X) => { let m = 0; for (const x of X){ const a = f(x), b = g(x); if (!Number.isFinite(a) || !Number.isFinite(b)) return Infinity; m = Math.max(m, Math.abs(a - b)); } return m; };
   /* typische Fehler als Funktionen; nur die, die sich von der Lösung unterscheiden */
   function fehlerbilder(A){
-    const P = A.P, a = P.a.w, b = P.b.w, c = P.c.w, d = P.d.w, p = 2 * TP_PI / Math.abs(b), f = (aa, bb, cc, dd) => x => aa * Math.sin(bb * (x - cc)) + dd;
-    if (A.art === 'riesenrad') return [
-      [f(a, b, 0, d), M('Die Gondel startet <b>unten</b>, nicht auf Achshöhe. Steigend durch die Mittellinie geht sie erst nach einer Viertelumdrehung: $c = \\frac{T}{4}$.')],
-      [x => a * Math.cos(b * x) + d, M('So startet die Gondel <b>oben</b> (Kosinus ohne Minus). Sie startet aber unten.')],
+    const P = A.P, a = P.a.w, b = P.b.w, c = P.c.w, d = P.d.w, p = 2 * TP_PI / Math.abs(b), f = (aa, bb, cc, dd) => x => aa * Math.cos(bb * (x - cc)) + dd;
+    if (A.art === 'riesenrad') return [   // Lösung: h(t) = −r·cos(2π/T · t) + H, also a = −r, c = 0
+      [f(-a, b, c, d), M('So startet die Gondel <b>oben</b> (Kosinus ohne Minus). Sie startet aber unten: $-r\\cos$.')],
+      [x => a * Math.sin(b * x) + d, M('Mit dem <b>Sinus</b> startet die Gondel auf Achshöhe, nicht unten. Unten startet $-r\\cos\\left(\\frac{2\\pi}{T}t\\right)$.')],
+      [x => -a * Math.sin(b * x) + d, M('Mit dem <b>Sinus</b> startet die Gondel auf Achshöhe, nicht unten. Unten startet $-r\\cos\\left(\\frac{2\\pi}{T}t\\right)$.')],
       [f(a, A.T, c, d), M('Für $b$ gilt $b = \\frac{2\\pi}{T}$ – nicht $b = T$.')],
       [f(a, 360 / A.T, c, d), M('Das ist $b$ in Grad ($\\frac{360}{T}$). Gerechnet wird im Bogenmaß: $b = \\frac{2\\pi}{T}$.')],
-      [f(A.D, b, c, d), M('Die Amplitude ist der <b>Radius</b> $\\frac{D}{2}$, nicht der Durchmesser.')],
-      [f(a, b, -c, d), M('Vorzeichen der Verschiebung: $t - c$ verschiebt nach rechts, $c = +\\frac{T}{4}$.')],
+      [f(2 * a, b, c, d), M('Die Amplitude ist der <b>Radius</b> $\\frac{D}{2}$, nicht der Durchmesser.')],
       [f(a, b, c, 0), M('Die Mittellinie fehlt: Die Achse liegt in der Höhe $d$, das „$+ d$“ gehört dazu.')],
     ].filter(([g]) => g && abw(g, TP_fn(P), stellen(A)) > 1e-6);
     return [
       [f(a, p, c, d), M('Für $b$ gilt $b = \\frac{2\\pi}{p}$ – du hast die Periode selbst als $b$ genommen.')],
       [f(a, b, -c, d), M('Vorzeichen der Verschiebung: $x - c$ verschiebt nach <b>rechts</b>, $x + c$ nach links.')],
-      [f(d, b, c, a), M('$a$ und $d$ vertauscht: $a$ ist die Amplitude (vor dem Sinus), $d$ die Mittellinie (am Ende).')],
-      [f(-a, b, c, d), M('Vorzeichen von $a$: Steigt der Graph am Startpunkt, ist $a > 0$; fällt er, ist $a < 0$.')],
+      [f(d, b, c, a), M('$a$ und $d$ vertauscht: $a$ ist die Amplitude (vor dem Kosinus), $d$ die Mittellinie (am Ende).')],
+      [f(-a, b, c, d), M('Vorzeichen von $a$: Liegt bei $x = c$ ein Hochpunkt, ist $a > 0$; ein Tiefpunkt, ist $a < 0$.')],
+      [x => a * Math.sin(b * (x - c)) + d, M('Das ist der <b>Sinus</b>. Gefragt ist der Kosinus: Er beginnt bei $x = c$ mit einem Hoch- bzw. Tiefpunkt, nicht auf der Mittellinie.')],
       [f(a, b, c * 180 / TP_PI, d), M('Die Verschiebung ist in Grad. Im Term steht das Bogenmaß: $45^{\\circ} = \\frac{\\pi}{4}$.')],
-      [x => a * Math.sin(b * x - c) + d, M('Die Verschiebung steht in der Klammer: $b(x - c)$, nicht $bx - c$. Erst $b$ ausklammern.')],
+      [x => a * Math.cos(b * x - c) + d, M('Die Verschiebung steht in der Klammer: $b(x - c)$, nicht $bx - c$. Erst $b$ ausklammern.')],
       [f(2 * a, b, c, d), M('Die Amplitude ist der <b>halbe</b> Abstand von größtem und kleinstem Wert.')],
       [f(a, b, c, 0), M('Die Mittellinie fehlt: $d$ verschiebt den Graphen nach oben oder unten.')],
     ].filter(([g]) => abw(g, TP_fn(P), stellen(A)) > 1e-6);
@@ -2531,7 +2532,7 @@ const TRAINER = (() => {
         del[i.dataset.k] = st === Infinity ? 1e-6 : 0.5 * 10 ** -Math.max(2, st) + 1e-9; } catch (err) { return aus('nein', `${F(i.dataset.k)}: ${err.message}`, [i]); } }
       if (Math.abs(w.a) < 1e-12) return aus('nein', M('Mit $a = 0$ ist der Graph eine Gerade.'), felder.filter(i => i.dataset.k === 'a'));
       if (Math.abs(w.b) < 1e-12) return aus('nein', M('Mit $b = 0$ schwingt nichts.'), felder.filter(i => i.dataset.k === 'b'));
-      fu = x => w.a * Math.sin(w.b * (x - w.c)) + w.d;
+      fu = x => w.a * Math.cos(w.b * (x - w.c)) + w.d;
       wAbl = w;
     } else {
       try { const e = liesTerm(felder[0].value, A.art === 'riesenrad' ? 't' : 'x'); fu = e.f; dez = e.dez; } catch (err) { return aus('nein', err.message); }
@@ -2554,7 +2555,7 @@ const TRAINER = (() => {
       if (Math.abs(w.d - P.d.w) > dd('d')) return aus('nein', M(`Die Mittellinie stimmt nicht: Sie liegt in der Mitte zwischen größtem und kleinstem Wert.`), felder.filter(i => i.dataset.k === 'd'));
       if (Math.abs(Math.abs(w.a) - Aw) > dd('a')) return aus('nein', M('Die Amplitude stimmt nicht: halber Abstand von größtem und kleinstem Wert.'), felder.filter(i => i.dataset.k === 'a'));
       if (Math.abs(Math.abs(w.b) - Math.abs(P.b.w)) > dd('b')) return aus('nein', M('$b$ stimmt nicht: erst die Periode $p$ ablesen (Abstand zweier Hochpunkte), dann $b = \\frac{2\\pi}{p}$.'), felder.filter(i => i.dataset.k === 'b'));
-      return aus('nein', M('$a$, $b$ und $d$ passen – die Verschiebung $c$ nicht. Wo geht der Graph steigend durch die Mittellinie (bei $a < 0$: fallend)?'), felder.filter(i => i.dataset.k === 'c'));
+      return aus('nein', M('$a$, $b$ und $d$ passen – die Verschiebung $c$ nicht. Wo liegt ein Hochpunkt (bei $a < 0$: ein Tiefpunkt)?'), felder.filter(i => i.dataset.k === 'c'));
     }
     let hi = -Infinity, lo = Infinity;
     for (let k = 0; k <= 800; k++){ const x = X[0] + k * (X[X.length - 1] - X[0]) / 800, y = fu(x); if (Number.isFinite(y)) { hi = Math.max(hi, y); lo = Math.min(lo, y); } }
@@ -2575,12 +2576,12 @@ const TRAINER = (() => {
 })();
 
 /* =====================================================================
-   NULLSTELLEN UND EXTREMA – periodisch (Peter, 09.10.2026)
-   f(x) = a·sin(b(x − c)) + d, b > 0. Alle Stellen sind Scharen x = x₀ + k·p (k ∈ ℤ), x₀ und p als Vielfache von π –
-   exakt mit Brüchen (bruch.js). Nur wenn arcsin(s) keinen Standardwert hat, wird x₀ als Zahl geführt (≈).
-     Nullstellen: sin(b(x − c)) = s mit s = −d/a.  |s| > 1: keine · s = 0: u = kπ · s = ±1: u = ±π/2 + 2kπ (Berührstellen)
-                  sonst u₁ = arcsin(s) + 2kπ, u₂ = π − arcsin(s) + 2kπ.  x = c + u/b.
-     Hochpunkte:  sin = 1 (a > 0) bzw. −1 (a < 0); Tiefpunkte umgekehrt. y = d ± |a|.
+   NULLSTELLEN UND EXTREMA – periodisch (Peter, 09.10.2026), Kosinus
+   f(x) = a·cos(b(x − c)) + d, b > 0. Alle Stellen sind Scharen x = x₀ + k·p (k ∈ ℤ), x₀ und p als Vielfache von π –
+   exakt mit Brüchen (bruch.js). Nur wenn arccos(s) keinen Standardwert hat, wird x₀ als Zahl geführt (≈).
+     Nullstellen: cos(b(x − c)) = s mit s = −d/a.  |s| > 1: keine · s = 0: u = π/2 + kπ · s = 1: u = 2kπ, s = −1: u = π + 2kπ
+                  (Berührstellen) · sonst u₁ = arccos(s) + 2kπ, u₂ = −arccos(s) + 2kπ.  x = c + u/b.
+     Hochpunkte:  cos = 1 (a > 0) bzw. −1 (a < 0); Tiefpunkte umgekehrt. y = d ± |a|.
    Gesucht: alle Stellen im Intervall [L; R] (Ränder gehören dazu).
    ===================================================================== */
 const NULLEX = (() => {
@@ -2594,8 +2595,8 @@ const NULLEX = (() => {
   const pTex = v => v.q ? TP_piTex(v.q).replace(/^\{\\pi\}$/, '\\pi') : zTex(v.w * PI, 3);
   const pTxt = v => v.q ? TP_piText(v.q).replace('−', '-') : String(Math.round(v.w * PI * 1000) / 1000).replace('.', ',');
   const ganz = q => Math.floor(q.z / q.n), oben = q => Math.ceil(q.z / q.n);
-  /* Standardwerte von arcsin (rationale s): 0, ±1/2, ±1 */
-  const ARCSIN = { '0/1': Q(0), '1/2': Q(1, 6), '-1/2': Q(-1, 6), '1/1': Q(1, 2), '-1/1': Q(-1, 2) };
+  /* Standardwerte von arccos (rationale s, in π-Einheiten): 0, ±1/2, ±1 */
+  const ARCCOS = { '0/1': Q(1, 2), '1/2': Q(1, 3), '-1/2': Q(2, 3), '1/1': Q(0), '-1/1': Q(1) };
   const sTex = s => qTex(s);
   /* k·p mit p = (m/n)·π: „kπ“, „2kπ“, „k·\frac{2π}{3}“ */
   const kpTex = p => p.n === 1 ? `${p.z === 1 ? '' : p.z}k\\pi` : `k \\cdot \\frac{${p.z === 1 ? '' : p.z}\\pi}{${p.n}}`;
@@ -2604,17 +2605,17 @@ const NULLEX = (() => {
   /* Scharen in u = b(x − c): [{ al: {q}|{w}, st: Schritt in π-Einheiten (2 oder 1), tex: LaTeX für u }] */
   function uScharen(A){
     if (A.art !== 'null'){
-      const plus = (A.art === 'hoch') === (qWert(A.a) > 0);           // sin u = 1 ?
-      return { s: plus ? Q(1) : Q(-1), sch: [{ al: { q: plus ? Q(1, 2) : Q(3, 2) }, st: 2 }] };
+      const plus = (A.art === 'hoch') === (qWert(A.a) > 0);           // cos u = 1 ?
+      return { s: plus ? Q(1) : Q(-1), sch: [{ al: { q: plus ? Q(0) : Q(1) }, st: 2 }] };
     }
     const s = qDiv(qNeg(A.d), A.a), sw = qWert(s);
     if (Math.abs(sw) > 1) return { s, sch: [] };
-    if (s.z === 0) return { s, sch: [{ al: { q: Q(0) }, st: 1 }] };
-    if (Math.abs(sw) === 1) return { s, sch: [{ al: { q: sw > 0 ? Q(1, 2) : Q(3, 2) }, st: 2 }] };
-    const std = ARCSIN[`${s.z}/${s.n}`];
-    if (std) return { s, sch: [{ al: { q: std }, st: 2 }, { al: { q: qSub(Q(1), std) }, st: 2 }] };
-    const w = Math.asin(sw) / PI;
-    return { s, sch: [{ al: { w }, st: 2, arc: true }, { al: { w: 1 - w }, st: 2, arc: true, zwei: true }], arc: true };
+    if (s.z === 0) return { s, sch: [{ al: { q: Q(1, 2) }, st: 1 }] };
+    if (Math.abs(sw) === 1) return { s, sch: [{ al: { q: sw > 0 ? Q(0) : Q(1) }, st: 2 }] };
+    const std = ARCCOS[`${s.z}/${s.n}`];
+    if (std) return { s, sch: [{ al: { q: std }, st: 2 }, { al: { q: qNeg(std) }, st: 2 }] };
+    const w = Math.acos(sw) / PI;
+    return { s, sch: [{ al: { w }, st: 2, arc: true }, { al: { w: -w }, st: 2, arc: true, zwei: true }], arc: true };
   }
   /* Schar in x: x = x₀ + k·p mit x₀ = c + α/b, p = Schritt/b */
   const xSchar = (A, u, o = {}) => {
@@ -2641,7 +2642,7 @@ const NULLEX = (() => {
     return { U, sch, stellen: sortiert(st) };
   }
   const yWert = A => A.art === 'hoch' ? qAdd(A.d, Q(Math.abs(A.a.z), A.a.n)) : qSub(A.d, Q(Math.abs(A.a.z), A.a.n));
-  const fW = A => x => qWert(A.a) * Math.sin(qWert(A.b) * (x - qWert(A.c) * PI)) + qWert(A.d);
+  const fW = A => x => qWert(A.a) * Math.cos(qWert(A.b) * (x - qWert(A.c) * PI)) + qWert(A.d);
 
   /* ---------- Aufgaben ---------- */
   const P_von = A => ({ a: TP_bruch(A.a), b: TP_bruch(A.b), c: TP_pi(A.c), d: TP_bruch(A.d) });
@@ -2694,7 +2695,7 @@ const NULLEX = (() => {
      1 Gleichung aufstellen · 2 Ersetzen (u) · 3 Grundlösungen in [0; 2π) mit Begründung · 4 Alle Lösungen (+ 2kπ)
      5 Zurück zu x (je Schar Zeile für Zeile, Rechenschritt rechts) · 6 Im Intervall (Tabelle mit den k, die gerade
      herausfallen) · 7 Ergebnis. Die Werte der Schritte gehen als data-weg an die Probe. */
-  const IST_COS = false, FN = IST_COS ? '\\cos' : '\\sin', NAME = IST_COS ? 'Kosinus' : 'Sinus', ARC = IST_COS ? '\\arccos' : '\\arcsin';
+  const IST_COS = true, FN = IST_COS ? '\\cos' : '\\sin', NAME = IST_COS ? 'Kosinus' : 'Sinus', ARC = IST_COS ? '\\arccos' : '\\arcsin';
   const zw = v => zTex(v, 4), D = t => M(`$$${t}$$`);   // abgesetzte Formel – in der .tex \[ \]
   /* Grundlösungen von FN u = s in [0; 2π) – in π-Einheiten ({q} exakt, {w} Zahl), dazu die Zeilen des Wegs */
   function grund(A, U){
@@ -2819,12 +2820,12 @@ const NULLEX = (() => {
   function fehlerbilder(A){
     const richtig = loese(A).stellen, U = uScharen(A);
     const L = [];
-    if (U.sch.length > 1) L.push([loese(A, { nurEine: true }).stellen, M('Nur eine Lösungsschar: $\\sin u = s$ hat in jeder Periode <b>zwei</b> Lösungen, $u_1$ und $u_2 = \\pi - u_1$.')]);
+    if (U.sch.length > 1) L.push([loese(A, { nurEine: true }).stellen, M('Nur eine Lösungsschar: $\\cos u = s$ hat in jeder Periode <b>zwei</b> Lösungen, $u_1$ und $u_2 = -u_1$.')]);
     if (qWert(A.b) !== 1) L.push([loese(A, { periode2pi: true }).stellen, M('Der Abstand der Stellen ist die Periode $\\frac{2\\pi}{b}$ – nicht $2\\pi$. Auch $2k\\pi$ wird durch $b$ geteilt.')]);
     if (qWert(A.b) !== 1) L.push([loese(A, { ohneB: true }).stellen, M('Durch $b$ teilen nicht vergessen: $x = c + \\frac{u}{b}$.')]);
     if (A.c.z !== 0) L.push([loese(A, { ohneC: true }).stellen, M('Die Verschiebung fehlt: $x = c + \\frac{u}{b}$, nicht nur $\\frac{u}{b}$.')]);
     if (A.c.z !== 0) L.push([loese(A, { cNeg: true }).stellen, M('Vorzeichen der Verschiebung: Aus $u = b(x - c)$ folgt $x = c + \\frac{u}{b}$ – also $+c$.')]);
-    if (A.art !== 'null' && qWert(A.a) < 0) L.push([loese(A, { tauschen: true }).stellen, M('Hoch- und Tiefpunkte vertauscht: Mit $a < 0$ ist der Graph am höchsten, wo der Sinus $-1$ ist.')]);
+    if (A.art !== 'null' && qWert(A.a) < 0) L.push([loese(A, { tauschen: true }).stellen, M('Hoch- und Tiefpunkte vertauscht: Mit $a < 0$ ist der Graph am höchsten, wo der Kosinus $-1$ ist.')]);
     return L.filter(([m]) => !gleicheMenge(m, richtig));
   }
 
@@ -2890,7 +2891,7 @@ const NULLEX = (() => {
   R('bild').onclick = () => { S.bild = !S.bild; zeichneBild(); };
   window.addEventListener('handy-wechsel', () => { if (S.bild) zeichneBild(); });
   WZ.beiBreite(R('graph'), () => { if (S.bild) zeichneBild(); });
-  /* Start: 2·sin(2(x − π/4)) + 1, Nullstellen in [0; 2π] */
+  /* Start: 2·cos(2(x − π/4)) + 1, Nullstellen in [0; 2π] */
   setze({ art: 'null', a: Q(2), b: Q(2), c: Q(1, 4), d: Q(1), L: Q(0), R: Q(2) });
   return { S, neu, setze, pruefe, erzeuge, loese, fehlerbilder, lies };
 })();
