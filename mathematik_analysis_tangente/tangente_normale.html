@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Graph mit P und Q, Regler h → 0 von beiden Seiten: Die Sekante dreht sich zur Tangente, die Tabelle der Differenzenquotienten läuft auf die Ableitung zu. Mit eigener Funktion und Aufgabe zur Tangentensteigung.">
-<title>Von der Sekante zur Tangente · Analysis</title>
+<meta name="description" content="Punkt auf dem Graphen ziehen: Tangente und Normale stehen senkrecht aufeinander und werden mitgeschrieben. Aufgaben zu Tangente, Normale, vorgegebener Steigung und waagerechter Tangente – eigene Gleichung prüfen, Lösungsweg Schritt für Schritt.">
+<title>Tangente und Normale · Analysis</title>
 <style>
 /* ==== HANDY-SCHICHT: technik/handy/handy.css ==== */
 /* =====================================================================
@@ -860,33 +860,47 @@ html.handy mroot > :last-child{font-size:max(14px, .6em)}     /* Wurzelexponent 
 /* Brüche in Knöpfen in voller Größe */
 .knopf math{math-style:normal}
 
-/* ---------- Sekante → Tangente (Farben: technik/mathe/farben.css) ---------- */
-.st-zeile{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
-.st-zeile .knopf{font-size:14px;padding:5px 11px;font-family:var(--m-schrift)}
-.st-zeile .rechts{margin-left:auto;display:flex;gap:6px;align-items:center}
-.st-feld svg{display:block;width:100%;height:auto}
-svg .st-sek{stroke:var(--m-2);stroke-width:3} svg .st-tan{stroke:var(--m-erg);stroke-width:2.5;stroke-dasharray:8 5}
-svg .st-h{stroke:var(--m-2);stroke-width:2;stroke-dasharray:3 3}
-svg .st-t{font-size:15px;font-weight:800;font-family:var(--m-schrift)}
-svg .st-t.p{fill:var(--m-1)} svg .st-t.q{fill:var(--m-2)}
-.st-dq{font-family:var(--m-schrift);font-size:19px;color:var(--tinte);margin:6px 0}
-math .st-m{color:var(--m-2)}                      /* Sekantensteigung wie die Sekante */
-table.st-tab{border-collapse:collapse;font-family:var(--m-schrift);font-size:16px;width:100%}
-table.st-tab th, table.st-tab td{vertical-align:middle;border-bottom:1px solid var(--linie);padding:3px 8px;text-align:right;font-variant-numeric:tabular-nums}
-table.st-tab th{color:var(--grau);font-size:14px;font-family:inherit}
-table.st-tab tr.an td{background:var(--m-2-h);font-weight:700}
-table.st-tab tr.grenze td{color:var(--m-erg);font-weight:700;border-top:2px solid var(--m-erg)}
-.st-eingabe{display:flex;align-items:center;gap:8px;font-family:var(--m-schrift);font-size:20px;flex-wrap:wrap;margin-top:6px}
-.st-eingabe .wz-eingabe{width:110px}
-.wz-regler + .wz-regler{margin-top:6px}
-html.handy table.st-tab{font-size:16px} html.handy table.st-tab th{font-size:14px}
-html.handy .st-zeile .rechts{margin-left:0;width:100%}
-html.handy .st-dq{font-size:17px}
-html.handy .st-zeile .knopf{font-size:16px}
-html.handy .st-eingabe i{font-size:1em}
+/* ---------- Tangente und Normale (Farben: technik/mathe/farben.css) ----------
+   Graph f = --m-1, Tangente = --m-2, Normale = --m-3, Punkt P = --m-erg */
+.tn-zeile{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.tn-zeile .knopf{font-size:14px;padding:5px 11px}
+.tn-zeile .rechts{margin-left:auto;display:flex;gap:6px;align-items:center}
+.tn-bt{font-size:15px;font-weight:700;color:var(--grau)}
+.tn-eigen{width:180px;font-size:16px}
+.tn-feld svg{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none}
+.tn-feld .g-zoomfeld{display:block}
+svg .tn-tan{stroke:var(--m-2);stroke-width:3} svg .tn-tan.hilf{stroke-width:2;stroke-dasharray:7 5;opacity:.75}
+svg .tn-nor{stroke:var(--m-3);stroke-width:3}
+svg .tn-dein{stroke:var(--m-grau);stroke-width:2.5;stroke-dasharray:3 4}
+svg .tn-winkel{fill:none;stroke:var(--m-achse);stroke-width:1.6} svg .tn-winkelpunkt{fill:var(--m-achse)}
+svg .tn-griff{fill:transparent;cursor:grab;touch-action:none}
+svg .tn-p{font-size:16px;font-weight:800;fill:var(--m-erg);font-family:var(--m-schrift)}
+.tn-werte{display:flex;flex-direction:column;gap:6px;font-size:19px;color:var(--tinte);margin:4px 0 8px}
+math .tn-ct{color:var(--m-2)} math .tn-cn{color:var(--m-3)}
+.tn-erkl{font-size:15px;color:var(--grau);line-height:1.45}
+.tn-fehler{color:var(--m-falsch);font-weight:700}
+.wz-regler{margin-top:6px}
+/* Aufgaben */
+.tn-aufgabe{flex-wrap:wrap}
+.tn-angabe{display:inline-flex;gap:18px;flex-wrap:wrap;align-items:baseline}
+.tn-gleich{font-size:26px}
+.tn-angabe math *{math-style:normal}                            /* ½ in der Aufgabe in voller Größe */
+.tn-antwort{width:230px}
+.tn-leg{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;font-weight:700;margin-top:4px}
+.tn-leg span::before{content:"";display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px;background:currentColor}
+.tn-leg .k1{color:var(--m-1)} .tn-leg .k2{color:var(--m-2)} .tn-leg .k3{color:var(--m-3)} .tn-leg .kg{color:var(--m-grau)}
+.tn-leg .hilf::before{background:repeating-linear-gradient(90deg,currentColor 0 6px,transparent 6px 10px)}
+[data-tangente] .wz-weg .wz-w math *, [data-tangente] .wz-rueck math *{math-style:normal}   /* Brüche in Weg und Rückmeldung in voller Größe */
+/* Handy: Grafiken werden schmal neu gezeichnet (zeichne/zeichneBild) */
+html.handy .tn-zeile .rechts{margin-left:0;width:100%}
+html.handy .tn-zeile .knopf{font-size:16px}
+html.handy .tn-eigen{flex:1;min-width:0}
+html.handy .tn-werte{font-size:17px}
+html.handy .tn-erkl{font-size:15px}
+html.handy .tn-antwort{width:100%;flex:1 1 200px}
+html.handy .tn-leg{font-size:14px}
+html.handy [data-tangente] .wz-w > span:last-child{flex-basis:100%;min-width:0}   /* Rechnung unter dem Schrittnamen: volle Breite */
 .titelkarte{padding:10px}                                     /* Titelbild: Karte aus dem Rahmen (.titelkarte) */
-.st-wegknoepfe{display:flex;gap:6px;margin-top:6px}
-.st-feld .g-zoomfeld{display:block}                                   /* Skizze füllt das Feld wie zuvor (Zoom-Hülle aus graph.js) */
 
 /* Grundregel aller Werkzeuge: hidden gilt immer, auch wenn eine Klasse display:flex/grid setzt */
 [hidden]{display:none!important}
@@ -2226,10 +2240,135 @@ const AB = (() => {
 const KURS = "Mathematik · Analysis";
 const REIHE = "Differentialrechnung";
 
+/* =====================================================================
+   Exakte Werte der Form Σ c_k · e^k (c_k Brüche aus bruch.js, k ganz) – so bleiben auch
+   Tangenten an e^x exakt (t(x) = e·x). Rationale Zahl: nur das Glied k = 0.
+   ===================================================================== */
+const EW = (q, k = 0) => qNull(q) ? {} : { [k]: q };
+const ewZ = z => EW(typeof z === 'object' ? z : Q(z));
+function ewAdd(a, b){ const r = { ...a }; for (const k in b){ r[k] = r[k] ? qAdd(r[k], b[k]) : b[k]; if (qNull(r[k])) delete r[k]; } return r; }
+const ewNeg = a => Object.fromEntries(Object.entries(a).map(([k, q]) => [k, qNeg(q)]));
+const ewSub = (a, b) => ewAdd(a, ewNeg(b));
+function ewMul(a, b){ let r = {}; for (const i in a) for (const j in b) r = ewAdd(r, { [+i + +j]: qMul(a[i], b[j]) }); return r; }
+function ewKehr(a){ const k = Object.keys(a); if (k.length !== 1) throw new Error('Kehrwert nur von einem Glied'); return { [-k[0]]: qDiv(Q(1), a[k[0]]) }; }
+const ewDiv = (a, b) => ewMul(a, ewKehr(b));
+const ewWert = a => Object.entries(a).reduce((s, [k, q]) => s + qWert(q) * Math.exp(+k), 0);
+const ewNull = a => !Object.keys(a).length;
+const ewEinGlied = a => Object.keys(a).length === 1;
+function ewTex(a){                                             // höchste e-Potenz zuerst, Zahl zuletzt
+  const ks = Object.keys(a).map(Number).sort((x, y) => y - x);
+  if (!ks.length) return '0';
+  return ks.map((k, i) => {
+    const q = a[k], neg = q.z < 0, b = Q(Math.abs(q.z), q.n);
+    let t;
+    if (k === 0) t = qTex(b);
+    else if (k > 0){ const ep = k === 1 ? 'e' : `e^{${k}}`; t = b.z === 1 && b.n === 1 ? ep : b.n === 1 ? `${b.z}${ep}` : `\\frac{${b.z}}{${b.n}}${ep}`; }
+    else { const ep = k === -1 ? 'e' : `e^{${-k}}`; t = `\\frac{${b.z}}{${b.n === 1 ? '' : b.n}${ep}}`; }
+    return (i ? (neg ? ' - ' : ' + ') : (neg ? '-' : '')) + t;
+  }).join('');
+}
+const ewText = a => Object.entries(a).map(([k, q]) => `(${q.z}/${q.n})*e^(${k})`).join('+') || '0';   // für term.js
+
+/* Geraden: { m, b } (y = m·x + b) oder { senk: x-Wert } (senkrecht, x = c) – Werte als EW */
+function geradeTex(name, g){
+  if (g.senk) return `x = ${ewTex(g.senk)}`;
+  const mt = ewTex(g.m), rational = Object.keys(g.m).every(k => +k === 0);
+  let s = ewNull(g.m) ? '' : mt === '1' ? 'x' : mt === '-1' ? '-x' : !ewEinGlied(g.m) ? `${klTex(mt)}x` : rational ? `${mt}x` : `${mt}\\,x`;
+  if (!ewNull(g.b)){ const bt = ewTex(g.b); s = s ? s + (bt.startsWith('-') ? ' - ' + bt.slice(1) : ' + ' + bt) : bt; }
+  return `${name} = ${s || '0'}`;
+}
+const geradeText = g => g.senk ? `x=${ewText(g.senk)}` : `(${ewText(g.m)})*x+(${ewText(g.b)})`;
+const geradeWerte = g => g.senk ? { senk: ewWert(g.senk) } : { m: ewWert(g.m), b: ewWert(g.b) };
+
+/* Klammer für eingesetzte Zahlen: negativ oder Bruch → (…) */
+const qEin = q => q.z < 0 || q.n !== 1 ? klTex(qTex(q)) : qTex(q);
+
+/* =====================================================================
+   Funktionen der Aufgaben – mit exakter Ableitung (kein CAS, nur diese Bauarten):
+     poly  k = [c0, c1, c2, c3] (Brüche)   kehr  a/x   wurzel  a·√x   exp  e^x
+   ===================================================================== */
+const TN_F = {
+  tex(Fu){
+    if (Fu.art === 'poly') return pTex(Fu.k);
+    if (Fu.art === 'kehr') return Fu.a.z < 0 ? `-\\frac{${qTex(qNeg(Fu.a))}}{x}` : `\\frac{${qTex(Fu.a)}}{x}`;
+    if (Fu.art === 'wurzel') return `${qGleich(Fu.a, Q(1)) ? '' : qTex(Fu.a)}\\sqrt{x}`;
+    return 'e^{x}';
+  },
+  text(Fu){
+    if (Fu.art === 'poly') return Fu.k.map((c, i) => `(${c.z}/${c.n})*x^${i}`).join('+');
+    if (Fu.art === 'kehr') return `(${Fu.a.z}/${Fu.a.n})/x`;
+    if (Fu.art === 'wurzel') return `(${Fu.a.z}/${Fu.a.n})*sqrt(x)`;
+    return 'e^x';
+  },
+  abl: Fu => ({ art: 'poly', k: Fu.k.slice(1).map((c, i) => qMul(c, Q(i + 1))) }),          // nur für poly
+  dTex(Fu){
+    if (Fu.art === 'poly') return pTex(TN_F.abl(Fu).k);
+    if (Fu.art === 'kehr') return Fu.a.z < 0 ? `\\frac{${qTex(qNeg(Fu.a))}}{x^{2}}` : `-\\frac{${qTex(Fu.a)}}{x^{2}}`;
+    if (Fu.art === 'wurzel') return `\\frac{${qTex(Fu.a)}}{2\\sqrt{x}}`;
+    return 'e^{x}';
+  },
+  wert(Fu, x){                                                    // exakt (EW); x Bruch, bei exp ganzzahlig
+    if (Fu.art === 'poly') return ewZ(Fu.k.reduce((s, c, i) => qAdd(s, qMul(c, qPot(x, i))), Q(0)));
+    if (Fu.art === 'kehr') return ewZ(qDiv(Fu.a, x));
+    if (Fu.art === 'wurzel') return ewZ(qMul(Fu.a, qWurzel(x)));
+    return EW(Q(1), x.z);
+  },
+  ablWert(Fu, x){
+    if (Fu.art === 'poly') return TN_F.wert(TN_F.abl(Fu), x);
+    if (Fu.art === 'kehr') return ewZ(qNeg(qDiv(Fu.a, qMul(x, x))));
+    if (Fu.art === 'wurzel') return ewZ(qDiv(Fu.a, qMul(Q(2), qWurzel(x))));
+    return EW(Q(1), x.z);
+  },
+  einsetzTex(Fu, x, abl = false){                                 // Ausdruck mit eingesetztem x (für den Weg)
+    if (Fu.art === 'poly') return polyEinsetz(abl ? TN_F.abl(Fu).k : Fu.k, x);
+    const xe = qEin(x);
+    if (Fu.art === 'kehr') return abl ? `${Fu.a.z < 0 ? '' : '-'}\\frac{${qTex(Q(Math.abs(Fu.a.z), Fu.a.n))}}{${xe}^{2}}` : `${Fu.a.z < 0 ? '-' : ''}\\frac{${qTex(Q(Math.abs(Fu.a.z), Fu.a.n))}}{${qTex(x)}}`;
+    if (Fu.art === 'wurzel') return abl ? `\\frac{${qTex(Fu.a)}}{2\\sqrt{${qTex(x)}}}` : `${qGleich(Fu.a, Q(1)) ? '' : qTex(Fu.a) + ' \\cdot '}\\sqrt{${qTex(x)}}`;
+    return `e^{${qTex(x)}}`;
+  },
+};
+const qPot = (q, n) => { let r = Q(1); for (let i = 0; i < n; i++) r = qMul(r, q); return r; };
+function qWurzel(q){                                             // nur für Quadratzahlen (Bauart der Aufgaben)
+  const z = Math.round(Math.sqrt(q.z)), n = Math.round(Math.sqrt(q.n));
+  if (z * z !== q.z || n * n !== q.n) throw new Error('keine Quadratzahl');
+  return Q(z, n);
+}
+function polyTerme(k, x){                                        // ['3 \cdot 2^{2}', ' - 4 \cdot 2', ' + 1']
+  const s = [];
+  for (let i = k.length - 1; i >= 0; i--){
+    const c = k[i]; if (qNull(c)) continue;
+    const b = Q(Math.abs(c.z), c.n), eins = b.z === 1 && b.n === 1;
+    const t = i === 0 ? qTex(b) : `${eins ? '' : qTex(b) + ' \\cdot '}${qEin(x)}${i > 1 ? `^{${i}}` : ''}`;
+    s.push(s.length ? (c.z < 0 ? ` - ${t}` : ` + ${t}`) : (c.z < 0 ? `-${t}` : t));
+  }
+  return s.length ? s : ['0'];
+}
+const polyEinsetz = (k, x) => polyTerme(k, x).join('');
+/* eingesetzte Summe für eine aligned-Zeile „&= …“, nach je n Summanden umgebrochen („{} - …“ bleibt zweistellig) */
+function einsetzZeilen(Fu, x, abl, n){
+  if (Fu.art !== 'poly') return TN_F.einsetzTex(Fu, x, abl);
+  const t = polyTerme(abl ? TN_F.abl(Fu).k : Fu.k, x), z = [];
+  for (let i = 0; i < t.length; i += n) z.push((i ? '{}' : '') + t.slice(i, i + n).join(''));
+  return z.join(' \\\\ &\\quad ');
+}
+
+/* gleiche Einheit auf beiden Achsen (sonst sähe die Normale nicht senkrecht aus) */
+function TN_fenster(xc, yc, halbX, W, H, rand){
+  const R = Object.assign({ l: 34, r: 10, o: 14, u: 24 }, rand || {}), e = (W - R.l - R.r) / (2 * halbX), halbY = (H - R.o - R.u) / e / 2;
+  return { xmin: xc - halbX, xmax: xc + halbX, ymin: yc - halbY, ymax: yc + halbY, rand: R };
+}
+/* Zeichen für den rechten Winkel bei P (Pixelraum, Tangente mit Steigung m) */
+function TN_rechterWinkel(K, x0, y0, m, s = 13){
+  const px = K.px(x0), py = K.py(y0), l = Math.hypot(1, m), t = [1 / l, -m / l], n = [-t[1], t[0]];   // Pixel: y nach unten
+  const p = (a, b) => `${(px + a[0] * s + b[0] * s).toFixed(1)} ${(py + a[1] * s + b[1] * s).toFixed(1)}`;
+  return `<path class="tn-winkel" d="M${p(t, [0, 0])}L${p(t, n)}L${p([0, 0], n)}"/><circle class="tn-winkelpunkt" cx="${(px + (t[0] + n[0]) * s * 0.5).toFixed(1)}" cy="${(py + (t[1] + n[1]) * s * 0.5).toFixed(1)}" r="1.8"/>`;
+}
+
 function titelBild(){
-  const K = G_koord({ W: 260, H: 210, xmin: -0.5, xmax: 2.6, ymin: -0.5, ymax: 5, rand: { l: 14, r: 10, o: 10, u: 14 } });
-  return K.svg(K.grund + K.kurve(x => x * x, 'g-k1') + K.linie(-0.5, 2.5 * -0.5 - 1.5, 2.6, 2.5 * 2.6 - 1.5, 'st-sek') + K.linie(-0.5, 2 * -0.5 - 1, 2.6, 2 * 2.6 - 1, 'st-tan')
-    + K.punkt(1, 1, 'g-p1', 6) + K.punkt(1.5, 2.25, 'g-p2', 6));
+  const W = 260, H = 220, f = x => 0.5 * x * x, x0 = 1.5, y0 = f(x0), m = x0;
+  const B = TN_fenster(0.6, 1.6, 2.6, W, H, { l: 12, r: 10, o: 10, u: 12 }), K = G_koord({ W, H, ...B, sx: 1, sy: 1, zahlenX: false, zahlenY: false });
+  return K.svg(K.grund + K.kurve(f, 'g-k1') + K.linie(B.xmin, y0 + m * (B.xmin - x0), B.xmax, y0 + m * (B.xmax - x0), 'tn-tan')
+    + K.linie(B.xmin, y0 - (B.xmin - x0) / m, B.xmax, y0 - (B.xmax - x0) / m, 'tn-nor') + TN_rechterWinkel(K, x0, y0, m) + K.punkt(x0, y0, 'g-perg', 6));
 }
 
 const folien = [
@@ -2239,8 +2378,8 @@ const folien = [
   <div class="links">
     <div class="balken"></div>
     <div class="eyebrow">Differentialrechnung</div>
-    <h1>Von der Sekante zur Tangente</h1>
-    <p class="unter">Mittlere Änderungsrate zwischen P und Q – dann rückt Q an P heran. Was übrig bleibt, ist die Ableitung.</p>
+    <h1>Tangente und Normale</h1>
+    <p class="unter">Die Tangente berührt den Graphen und hat dort seine Steigung. Die Normale steht senkrecht darauf – beide gehen durch denselben Punkt.</p>
     <div class="meta"><span>Mathematik</span><span>Analysis</span></div>
   </div>
   <div class="rechts">
@@ -2249,27 +2388,40 @@ const folien = [
   </div>
 `},
 
-{titel:"Sekante und Tangente", klasse:"kompakt oben", eyebrow:"Lokale Änderungsrate", h2:"h geht gegen 0", roh:`
-  <div class="interaktiv" data-werkzeug data-sekante>
-    <div class="st-zeile"><span class="bt" style="font-size:14px;font-weight:700;color:var(--grau)">${F('f(x) =')}</span>
-      <span data-r="fkt"></span>
-      <span class="rechts"><input class="wz-eingabe" style="width:170px;font-size:16px" data-r="eigen" spellcheck="false" autocomplete="off" placeholder="eigene, z. B. x^3-x" aria-label="eigene Funktion"><button class="knopf hell" data-r="uebernehmen">Übernehmen</button></span></div>
+{titel:"Erkunden", klasse:"kompakt oben", eyebrow:"Tangente und Normale", h2:"Punkt ziehen – beide Geraden folgen", roh:`
+  <div class="interaktiv" data-werkzeug data-tn-erkunden>
+    <div class="tn-zeile"><span class="tn-bt">${F('f(x) =')}</span><span data-r="fkt"></span>
+      <span class="rechts"><input class="wz-eingabe tn-eigen" data-r="eigen" spellcheck="false" autocomplete="off" placeholder="eigene, z. B. x^3-3x" aria-label="eigene Funktion"><button class="knopf hell" data-r="uebernehmen">Übernehmen</button></span></div>
     <div class="wz-zwei links-breit">
       <div>
-        <div class="st-feld"><svg data-r="svg" viewBox="0 0 560 360"></svg></div>
-        <div class="wz-regler"><span class="bt">${F('x_0')}</span><input type="range" data-r="rx" min="0" max="12" step="1" aria-label="Stelle x0"><input class="wz-eingabe wz-reglerwert" data-r="wx" spellcheck="false" autocomplete="off" aria-label="x₀ eintippen"></div>
-        <div class="wz-regler"><span class="bt">${F('h')}</span><input type="range" data-r="rh" min="0" max="13" step="1" aria-label="Abstand h"><input class="wz-eingabe wz-reglerwert" data-r="wh" spellcheck="false" autocomplete="off" aria-label="h eintippen"></div>
+        <div class="tn-feld"><svg data-r="svg" viewBox="0 0 560 360" aria-label="Graph mit Tangente und Normale; Punkt P ziehbar"></svg></div>
+        <div class="wz-regler"><span class="bt">${F('x_0')}</span><input type="range" data-r="rx" min="0" max="100" step="1" aria-label="Stelle x0"><input class="wz-eingabe wz-reglerwert" data-r="wx" spellcheck="false" autocomplete="off" aria-label="x0 eintippen"></div>
       </div>
-      <div>
-        <div class="wz-panel"><h3>Differenzenquotient <span class="rechts"><button class="knopf hell" data-r="tangente">Tangente zeigen</button></span></h3>
-          <div class="st-dq" data-r="dq"></div><table class="st-tab" data-r="tab"></table></div>
-        <div class="wz-panel" style="margin-top:10px"><h3>Aufgabe</h3>
-          <div data-r="frage" data-aufgabe style="font-size:16px"></div>
-          <div class="st-eingabe"><span data-r="fx0"></span> <input class="wz-eingabe" data-r="antwort" spellcheck="false" autocomplete="off" placeholder="z. B. 2" aria-label="Tangentensteigung"><button class="knopf o" data-r="pruefen">Prüfen</button></div>
-          <div class="wz-rueck" data-r="rueck"></div>
-          <div class="wz-weg" data-r="weg" style="margin-top:6px"></div>
-          <div class="st-wegknoepfe"><button class="knopf hell" data-r="schritt">Nächster Schritt</button><button class="knopf hell" data-r="alle">Alle</button></div></div>
+      <div class="wz-panel"><h3>Im Punkt P <span class="rechts"><button class="knopf hell an" data-r="ztan">Tangente</button><button class="knopf hell an" data-r="znor">Normale</button></span></h3>
+        <div class="tn-werte" data-r="werte"></div>
+        <p class="tn-erkl" data-r="erkl"></p>
       </div>
+    </div>
+  </div>
+`},
+
+{titel:"Aufgaben", klasse:"kompakt oben", eyebrow:"Gleichung aufstellen", h2:"Tangente und Normale berechnen", roh:`
+  <div class="interaktiv" data-werkzeug data-tangente>
+    <div class="wz-aufgabe tn-aufgabe">
+      <span class="wz-was" data-r="was">Tangente:</span>
+      <span class="wz-term tn-angabe" data-r="term"></span>
+      <span class="tn-gleich" data-r="name"></span>
+      <input class="wz-eingabe tn-antwort" data-r="antwort" spellcheck="false" autocomplete="off" placeholder="z. B. 2x - 3" aria-label="deine Geradengleichung">
+      <div class="knopfleiste"><button class="knopf o" data-r="pruefen">Prüfen</button></div>
+    </div>
+    <div class="wz-arten"><span class="bt">Neue Aufgabe:</span>
+      <button class="knopf hell" data-art="tangente">Tangente</button><button class="knopf hell" data-art="normale">Normale</button>
+      <button class="knopf hell" data-art="steigung">Steigung gegeben</button><button class="knopf hell" data-art="waagerecht">waagerechte Tangente</button>
+      <button class="knopf hell" data-art="gemischt">gemischt</button></div>
+    <div class="wz-rueck" data-r="rueck"></div>
+    <div class="wz-zwei">
+      <div class="wz-panel"><h3>Lösungsweg <span class="rechts"><button class="knopf hell" data-r="schritt">Nächster Schritt</button><button class="knopf hell" data-r="alle">Alle</button></span></h3><div class="wz-weg" data-r="weg"></div></div>
+      <div class="wz-panel"><h3>Bild <span class="rechts"><button class="knopf hell" data-r="bild">Bild zeigen</button></span></h3><div data-r="flaeche"></div></div>
     </div>
   </div>
 `},
@@ -2294,139 +2446,406 @@ folien.forEach((f,i)=>{
 });
 
 /* =====================================================================
-   Sekante → Tangente: P(x0 | f(x0)), Q(x0 + h | f(x0 + h)), Steigung (f(x0 + h) − f(x0)) / h.
-   Ableitung: exakt für die fünf festen Funktionen (d) und für eigene über die Schulregeln (technik/mathe/ableitung.js);
-   nur x^x, |x| numerisch (Differenzenquotient 4. Ordnung).
-   Prüfen: WZ.liesZahl + WZ.zahlPruefen (Toleranz nach getippten Stellen, Fehlerbilder vor „fast“). Funktionen über term.js.
+   Tangente und Normale
+   1. Erkunden: P auf dem Graphen ziehen (oder Regler), Tangente und Normale werden gezeichnet und
+      mitgeschrieben. Gleiche Einheit auf beiden Achsen, damit der rechte Winkel als solcher erscheint.
+   2. Aufgaben: Funktionen bekannter Bauart (TN_F) mit exakter Ableitung; geprüft wird die eingetippte
+      Gerade durch Einsetzen an mehreren Stellen – jede gleichwertige Schreibweise zählt.
    ===================================================================== */
-const SEKANTE = (() => {
-  const root = document.querySelector('[data-sekante]');
+const TN_ERK = (() => {
+  const root = document.querySelector('[data-tn-erkunden]');
   const R = r => root.querySelector(`[data-r="${r}"]`);
-  const X_STD = [-3, -2.5, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5, 3], X_POS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.5, 3, 3.5, 4, 4.5];
-  const H_LISTE = [-2, -1, -0.5, -0.2, -0.1, -0.01, -0.001, 0.001, 0.01, 0.1, 0.2, 0.5, 1, 2];
-  const FKT = [
-    { t: 'x^2', h: 'x^{2}', xs: X_STD, f: [-4, 4, -2, 10], d: x => 2 * x }, { t: '0.5x^3-2x', h: '0{,}5x^{3} - 2x', xs: X_STD, f: [-4, 4, -8, 8], d: x => 1.5 * x * x - 2 },
-    { t: 'sqrt(x)', h: '\\sqrt{x}', xs: X_POS, f: [-0.5, 5, -1, 3], d: x => 0.5 / Math.sqrt(x) },
-    { t: 'e^x', h: 'e^{x}', xs: X_STD, f: [-4, 3.2, -1, 8], d: x => Math.exp(x) }, { t: '1/x', h: '\\frac{1}{x}', xs: X_POS, f: [-0.5, 5, -1, 5], d: x => -1 / (x * x) }];
-  const S = { fi: 0, eigen: null, ix: 9, ih: 11, xw: null, hw: null, tangente: false, geloest: false };   // xw, hw: eingetippt (sonst Schieberstufe)
-  const fkt = () => S.eigen || FKT[S.fi];                        // nicht „F“: das ist die Formel-Funktion (formel.js)
-  let baum = T_lies(fkt().t);
-  const f = x => T_wert(baum, x), x0 = () => S.xw ?? fkt().xs[S.ix], h = () => S.hw ?? H_LISTE[S.ih];
-  const abl = x => fkt().d ? fkt().d(x) : (8 * (f(x + 1e-3) - f(x - 1e-3)) - (f(x + 2e-3) - f(x - 2e-3))) / 12e-3;
-  const weg = WZ.weg(root);
-  const gl = v => fkt().d && Math.abs(Math.round(v * 1e4) / 1e4 - v) < 1e-12 ? '=' : '\\approx';   // exakt (feste Funktion, ≤ 4 Stellen) → „=“, sonst „≈“
-  const dq = (x, hh) => (f(x + hh) - f(x)) / hh;
-  const kl = v => v < 0 ? `(${zTex(v)})` : zTex(v);                // negative Zahl in Klammern
-  const zf = (v, st = 4) => Number.isFinite(v) ? F(zTex(v, st)) : '–';          // Tabellenzahl, gesetzt
+  // Fenster: x-Bereich und Mitte in y; der y-Bereich folgt aus der gleichen Einheit
+  const KAT = [
+    { t: '0.5x^2', h: '\\frac{1}{2}x^{2}', dh: 'x', d: x => x, a: -2.8, b: 2.8, xc: 0, hx: 3.5, yc: 1.9 },
+    { t: '0.25x^3-x', h: '\\frac{1}{4}x^{3} - x', dh: '\\frac{3}{4}x^{2} - 1', d: x => 0.75 * x * x - 1, a: -2.6, b: 2.6, xc: 0, hx: 3.25, yc: 0 },
+    { t: 'sqrt(x)', h: '\\sqrt{x}', dh: '\\frac{1}{2\\sqrt{x}}', d: x => 1 / (2 * Math.sqrt(x)), a: 0.25, b: 6, xc: 3, hx: 3.5, yc: 1.5 },
+    { t: 'e^x', h: 'e^{x}', dh: 'e^{x}', d: x => Math.exp(x), a: -3, b: 1.1, xc: -0.75, hx: 2.75, yc: 1.4 },
+    { t: '1/x', h: '\\frac{1}{x}', dh: '-\\frac{1}{x^{2}}', d: x => -1 / (x * x), a: -3.2, b: 3.2, xc: 0, hx: 3.5, yc: 0, luecke: 0.5 },
+  ];
+  const S = { fi: 0, eigen: null, x0: 1, tan: true, nor: true };
+  const kat = () => S.eigen || KAT[S.fi];
+  let baum = T_lies(kat().t);
+  const f = x => T_wert(baum, x);
+  const abl = x => kat().d ? kat().d(x) : (f(x + 1e-6) - f(x - 1e-6)) / 2e-6;
+  const zul = x => Number.isFinite(f(x)) && Number.isFinite(abl(x)) && !(kat().luecke && Math.abs(x) < kat().luecke);
+  const zeigeZahl = v => { const r = Math.sign(v) * Math.round(Math.abs(v) * 1000) / 1000; return { tex: zTex(r, 3), genau: Math.abs(r - v) < 1e-9 }; };   // kaufmännisch, auch bei −
+  let K = null, B = null;
 
-  /* ---------- Bild ---------- */
-  function zeichne(){
-    const handy = WZ.handy(), W = handy ? 360 : 560, H = handy ? 260 : 290, [fx0, fx1, fy0, fy1] = fkt().f, feld = R('svg').closest('.st-feld');
-    const { xmin, xmax, ymin, ymax } = G_zoom(feld, { xmin: fx0, xmax: fx1, ymin: fy0, ymax: fy1 }, zeichne);   // zoombar (graph.js)
-    const K = G_koord({ W, H, xmin, xmax, ymin, ymax, xName: 'x', yName: 'y' });
-    const a = x0(), hh = h(), fa = f(a), fb = f(a + hh), m = (fb - fa) / hh, gerade = (s, kl) => K.linie(xmin, fa + s * (xmin - a), xmax, fa + s * (xmax - a), kl);
-    let g = K.grund + K.kurve(f, 'g-k1');
-    if (Number.isFinite(fb)){
-      g += gerade(m, 'st-sek') + K.linie(a, fa, a + hh, fa, 'st-h') + K.linie(a + hh, fa, a + hh, fb, 'st-h') + K.punkt(a + hh, fb, 'g-p2', 6)
-        + `<text class="st-t q" x="${(K.px(a + hh) + 8).toFixed(1)}" y="${(K.py(fb) - 8).toFixed(1)}">Q</text>`;
+  function setzeX(x){
+    const k = kat(); x = Math.max(k.a, Math.min(k.b, Math.round(x / 0.05) * 0.05));
+    if (!zul(x)){                                                   // zur nächsten erlaubten Stelle
+      for (let d = 0.05; d < 10; d += 0.05){ if (x + d <= k.b && zul(x + d)) { x += d; break; } if (x - d >= k.a && zul(x - d)) { x -= d; break; } }
     }
-    if (S.tangente || S.geloest || Math.abs(hh) <= 0.01) g += gerade(abl(a), 'st-tan');
-    g += K.punkt(a, fa, 'g-p1', 7) + `<text class="st-t p" x="${(K.px(a) - 10).toFixed(1)}" y="${(K.py(fa) - 10).toFixed(1)}" text-anchor="end">P</text>`;
-    const svg = R('svg'); svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.innerHTML = g;
+    S.x0 = Math.round(x * 100) / 100; zeichne();
+  }
+
+  function zeichne(){
+    const handy = WZ.handy(), W = handy ? 340 : 540, H = handy ? 320 : 315, k = kat();
+    const auto = TN_fenster(k.xc, k.yc, k.hx, W, H, { l: 34, r: 12, o: 16, u: 24 }), feld = R('svg').closest('.tn-feld');
+    B = G_zoom(feld, auto, zeichne);                                  // zoombar (graph.js); gleiche Einheiten bleiben
+    const sch = B === auto ? 1 : G_schritt(B.xmax - B.xmin, 9);
+    K = G_koord({ W, H, ...B, sx: sch, sy: sch, zahlenX: handy ? 2 : 1, zahlenY: 1, xName: 'x', yName: 'y' });
+    const x0 = S.x0, y0 = f(x0), m = abl(x0);
+    let g = K.grund + K.kurve(f, 'g-k1');
+    if (S.tan) g += K.linie(B.xmin, y0 + m * (B.xmin - x0), B.xmax, y0 + m * (B.xmax - x0), 'tn-tan');
+    if (S.nor) g += Math.abs(m) < 1e-9 ? K.linie(x0, B.ymin, x0, B.ymax, 'tn-nor') : K.linie(B.xmin, y0 - (B.xmin - x0) / m, B.xmax, y0 - (B.xmax - x0) / m, 'tn-nor');
+    g += `<g clip-path="url(#${K.id})">`;                             // P, Winkel, Griff nur in der Zeichenfläche (beim Zoomen)
+    if (S.tan && S.nor) g += TN_rechterWinkel(K, x0, y0, m);
+    g += K.punkt(x0, y0, 'g-perg', 7) + `<text class="tn-p" x="${(K.px(x0) - 10).toFixed(1)}" y="${(K.py(y0) - 12).toFixed(1)}" text-anchor="end">P</text>`;
+    g += `<circle class="tn-griff" data-griff="P" data-zieh cx="${K.px(x0).toFixed(1)}" cy="${K.py(y0).toFixed(1)}" r="22"><title>P ziehen</title></circle></g>`;
+    const svg = R('svg'); svg.setAttribute('width', W); svg.setAttribute('height', H); svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.innerHTML = g;
     G_zoomKnoepfe(feld, K);
     text();
   }
   function text(){
-    const a = x0(), hh = h(), fa = f(a), fb = f(a + hh), m = (fb - fa) / hh;
-    WZ.reglerWert(R('wx'), WZ.zahl(a, 2)); WZ.reglerWert(R('wh'), WZ.zahl(hh, 3)); R('rx').value = S.xw === null ? S.ix : naechste(fkt().xs, a); R('rh').value = S.hw === null ? S.ih : naechste(H_LISTE, hh);
-    R('dq').innerHTML = Number.isFinite(fb)
-      ? F(`\\begin{aligned} m &= \\dfrac{f(${zTex(a + hh, 3)}) - f(${zTex(a, 2)})}{${zTex(hh, 3)}} \\\\[4pt] &= \\dfrac{${zTex(fb)} - ${kl(fa)}}{${zTex(hh, 3)}} \\approx ${kTex('st-m', zTex(m))} \\end{aligned}`, true)   // zweizeilig: passt auch aufs Handy
-      : M('Q liegt außerhalb des Definitionsbereichs – wähle ein anderes $h$.');
-    const zeilen = [1, 0.1, 0.01, 0.001].map(k => [k, -k]);
-    const grenze = S.geloest || S.tangente;
-    R('tab').innerHTML = `<tr><th>${F('h')}</th><th>Steigung</th><th>${F('h')}</th><th>Steigung</th></tr>`
-      + zeilen.map(([p, n]) => `<tr${p === Math.abs(hh) ? ' class="an"' : ''}><td>${zf(p, 3)}</td><td>${zf(dq(a, p))}</td><td>${zf(n, 3)}</td><td>${zf(dq(a, n))}</td></tr>`).join('')
-      + `<tr class="grenze"><td colspan="2">${F('h \\to 0')}</td><td colspan="2">${grenze ? F(`${gl(abl(a))} ${zTex(abl(a))}`) : '?'}</td></tr>`;
-    R('fx0').innerHTML = F(`f'(${zTex(a, 2)}) =`);
-    R('frage').innerHTML = M(`Welche Steigung hat die <b>Tangente</b> an den Graphen von $f(x) = ${ftex()}$ bei $x_0 = ${zTex(a, 2)}$? Lies ab, wohin die Sekantensteigungen laufen – auf zwei Nachkommastellen.`);
-    R('tangente').textContent = S.tangente ? 'Tangente ausblenden' : 'Tangente zeigen';
-    const schluessel = `${ftex()}|${a}`; if (schluessel !== S.wegFuer) { S.wegFuer = schluessel; baueWeg(); }   // Weg nur neu, wenn sich f oder x0 ändert
-    root.dataset.loesung = abl(a).toFixed(8); root.dataset.m = Number.isFinite(m) ? m.toFixed(8) : '';
+    const x0 = S.x0, y0 = f(x0), m = abl(x0), k = kat();
+    R('rx').value = Math.round((x0 - k.a) / (k.b - k.a) * 100); WZ.reglerWert(R('wx'), WZ.zahl(x0, 2));
+    const X = zeigeZahl(x0), Y = zeigeZahl(y0), Mt = zeigeZahl(m), gl = z => z.genau ? '=' : '\\approx';
+    const waag = Math.abs(m) < 1e-9, mn = waag ? null : -1 / m, Mn = waag ? null : zeigeZahl(mn);
+    const gerade = (s, x, y) => { const b = y - s * x, S_ = zeigeZahl(s), Bz = zeigeZahl(b), st = S_.tex === '1' ? '' : S_.tex === '-1' ? '-' : S_.tex;
+      const bt = Math.abs(b) < 5e-4 ? '' : Bz.tex.startsWith('-') ? ` - ${Bz.tex.slice(1)}` : ` + ${Bz.tex}`;
+      return { tex: Math.abs(s) < 5e-4 ? Bz.tex : `${st}x${bt}`, genau: S_.genau && Bz.genau }; };
+    const T = gerade(m, x0, y0), N = waag ? null : gerade(mn, x0, y0);
+    const zeilen = [
+      `P\\left(${X.tex} \\mid ${Y.tex}\\right)`,
+      k.dh ? `f'(x) = ${k.dh}` : null,                                      // Ableitung (eigene Funktion: ableitung.js)
+      `m = f'(${X.tex}) ${gl(Mt)} ${kTex('tn-ct', Mt.tex)}`,
+      S.tan ? `${kTex('tn-ct', 't(x)')} ${gl(T)} ${T.tex}` : null,
+      S.nor ? (waag ? `${kTex('tn-cn', '\\text{Normale}')}\\colon\\; x = ${X.tex}` : `m_n = -\\frac{1}{m} ${gl(Mn)} ${kTex('tn-cn', Mn.tex)}`) : null,
+      S.nor && !waag ? `${kTex('tn-cn', 'n(x)')} ${gl(N)} ${N.tex}` : null,
+    ].filter(Boolean);
+    R('werte').innerHTML = zeilen.map(z => `<div class="tn-wz">${F(z)}</div>`).join('');
+    R('erkl').innerHTML = waag ? M('Hier ist $m = 0$: Die Tangente liegt waagerecht, die Normale steht senkrecht – sie hat keine Steigung, ihre Gleichung ist $x = x_0$.')
+      : M('Die Tangente hat in $P$ die Steigung des Graphen, $m = f\'(x_0)$. Die Normale steht senkrecht darauf: Ihre Steigung ist $-\\frac{1}{m}$, das Produkt beider Steigungen ist $-1$.');
+    R('ztan').classList.toggle('an', S.tan); R('znor').classList.toggle('an', S.nor);
     root.querySelectorAll('[data-fi]').forEach(b => b.classList.toggle('an', !S.eigen && +b.dataset.fi === S.fi));
+    root.dataset.x0 = x0; root.dataset.m = m; root.dataset.y0 = y0;
   }
 
-  /* ---------- Prüfen ---------- */
-  function pruefe(){
-    const feld = R('antwort'), aus = (art, t) => { WZ.rueck(R('rueck'), art, t); feld.className = 'wz-eingabe ' + art; };
-    let e; try { e = WZ.liesZahl(feld.value, { praefix: "(?:f'\\(x_?0?\\)|m)" }); } catch (err) { return aus('nein', err.message); }
-    const a = x0(), soll = abl(a), SEK = [1, 0.5, 0.2, 0.1, -0.1, -0.2, -0.5, -1];
-    const sekText = k => M(`Das ist die Sekantensteigung für $h = ${zTex(k, 2)}$. Die Tangente ist der Grenzwert für $h \\to 0$ – nimm kleinere $h$.`);
-    const r = WZ.zahlPruefen(e, soll, { fehler: [...SEK.map(k => [dq(a, k), sekText(k)]),
-      [f(a), M(`Das ist der Funktionswert $f(${zTex(a, 2)})$ – gesucht ist die Steigung.`)]] });
-    if (r.art === 'ok'){ S.geloest = true; zeichne(); return aus('ok', M(`${r.gerundet ? 'Richtig (gerundet)!' : 'Richtig!'} $f'(${zTex(a, 2)}) ${gl(soll)} ${zTex(soll)}$. Die Sekanten drehen sich zu dieser Tangente.`)); }
-    if (r.text && SEK.some(k => r.text.startsWith(sekText(k)))) return aus('fast', r.text);       // Sekante statt Tangente: auf dem Weg
-    aus(r.art, r.text || M('Schau, wohin die Werte in der Tabelle laufen, wenn $h$ immer kleiner wird – von beiden Seiten.'));
-  }
-  /* ---------- Lösungsweg: Differenzenquotient → h gegen 0 von beiden Seiten → Grenzwert ---------- */
-  function baueWeg(){
-    const a = x0(), fa = f(a), s_ = abl(a);
-    const zeile = k => `${zTex(k, 3)} & ${Number.isFinite(dq(a, k)) ? zTex(dq(a, k)) : '\\text{–}'} & ${zTex(-k, 3)} & ${Number.isFinite(dq(a, -k)) ? zTex(dq(a, -k)) : '\\text{–}'}`;
-    weg.setze([
-      ['Differenzenquotient', M(`$P\\,(${zTex(a, 2)} \\mid ${zTex(fa)})$, $Q$ im Abstand $h$:`) + FB(`m(h) = \\dfrac{f(${zTex(a, 2)} + h) - f(${zTex(a, 2)})}{h}`)],
-      ['h gegen 0', 'Von rechts und von links:' + FB(`\\begin{array}{r|r|r|r} h & m(h) & h & m(h) \\\\ \\hline ${[0.1, 0.01, 0.001].map(zeile).join(' \\\\ ')} \\end{array}`)],
-      ['Grenzwert', M('Beide Seiten laufen auf denselben Wert zu:') + FB(`f'(${zTex(a, 2)}) = \\lim_{h \\to 0} m(h) ${gl(s_)} ${zTex(s_)}`), true],
-    ]);
-  }
-  const naechste = (liste, v) => liste.reduce((b, w, k) => Math.abs(w - v) < Math.abs(liste[b] - v) ? k : b, 0);
-  const ftex = () => S.eigen ? T_tex(baum) : fkt().h;
+  /* ---------- Ziehen: nur am Punkt (touch-action:none sitzt nur auf dem Griff) ---------- */
+  let zug = false;
+  const svgX = ev => { const s = R('svg'), p = s.createSVGPoint(); p.x = ev.clientX; p.y = ev.clientY; const q = p.matrixTransform(s.getScreenCTM().inverse());
+    return B.xmin + (q.x - K.R.l) / (K.W - K.R.l - K.R.r) * (B.xmax - B.xmin); };
+  R('svg').addEventListener('pointerdown', ev => { if (!(ev.target.dataset && ev.target.dataset.griff)) return; zug = true; R('svg').setPointerCapture(ev.pointerId); ev.preventDefault(); });
+  R('svg').addEventListener('pointermove', ev => { if (zug) setzeX(svgX(ev)); });
+  const los = () => { zug = false; }; R('svg').addEventListener('pointerup', los); R('svg').addEventListener('pointercancel', los);
 
   /* ---------- Bedienung ---------- */
-  function setzeFunktion(){
-    baum = T_lies(fkt().t); S.geloest = false; S.xw = S.hw = null; S.ix = Math.min(S.ix, fkt().xs.length - 1);
-    R('antwort').value = ''; R('antwort').className = 'wz-eingabe'; WZ.rueck(R('rueck'), '', '');
-    zeichne();
-  }
-  R('fkt').innerHTML = FKT.map((F_, i) => `<button class="knopf hell" data-fi="${i}">${F(F_.h)}</button>`).join(' ');
-  root.querySelectorAll('[data-fi]').forEach(b => b.onclick = () => { S.fi = +b.dataset.fi; S.eigen = null; setzeFunktion(); });
+  function setzeFunktion(){ baum = T_lies(kat().t); const k = kat(); setzeX(Math.min(k.b, Math.max(k.a, S.x0))); }
+  R('fkt').innerHTML = KAT.map((k, i) => `<button class="knopf hell" data-fi="${i}">${F(k.h)}</button>`).join(' ');
+  root.querySelectorAll('[data-fi]').forEach(b => b.onclick = () => { S.fi = +b.dataset.fi; S.eigen = null; R('eigen').classList.remove('falsch'); setzeFunktion(); });
   R('uebernehmen').onclick = () => {
     const e = R('eigen');
     try {
-      const b = T_lies(e.value), werte = X_STD.map(x => T_wert(b, x));
-      if (werte.filter(Number.isFinite).length < 6) throw new Error('Die Funktion ist an zu wenigen Stellen definiert.');
-      const ys = [...Array(161).keys()].map(i => T_wert(b, -4 + i * 0.05)).filter(Number.isFinite), lo = Math.max(-12, Math.min(...ys)), hi = Math.min(12, Math.max(...ys));
-      S.eigen = { t: e.value, xs: X_STD.filter(x => Number.isFinite(T_wert(b, x))), f: [-4, 4, Math.floor(lo - 1), Math.ceil(hi + 1)] };
-      while (S.eigen.xs.length < 13) S.eigen.xs.push(S.eigen.xs[S.eigen.xs.length - 1]);
-      try { const dt = AB.ableiten(b); S.eigen.d = x => T_wert(dt, x); S.eigen.dh = T_tex(dt); } catch (_) { /* x^x, |x|: numerisch */ }   // exakt mit den Schulregeln (ableitung.js)
-      e.classList.remove('falsch'); setzeFunktion();
-    } catch (err) { e.classList.add('falsch'); WZ.rueck(R('rueck'), 'nein', err.message); }
+      const bm = T_lies(e.value), xs = [...Array(141).keys()].map(i => -3.5 + i * 0.05), ys = xs.map(x => T_wert(bm, x)).filter(Number.isFinite);
+      if (ys.length < 40) throw new Error('Die Funktion ist zwischen −3,5 und 3,5 an zu wenigen Stellen definiert.');
+      const mitte = ys.slice().sort((p, q) => p - q)[Math.floor(ys.length / 2)];
+      S.eigen = { t: e.value, a: -3.5, b: 3.5, xc: 0, hx: 4, yc: Math.max(-20, Math.min(20, mitte)) };
+      try { const d = AB.ableiten(bm); S.eigen.d = x => T_wert(d, x); S.eigen.dh = T_tex(d); } catch (_) { /* x^x, |x|: numerisch */ }
+      baum = bm; e.classList.remove('falsch'); setzeX(S.x0);
+    } catch (err) { e.classList.add('falsch'); R('erkl').innerHTML = `<span class="tn-fehler">${err.message}</span>`; }
   };
-  R('eigen').addEventListener('keydown', e => { if (e.key === 'Enter') R('uebernehmen').click(); });
-  const neuesX0 = () => { S.geloest = false; R('antwort').value = ''; R('antwort').className = 'wz-eingabe'; WZ.rueck(R('rueck'), '', ''); zeichne(); };
-  R('rx').addEventListener('input', () => { S.ix = +R('rx').value; S.xw = null; neuesX0(); });
-  R('rh').addEventListener('input', () => { S.ih = +R('rh').value; S.hw = null; zeichne(); });
-  /* Werte auch eintippen (wie Parabeln): so viele Stellen, wie Anzeige und Rechnung zeigen – nichts wird still gerundet */
-  const stellen = (v, n) => Math.abs(Math.round(v * 10 ** n) - v * 10 ** n) < 1e-9;
+  R('eigen').addEventListener('keydown', ev => { if (ev.key === 'Enter') R('uebernehmen').click(); });
+  R('rx').addEventListener('input', () => { const k = kat(); setzeX(k.a + (k.b - k.a) * R('rx').value / 100); });
+  /* x0 auch eintippen (wie Sekante): höchstens zwei Stellen wie die Anzeige – nichts wird still gerundet, der Schieber springt auf die nächste Stufe */
   WZ.reglerEingabe(R('wx'), ({ v }) => {
-    const [lo, hi] = fkt().f;
-    if (!stellen(v, 2)) return 'Für x₀ bitte höchstens zwei Nachkommastellen.';
-    if (v < lo || v > hi) return `Für x₀ bitte eine Zahl zwischen ${WZ.zahl(lo)} und ${WZ.zahl(hi)}.`;
-    if (!Number.isFinite(f(v)) || !Number.isFinite(abl(v))) return `An der Stelle ${WZ.zahl(v)} ist f nicht ableitbar – andere Stelle wählen.`;
-    S.xw = v; neuesX0(); return null; });
-  WZ.reglerEingabe(R('wh'), ({ v }) => {
-    if (v === 0) return 'h = 0 geht nicht – durch 0 kann man nicht teilen. Nimm ein kleines h wie 0,001.';
-    if (!stellen(v, 3)) return 'Für h bitte höchstens drei Nachkommastellen.';
-    if (Math.abs(v) > 3) return 'Für h bitte eine Zahl zwischen −3 und 3.';
-    S.hw = v; zeichne(); return null; });
-  R('tangente').onclick = () => { S.tangente = !S.tangente; zeichne(); };
-  R('pruefen').onclick = pruefe;
-  R('antwort').addEventListener('keydown', e => { if (e.key === 'Enter') pruefe(); });
+    const k = kat();
+    if (Math.abs(Math.round(v * 100) - v * 100) > 1e-9) return 'Für x₀ bitte höchstens zwei Nachkommastellen.';
+    if (v < k.a || v > k.b) return `Für x₀ bitte eine Zahl zwischen ${WZ.zahl(k.a)} und ${WZ.zahl(k.b)}.`;
+    if (!Number.isFinite(f(v))) return `An der Stelle ${WZ.zahl(v)} ist f nicht definiert – andere Stelle wählen.`;
+    if (!Number.isFinite(abl(v))) return `An der Stelle ${WZ.zahl(v)} ist f nicht ableitbar – andere Stelle wählen.`;
+    if (k.luecke && Math.abs(v) < k.luecke) return `Zu nah an der Polstelle x = 0 – bitte x₀ ≤ −${WZ.zahl(k.luecke)} oder x₀ ≥ ${WZ.zahl(k.luecke)}.`;
+    S.x0 = v; zeichne(); return null; });
+  R('ztan').onclick = () => { S.tan = !S.tan; zeichne(); };
+  R('znor').onclick = () => { S.nor = !S.nor; zeichne(); };
   window.addEventListener('handy-wechsel', zeichne);
   zeichne();
-  return { S, zeichne, pruefe, f: x => f(x), abl, dq, H_LISTE, FKT };
+  return { S, setzeX, zeichne, KAT, f: x => f(x), abl: x => abl(x) };
 })();
 
-/* Eingabehilfe ⓘ (technik/hilfe/): eigene Funktion mit T_lies, Steigung mit WZ.liesZahl */
-EH.melde(() => EH.mit(EH.terme(), EH.zahlen(s => WZ.liesZahl(s).v)));
+const TANGENTE = (() => {
+  const root = document.querySelector('[data-tangente]');
+  const R = r => root.querySelector(`[data-r="${r}"]`);
+  const S = { art: 'tangente', A: null, bild: false, geloest: false, dein: null };
+  const weg = WZ.weg(root);
+
+  /* ---------- Aufgaben erzeugen ---------- */
+  const QS = (...l) => WZ.eins(l.map(v => Array.isArray(v) ? Q(v[0], v[1]) : Q(v)));
+  function zufallStelle(){
+    const t = WZ.eins(['p2', 'p2', 'p2', 'p3', 'p3', 'kehr', 'wurzel', 'exp']);
+    if (t === 'p2') return { Fn: { art: 'poly', k: [Q(WZ.rnd(-5, 5)), Q(WZ.rnd(-4, 4)), QS(1, -1, 2, -2, [1, 2], [-1, 2])] }, x0: Q(WZ.rnd(-3, 3)) };
+    if (t === 'p3') return { Fn: { art: 'poly', k: [Q(WZ.rnd(-4, 4)), Q(WZ.rnd(-4, 4)), Q(WZ.rnd(-3, 3)), QS(1, -1, [1, 2], [-1, 2])] }, x0: Q(WZ.rnd(-2, 2)) };
+    if (t === 'kehr') return { Fn: { art: 'kehr', a: QS(1, 2, 4, -1, -2) }, x0: QS(1, 2, -1, -2, 4, [1, 2]) };
+    if (t === 'wurzel') return { Fn: { art: 'wurzel', a: QS(1, 2, 4) }, x0: QS(1, 4, 9, [1, 4]) };
+    return { Fn: { art: 'exp' }, x0: QS(0, 1, -1) };
+  }
+  const tangenteIn = (Fn, x0) => { const f0 = TN_F.wert(Fn, x0), m = TN_F.ablWert(Fn, x0); return { f0, m, g: { m, b: ewSub(f0, ewMul(m, ewZ(x0))) } }; };
+  function normaleIn(Fn, x0){
+    const { f0, m } = tangenteIn(Fn, x0);
+    if (ewNull(m)) return { f0, m, g: { senk: ewZ(x0) } };
+    const mn = ewNeg(ewKehr(m)); return { f0, m, mn, g: { m: mn, b: ewSub(f0, ewMul(mn, ewZ(x0))) } };
+  }
+  const passt = (f0, m) => Math.abs(ewWert(f0)) <= 40 && Math.abs(ewWert(m)) <= 40;
+  const ARTEN = {
+    tangente(){
+      for (;;){ const { Fn, x0 } = zufallStelle(), T = tangenteIn(Fn, x0); if (!passt(T.f0, T.m) || ewNull(T.m)) continue;
+        return { art: 'tangente', frage: 'tangente', Fn, x0, f0: T.f0, m: T.m, loes: [T.g] }; }
+    },
+    normale(){
+      for (;;){ const { Fn, x0 } = zufallStelle(), N = normaleIn(Fn, x0); if (!passt(N.f0, N.m) || ewNull(N.m)) continue;
+        return { art: 'normale', frage: 'normale', Fn, x0, f0: N.f0, m: N.m, mn: N.mn, loes: [N.g] }; }
+    },
+    steigung(){
+      if (Math.random() < 0.5){                                   // Parabel: genau eine Stelle
+        const a = QS(1, -1, 2, -2, [1, 2], [-1, 2]), b = Q(WZ.rnd(-4, 4)), x1 = Q(WZ.rnd(-3, 3)), Fn = { art: 'poly', k: [Q(WZ.rnd(-5, 5)), b, a] };
+        const m = TN_F.ablWert(Fn, x1);
+        return { art: 'steigung', frage: 'tangente', Fn, mVorgabe: m, stellen: [x1], loes: [tangenteIn(Fn, x1).g] };
+      }
+      for (;;){                                                    // a·x³ + c·x + d: zwei symmetrische Stellen
+        const a = QS(1, -1, [1, 2], [-1, 2], [1, 3]), c = Q(WZ.rnd(-4, 4)), k = WZ.eins([1, 2]), Fn = { art: 'poly', k: [Q(WZ.rnd(-3, 3)), c, Q(0), a] };
+        const m = TN_F.ablWert(Fn, Q(k)); if (Math.abs(ewWert(m)) > 30) continue;
+        return { art: 'steigung', frage: 'tangente', Fn, mVorgabe: m, stellen: [Q(-k), Q(k)], loes: [tangenteIn(Fn, Q(-k)).g, tangenteIn(Fn, Q(k)).g] };
+      }
+    },
+    waagerecht(){
+      let Fn, x0;
+      if (Math.random() < 0.5){ const a = QS(1, -1, 2, -2, [1, 2], [-1, 2]); x0 = Q(WZ.rnd(-3, 3)); Fn = { art: 'poly', k: [Q(WZ.rnd(-4, 4)), qMul(Q(-2), qMul(a, x0)), a] }; }
+      else { const a = QS(1, -1, [1, 3], [-1, 3]), k = WZ.eins([1, 2]); x0 = Q(WZ.eins([-k, k])); Fn = { art: 'poly', k: [Q(WZ.rnd(-3, 3)), qMul(Q(-3 * k * k), a), Q(0), a] }; }
+      const frage = Math.random() < 0.6 ? 'normale' : 'tangente', T = tangenteIn(Fn, x0);
+      return { art: 'waagerecht', frage, Fn, x0, f0: T.f0, m: T.m, loes: [frage === 'normale' ? { senk: ewZ(x0) } : T.g] };
+    },
+  };
+  ARTEN.gemischt = () => ARTEN[WZ.eins(['tangente', 'tangente', 'normale', 'normale', 'steigung', 'waagerecht'])]();
+
+  /* ---------- Setzen ---------- */
+  function neu(art){ S.art = art; setze(ARTEN[art]()); }
+  function setze(A){
+    S.A = A; S.bild = false; S.geloest = false; S.dein = null;
+    const was = A.art === 'steigung' ? (A.loes.length > 1 ? 'Tangenten mit Steigung m:' : 'Tangente mit Steigung m:') : A.frage === 'tangente' ? 'Tangente:' : 'Normale:';
+    R('was').textContent = was;
+    R('term').innerHTML = `<span class="tn-f">${F(`f(x) = ${TN_F.tex(A.Fn)}`)}</span>`
+      + (A.art === 'steigung' ? `<span class="tn-f">${F(`m = ${ewTex(A.mVorgabe)}`)}</span>` : `<span class="tn-f">${F(`x_0 = ${qTex(A.x0)}`)}</span>`);
+    const name = A.art === 'tangente' ? 't(x) =' : A.art === 'normale' ? 'n(x) =' : '';
+    R('name').innerHTML = name ? F(name) : '';
+    R('antwort').placeholder = A.art === 'steigung' ? (A.loes.length > 1 ? 'y = …; y = …' : 'z. B. y = 2x - 3') : A.art === 'waagerecht' ? 'z. B. y = 3 oder x = 2' : 'z. B. 2x - 3';
+    R('antwort').value = ''; R('antwort').className = 'wz-eingabe tn-antwort';
+    const hinweis = A.art === 'steigung' ? (A.loes.length > 1 ? 'Es gibt zwei Stellen – trag beide Tangenten ein, getrennt durch ein Semikolon.' : 'Gib die Gleichung der Tangente an.')
+      : A.art === 'waagerecht' ? 'Gib die Gleichung als $y = \\ldots$ oder $x = \\ldots$ an.' : 'Gib die Geradengleichung an – jede gleichwertige Schreibweise zählt.';
+    WZ.rueck(R('rueck'), '', M(hinweis));
+    root.querySelectorAll('[data-art]').forEach(b => b.classList.toggle('an', b.dataset.art === S.art));
+    root.dataset.loesung = A.loes.map(geradeText).join(';'); root.dataset.f = TN_F.text(A.Fn); root.dataset.art = A.art; root.dataset.frage = A.frage;
+    root.dataset.x0 = A.x0 ? qText(A.x0) : ''; root.dataset.mvorgabe = A.mVorgabe ? ewText(A.mVorgabe) : '';
+    weg.setze(baueWeg(A)); zeichneBild();
+  }
+
+  /* ---------- Lösungsweg ---------- */
+  const nz = () => WZ.handy() ? 2 : 4;                          // Summanden je Zeile beim Einsetzen
+  function ansatzTex(name, mE, x0){                              // t(x) = m(x − x0) + f(x0), eingesetzt
+    const mt = ewTex(mE), rational = Object.keys(mE).every(k => +k === 0);
+    const fakt = mt === '1' ? '' : mt === '-1' ? '-' : !ewEinGlied(mE) ? `(${mt})` : mt;
+    const klammer = qNull(x0) ? 'x' : klTex(`x ${x0.z < 0 ? '+' : '-'} ${qTex(Q(Math.abs(x0.z), x0.n))}`);   // \left( nur um Brüche
+    const luft = qNull(x0) && !rational && fakt && fakt !== '-' ? '\\,' : '';                                 // e·x lesbar: kleiner Abstand vor x
+    return fE => { const ft = ewTex(fE); return `${name} = ${fakt}${luft}${klammer}${ewNull(fE) ? '' : ft.startsWith('-') ? ' - ' + ft.slice(1) : ' + ' + ft}`; };
+  }
+  function schritteStelle(A, name, nor){
+    const s = [], xt = qTex(A.x0), x0 = A.x0;
+    s.push(['Ableitung', F(`f'(x) = ${TN_F.dTex(A.Fn)}`)]);
+    s.push(['Steigung', F(`\\begin{aligned} m &= f'(${xt}) \\\\ &= ${einsetzZeilen(A.Fn, x0, true, nz())} \\\\ &= ${ewTex(A.m)} \\end{aligned}`)]);
+    s.push(['Punkt', F(`\\begin{aligned} f(${xt}) &= ${einsetzZeilen(A.Fn, x0, false, nz())} \\\\ &= ${ewTex(A.f0)} \\end{aligned}`) + ' ' + F(`\\Rightarrow\\; P\\left(${xt} \\mid ${ewTex(A.f0)}\\right)`)]);
+    if (nor && ewNull(A.m)) return s.concat([['Normale', M(`Die Tangente ist waagerecht ($m = 0$). Die Normale steht senkrecht – eine senkrechte Gerade hat keine Steigung:`) + ' ' + F(`x = ${xt}`), true]]);
+    if (!nor && ewNull(A.m)) return s.concat([['Tangente', M('Die Steigung ist $0$: Die Tangente ist waagerecht und geht durch $P$.') + ' ' + F(`t(x) = ${ewTex(A.f0)}`), true]]);
+    let mE = A.m;
+    if (nor){                                                     // kein Doppelbruch: bei gebrochenem m „−1 : m“
+      mE = A.mn; const mt = ewTex(A.m), ganz = /^-?\d+$/.test(mt);
+      s.push(['Normalensteigung', F(`m_n = -\\frac{1}{m} = ${ganz ? `-\\frac{1}{${mt}}` : `-1 : ${klTex(mt)}`} = ${ewTex(mE)}`)]);
+    }
+    const ns = nor ? 'n(x)' : 't(x)', ms = nor ? 'm_n' : 'm';
+    s.push(['Ansatz', F(`${ns} = ${ms} \\cdot (x - x_0) + f(x_0)`)]);
+    const g = A.loes[0], eingesetzt = ansatzTex(ns, mE, x0)(A.f0);
+    s.push(['Einsetzen', F(eingesetzt)]);
+    const ergebnis = geradeTex(ns, g);
+    if (ergebnis !== eingesetzt) s.push(['Ergebnis', F(ergebnis), true]); else s[s.length - 1][2] = true;
+    return s;
+  }
+  function baueWeg(A){
+    if (A.art !== 'steigung') return schritteStelle(A, A.frage === 'tangente' ? 't(x)' : 'n(x)', A.frage === 'normale');
+    const s = [], mt = ewTex(A.mVorgabe), k = A.Fn.k;
+    s.push(['Ableitung', F(`f'(x) = ${TN_F.dTex(A.Fn)}`)]);
+    const ab = TN_F.abl(A.Fn).k;
+    if (A.stellen.length === 1){
+      s.push(['Stelle suchen', F(`\\begin{aligned} f'(x) &= ${mt} \\\\ ${pTex(ab)} &= ${mt} \\\\ ${pTex([Q(0), ab[1]])} &= ${qTex(qSub(A.mVorgabe[0] || Q(0), ab[0]))} \\\\ x &= ${qTex(A.stellen[0])} \\end{aligned}`)]);
+    } else {
+      const a3 = qMul(k[3], Q(3)), rest = qSub(qDiv(A.mVorgabe[0] || Q(0), Q(1)), k[1]);
+      s.push(['Stellen suchen', F(`\\begin{aligned} ${pTex(ab)} &= ${mt} \\\\ ${pTex([Q(0), Q(0), a3])} &= ${qTex(rest)} \\\\ x^{2} &= ${qTex(qDiv(rest, a3))} \\\\ x &= \\pm ${qTex(A.stellen[1])} \\end{aligned}`)]);
+    }
+    A.stellen.forEach((x, i) => {
+      const f0 = TN_F.wert(A.Fn, x), nr = A.stellen.length > 1 ? `_{${i + 1}}` : '';
+      s.push([A.stellen.length > 1 ? `Punkt ${i + 1}` : 'Punkt', F(`\\begin{aligned} f(${qTex(x)}) &= ${einsetzZeilen(A.Fn, x, false, nz())} \\\\ &= ${ewTex(f0)} \\end{aligned}`)]);
+      s.push([A.stellen.length > 1 ? `Tangente ${i + 1}` : 'Tangente', F(`\\begin{aligned} t${nr}(x) &= ${ansatzTex('', A.mVorgabe, x)(f0).replace(/^ = /, '')} \\\\ &= ${geradeTex('', A.loes[i]).replace(/^ = /, '')} \\end{aligned}`), i === A.stellen.length - 1]);
+    });
+    return s;
+  }
+
+  /* ---------- Eingabe streng lesen ---------- */
+  function liesGeraden(text){
+    const teile = String(text).split(/;|\bund\b/).map(t => t.trim()).filter(Boolean);
+    /* getippte Genauigkeit je Gerade: meiste Nachkommastellen; ohne Dezimalzahl mit Bruch/Wurzel/π … exakt (Infinity), sonst 0 */
+    const stellenIn = t => { const d = [...t.matchAll(/\d[.,](\d+)/g)].map(m => m[1].length); return d.length ? Math.max(...d) : WZ.stellen(t) === Infinity ? Infinity : 0; };
+    if (!teile.length) throw new Error('Bitte eine Geradengleichung eintragen, z. B. 2x - 3.');
+    return teile.map(t => {
+      let s = t.replace(/−/g, '-');                                // Leerzeichen bleiben: T_lies liest streng („2 5“ ist nicht 25)
+      const senk = s.match(/^x\s*=(.+)$/);
+      if (senk){
+        if (/x/.test(senk[1])) throw new Error('Bei „x = …“ steht rechts eine Zahl, kein x.');
+        const w = T_wert(T_lies(senk[1]), 0); if (!Number.isFinite(w)) throw new Error(`„${t}“ ist keine Zahl.`);
+        return { senk: w, stellen: stellenIn(senk[1]) };
+      }
+      s = s.replace(/^(t[12]?\s*\(\s*x\s*\)|n\s*\(\s*x\s*\)|y|t[12]?|n)\s*=/, '').trim();
+      if (!s) throw new Error('Rechts vom Gleichheitszeichen fehlt der Term.');
+      if (s.includes('=')) throw new Error('Bitte nur eine Gleichung je Gerade, z. B. y = 2x - 3.');
+      const b = T_lies(s), xs = [-2, -1, 0, 1, 2, 3], v = xs.map(x => T_wert(b, x));
+      if (!v.every(Number.isFinite)) throw new Error('Dieser Term ist nicht überall definiert – eine Gerade schon.');
+      const m = v[3] - v[2], b0 = v[2];
+      if (xs.some((x, i) => Math.abs(v[i] - (m * x + b0)) > 1e-7 * Math.max(1, Math.abs(v[i])))) return { keineGerade: true };
+      return { m, b: b0, stellen: stellenIn(s) };
+    });
+  }
+  /* Eingabehilfe ⓘ: Geradengleichungen über liesGeraden, eigene Funktion über T_lies */
+  EH.melde(() => EH.mit({
+    zeilen: EH.zeilen(liesGeraden, [
+      ['y = 2x - 3', ['2x-3', 'y = 2x-3']],
+      ['y = 2(x-2) + 3', ['2(x-2)+3']],
+      ['y = 2x-1,\\ y = 3x', ['2x-1; 3x', '2x-1 und 3x']],
+      ['x = 2', ['x = 2']],
+    ]),
+    hinweise: ['Vor dem Term darf `y =`, `t(x) =` oder `n(x) =` stehen. Zwei Geraden mit `;` oder `und` trennen. Eine senkrechte Gerade: `x = 2`.'],
+  }, EH.terme()));
+  /* Toleranz nach getippten Stellen (Standard wie WZ.zahlPruefen, hier für m und b zugleich): mindestens zwei Stellen,
+     exakte Eingabe (Bruch, √ …) nur exakt; Fehlerbilder werden vor „fast“ gesucht (pruefe) */
+  const tolU = u => u.stellen === Infinity ? 1e-7 : 0.5 * 10 ** -Math.max(2, u.stellen) + 1e-9;
+  const tolF = u => u.stellen === Infinity ? 1e-7 : Math.max(tolU(u), 0.005 + 1e-9);   // Fehlerbilder, Hinweise: mindestens zwei Stellen
+  function vergleich(u, g){                                      // 'exakt' | 'gerundet' | false
+    const t = tolU(u);
+    if (g.senk !== undefined || u.senk !== undefined){
+      if (g.senk === undefined || u.senk === undefined) return false;
+      const d = Math.abs(u.senk - g.senk); return d < 1e-7 ? 'exakt' : d <= t ? 'gerundet' : false;
+    }
+    const dm = Math.abs(u.m - g.m), db = Math.abs(u.b - g.b);
+    return dm < 1e-7 * Math.max(1, Math.abs(g.m)) && db < 1e-7 * Math.max(1, Math.abs(g.b)) ? 'exakt' : dm <= t && db <= t ? 'gerundet' : false;
+  }
+  const nahe = (u, g, t) => g.senk !== undefined ? u.senk !== undefined && Math.abs(u.senk - g.senk) <= t
+    : u.senk === undefined && Math.abs(u.m - g.m) <= t && Math.abs(u.b - g.b) <= t;
+  const durch = (u, x, y) => u.senk === undefined && Math.abs(u.m * x + u.b - y) <= tolF(u);
+
+  /* ---------- Prüfen ---------- */
+  function fehlerbilder(A){                                      // [Gerade (Zahlen), Meldung] – didaktisch nächstes zuerst
+    const x0 = qWert(A.x0), f0 = ewWert(A.f0), m = ewWert(A.m), L = [], xt = zTex(x0, 4);
+    const durchP = s => ({ m: s, b: f0 - s * x0 });
+    if (A.frage === 'tangente'){
+      if (A.art === 'waagerecht'){
+        L.push([{ senk: x0 }, M(`Das ist die Normale. Die Tangente ist hier waagerecht: $t(x) = f(x_0)$.`)]);
+        L.push([{ m: 0, b: x0 }, M(`Die waagerechte Tangente liegt auf der Höhe $f(x_0)$, nicht bei $x_0$.`)]);
+      }
+      L.push([durchP(f0), M(`Als Steigung steht $f(x_0)$ – die Steigung der Tangente ist aber $f'(x_0)$.`)]);
+      L.push([{ m, b: f0 + m * x0 }, M(`Vorzeichen in der Klammer: Es heißt $(x - x_0)$, bei $x_0 = ${xt}$ also $${x0 < 0 ? `(x + ${zTex(-x0, 4)})` : `(x - ${xt})`}$.`)]);
+      L.push([{ m, b: -m * x0 }, M(`Der Funktionswert fehlt: $t(x) = f'(x_0)\\,(x - x_0) + f(x_0)$.`)]);
+      L.push([{ m, b: f0 }, M(`Die Klammer $(x - x_0)$ fehlt – so geht die Gerade nicht durch $P$.`)]);
+      L.push([{ m, b: 0 }, M(`Nur $y = m\\,x$: Die Gerade muss durch $P(x_0 \\mid f(x_0))$ gehen, nicht durch den Ursprung.`)]);
+      if (!ewNull(A.m)) L.push([durchP(-1 / m), M('Das ist die Normale – gesucht ist die Tangente.')]);
+    } else {
+      if (A.art === 'waagerecht'){
+        L.push([{ m: 0, b: f0 }, M('Das ist die Tangente. Die Normale steht senkrecht auf ihr: $x = x_0$.')]);
+        L.push([{ m: 0, b: x0 }, M(`Die Normale steht senkrecht – „$y = ${xt}$“ wäre waagerecht. Richtig ist eine Gleichung der Form $x = \\ldots$`)]);
+        L.push([{ senk: f0 }, M('Senkrechte Gerade $x = c$: Die Zahl ist die Stelle $x_0$, nicht der Funktionswert.')]);
+      } else {
+        L.push([durchP(1 / m), M('Der Kehrwert allein reicht nicht: Die Normale hat die Steigung $-\\frac{1}{m}$ – mit Minus.')]);
+        L.push([durchP(-m), M('Nur das Vorzeichen getauscht: Die Normale hat die Steigung $-\\frac{1}{m}$ – Kehrwert und Minus.')]);
+        L.push([durchP(m), M('Das ist die Tangente – gesucht ist die Normale.')]);
+        const mn = -1 / m;
+        L.push([{ m: mn, b: f0 + mn * x0 }, M(`Vorzeichen in der Klammer: Es heißt $(x - x_0)$, bei $x_0 = ${xt}$ also $${x0 < 0 ? `(x + ${zTex(-x0, 4)})` : `(x - ${xt})`}$.`)]);
+        L.push([{ m: mn, b: -mn * x0 }, M('Der Funktionswert fehlt: $n(x) = m_n\\,(x - x_0) + f(x_0)$.')]);
+        L.push([{ m: mn, b: f0 }, M('Die Klammer $(x - x_0)$ fehlt – so geht die Gerade nicht durch $P$.')]);
+        L.push([durchP(-1 / f0), M('Gerechnet wurde mit $f(x_0)$ statt mit der Steigung $f\'(x_0)$.')]);
+      }
+    }
+    return L.filter(([g]) => g.senk !== undefined ? Number.isFinite(g.senk) : Number.isFinite(g.m) && Number.isFinite(g.b));
+  }
+  function pruefe(){
+    const feld = R('antwort'), A = S.A, aus = (art, t) => { WZ.rueck(R('rueck'), art, t); feld.className = 'wz-eingabe tn-antwort ' + art; };
+    let us; try { us = liesGeraden(feld.value); } catch (e) { S.dein = null; zeichneBild(); return aus('nein', e.message); }
+    S.dein = us.filter(u => !u.keineGerade); zeichneBild();
+    if (us.some(u => u.keineGerade)) return aus('nein', M('Das ist keine Gerade – Tangente und Normale haben die Form $y = m\\,x + b$ (oder $x = c$).'));
+    const L = A.loes.map(geradeWerte), loesTex = () => A.loes.map((g, i) => F(geradeTex(A.art === 'steigung' ? (A.loes.length > 1 ? `t_{${i + 1}}(x)` : 't(x)') : A.frage === 'tangente' ? 't(x)' : 'n(x)', g))).join(' &nbsp; ');
+    const ok = gerundet => { S.geloest = true; zeichneBild(); aus('ok', (gerundet ? 'Richtig (gerundet). Exakt: ' : 'Richtig! ') + loesTex()); };
+    if (A.art === 'steigung'){
+      const passend = us.map(u => L.find(g => vergleich(u, g)));
+      if (us.length === L.length && passend.every(Boolean) && new Set(passend).size === L.length) return ok(us.some((u, i) => vergleich(u, passend[i]) === 'gerundet'));
+      if (us.length < L.length && passend.every(Boolean)) return aus('fast', M(`Eine Tangente stimmt – es gibt aber eine zweite Stelle mit $f'(x) = ${ewTex(A.mVorgabe)}$.`));
+      if (us.length > L.length && L.every(g => us.some(u => vergleich(u, g)))) return aus('nein', `Mit dieser Steigung gibt es nur ${L.length === 1 ? 'eine Tangente' : 'zwei Tangenten'} – eine Gerade ist zu viel.`);
+      const u = us.find((x, i) => !passend[i]), mv = ewWert(A.mVorgabe);
+      if (u.senk !== undefined) return aus('nein', M('Eine senkrechte Gerade hat keine Steigung – gesucht ist eine Tangente mit Steigung $m$.'));
+      if (Math.abs(u.m - mv) > tolF(u)) return aus('nein', M(`Die Steigung muss $m = ${ewTex(A.mVorgabe)}$ sein – deine Gerade hat eine andere.`));
+      const fm = T_wert(T_lies(TN_F.text(A.Fn)), mv);
+      if (Number.isFinite(fm) && Math.abs(u.b - (fm - mv * mv)) <= tolF(u)) return aus('nein', M(`Die Steigung $m$ ist keine Stelle: Gesucht ist die Stelle $x$ mit $f'(x) = ${ewTex(A.mVorgabe)}$.`));
+      return aus('nein', M(`Die Steigung stimmt, aber die Gerade berührt den Graphen nicht. Bestimme die Stelle${L.length > 1 ? 'n' : ''} mit $f'(x) = ${ewTex(A.mVorgabe)}$ und setze sie in $f$ ein.`));
+    }
+    if (us.length > 1) return aus('nein', 'Hier ist genau eine Gerade gesucht.');
+    const u = us[0], r = vergleich(u, L[0]);
+    if (r) return ok(r === 'gerundet');
+    const treffer = fehlerbilder(A).find(([g]) => nahe(u, g, tolF(u)));
+    if (treffer) return aus('nein', treffer[1]);
+    if (u.stellen !== Infinity && nahe(u, L[0], 0.05)) return aus('fast', 'Fast – genauer rechnen und erst am Ende auf zwei Nachkommastellen runden.');
+    const x0 = qWert(A.x0), f0 = ewWert(A.f0), soll = L[0];
+    if (soll.senk !== undefined) return aus('nein', M('Bei waagerechter Tangente steht die Normale senkrecht – ihre Gleichung hat die Form $x = \\ldots$'));
+    if (u.senk !== undefined) return aus('nein', M('Eine senkrechte Gerade $x = c$ ist hier nicht gesucht – die Gerade hat eine Steigung.'));
+    if (durch(u, x0, f0)) return aus('nein', M(`Die Gerade geht durch $P$, aber die Steigung stimmt nicht. Berechne ${A.frage === 'tangente' ? "$f'(x_0)$" : "$-\\frac{1}{f'(x_0)}$"}.`));
+    if (Math.abs(u.m - soll.m) <= tolF(u)) return aus('nein', M('Die Steigung stimmt, aber die Gerade geht nicht durch $P(x_0 \\mid f(x_0))$.'));
+    aus('nein', 'Nicht richtig. Deck den Lösungsweg Schritt für Schritt auf.');
+  }
+
+  /* ---------- Bild ---------- */
+  function zeichneBild(){
+    if (!S.bild){ R('flaeche').innerHTML = '<p class="wz-leer">Graph, Punkt und Gerade: „Bild zeigen“.</p>'; R('bild').textContent = 'Bild zeigen'; return; }
+    R('bild').textContent = 'Bild ausblenden';
+    const A = S.A, handy = WZ.handy(), W = handy ? Math.max(300, Math.min(360, R('flaeche').clientWidth || 340)) : 440, H = handy ? 300 : 320;
+    const fb = T_lies(TN_F.text(A.Fn)), f = x => T_wert(fb, x);
+    const stellen = A.art === 'steigung' ? A.stellen.map(qWert) : [qWert(A.x0)], ys = stellen.map(f);
+    const xc = (Math.min(...stellen) + Math.max(...stellen)) / 2, yc = (Math.min(...ys) + Math.max(...ys)) / 2;
+    const hx = Math.max(handy ? 3.5 : 4.5, (Math.max(...stellen) - Math.min(...stellen)) / 2 + 2.5);
+    const B = G_zoom(R('flaeche'), TN_fenster(xc, yc, hx, W, H, { l: 34, r: 12, o: 16, u: 24 }), zeichneBild);   // zoombar (graph.js)
+    const K = G_koord({ W, H, ...B, sx: G_schritt(B.xmax - B.xmin, 9), sy: G_schritt(B.xmax - B.xmin, 9), xName: 'x', yName: 'y', zahlenX: handy ? 2 : 1, zahlenY: handy ? 2 : 1 });
+    const linie = (g, kl) => g.senk !== undefined ? K.linie(g.senk, B.ymin, g.senk, B.ymax, kl) : K.linie(B.xmin, g.m * B.xmin + g.b, B.xmax, g.m * B.xmax + g.b, kl);
+    let g = K.grund + K.kurve(f, 'g-k1');
+    if (S.dein && !S.geloest) S.dein.forEach(u => { g += linie(u, 'tn-dein'); });
+    const fertig = S.geloest || (weg.anzahl() && weg.offen() === weg.anzahl());
+    if (fertig){
+      const L = A.loes.map(geradeWerte);
+      if (A.frage === 'normale' && A.art !== 'steigung'){
+        const m = ewWert(A.m), x0 = qWert(A.x0), y0 = ewWert(A.f0);
+        g += linie({ m, b: y0 - m * x0 }, 'tn-tan hilf') + linie(L[0], 'tn-nor') + `<g clip-path="url(#${K.id})">${TN_rechterWinkel(K, x0, y0, m)}</g>`;
+      } else L.forEach(l => { g += linie(l, 'tn-tan'); });
+    }
+    g += `<g clip-path="url(#${K.id})">`;                             // Beschriftung nur in der Zeichenfläche (beim Zoomen)
+    stellen.forEach((x, i) => { g += K.punkt(x, ys[i], 'g-perg', 6) + `<text class="tn-p" x="${(K.px(x) - 9).toFixed(1)}" y="${(K.py(ys[i]) - 11).toFixed(1)}" text-anchor="end">${stellen.length > 1 ? `P${i + 1}` : 'P'}</text>`; });
+    g += '</g>';
+    const leg = `<p class="tn-leg"><span class="k1">Graph von f</span>${fertig ? A.frage === 'normale' && A.art !== 'steigung' ? '<span class="k3">Normale</span><span class="k2 hilf">Tangente</span>' : `<span class="k2">Tangente${A.loes.length > 1 ? 'n' : ''}</span>` : ''}${S.dein && !S.geloest ? '<span class="kg">dein Vorschlag</span>' : ''}</p>`;
+    R('flaeche').innerHTML = K.svg(g) + leg;
+    G_zoomKnoepfe(R('flaeche'), K);
+  }
+
+  /* ---------- Bedienung ---------- */
+  R('pruefen').onclick = pruefe;
+  R('antwort').addEventListener('keydown', e => { if (e.key === 'Enter') pruefe(); });
+  root.querySelectorAll('[data-art]').forEach(b => b.onclick = () => neu(b.dataset.art));
+  R('bild').onclick = () => { S.bild = !S.bild; zeichneBild(); };
+  [R('schritt'), R('alle')].forEach(k => k.addEventListener('click', zeichneBild));     // Gerade erscheint, wenn der Weg ganz offen ist
+  window.addEventListener('handy-wechsel', () => {             // Weg neu setzen (Umbruch), aufgedeckte Schritte bleiben offen
+    if (!S.A) return; const offen = weg.offen(); weg.setze(baueWeg(S.A)); for (let i = 0; i < offen; i++) R('schritt').click(); zeichneBild();
+  });
+  setze({ ...(() => { const Fn = { art: 'poly', k: [Q(1), Q(0), Q(1, 2)] }, x0 = Q(2), T = tangenteIn(Fn, x0); return { art: 'tangente', frage: 'tangente', Fn, x0, f0: T.f0, m: T.m, loes: [T.g] }; })() });
+  return { S, neu, setze, pruefe, liesGeraden, vergleich, ARTEN, tangenteIn, normaleIn, weg };
+})();
 /* =====================================================================
    Folien-Navigation
    ===================================================================== */
