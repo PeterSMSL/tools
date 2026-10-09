@@ -839,9 +839,9 @@ html.handy .re-titelzeile{font-size:18px}
   html.re-druck .re-druckkopf img{height:10mm}
   html.re-druck .re-kopf, html.re-druck .re-titelzeile{display:none}   /* Fensterkopf und Überschrift: nur Aufgabe und Lösungsweg */
   html.re-druck .re-art{font-size:9.5pt;color:var(--tinte)}
-  html.re-druck .re-inhalt section{border:none;padding:0;margin:0 0 5mm;break-inside:avoid-page}
-  html.re-druck .re-inhalt h4{font-size:12pt;font-weight:700;letter-spacing:0;text-transform:none;color:var(--tinte);margin:0 0 2.5mm}
-  html.re-druck .re-absatz{overflow:visible;margin:0 0 2mm}
+  html.re-druck .re-inhalt section{border:none;padding:0;margin:0 0 5mm}   /* der Lösungsweg beginnt direkt nach der Aufgabe und bricht zwischen den Schritten um (Peter, 09.10.) */
+  html.re-druck .re-inhalt h4{font-size:12pt;font-weight:700;letter-spacing:0;text-transform:none;color:var(--tinte);margin:0 0 2.5mm;break-after:avoid-page}   /* Überschrift nie allein am Seitenende */
+  html.re-druck .re-absatz{overflow:visible;margin:0 0 2mm;break-inside:avoid-page}   /* ein Schritt bleibt beisammen */
   html.re-druck .re-absatz strong{color:var(--tinte);font-weight:700}
   html.re-druck .re-absatz math{font-size:1.05em}
   html.re-druck .re-absatz math[display="block"]{margin:2mm 0}

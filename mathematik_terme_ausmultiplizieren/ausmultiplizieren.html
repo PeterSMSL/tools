@@ -428,6 +428,9 @@ svg .frag{transform:none}
 .wz-regler .bt{font-size:15px;font-weight:700;color:var(--grau);white-space:nowrap;font-family:var(--m-schrift)}
 .wz-regler input[type=range]{flex:1;min-width:0;height:26px;accent-color:var(--orange-d)}
 .wz-regler b{font-size:17px;min-width:44px;text-align:center;font-variant-numeric:tabular-nums;color:var(--orange-d)}
+.wz-regler .wz-reglerwert{width:84px;flex:none;font-size:17px;text-align:center;padding:2px 6px;color:var(--orange-d);font-variant-numeric:tabular-nums}
+.wz-reglerfehler{font-size:15px;color:var(--m-falsch);margin:4px 0 0}
+.wz-reglerfehler:empty{display:none}
 /* Grafik-Grundformen (graph.js) */
 svg .g-gitter line{stroke:var(--m-gitter);stroke-width:1}
 svg .g-achse{stroke:var(--m-achse);stroke-width:1.6} svg .g-pfeil{fill:var(--m-achse)}
@@ -460,7 +463,18 @@ html.handy .wz-w .was{min-width:0;font-size:14px}
 html.handy .wz-m .bruch{font-size:16px}
 html.handy svg .g-tick{font-size:14px}
 html.handy svg .g-t{font-size:14px}
-html.handy .wz-regler{flex-wrap:wrap}
+html.handy .wz-regler{flex-wrap:wrap} html.handy .wz-regler .wz-reglerwert{height:42px}
+/* Zoom an jeder Skizze (graph.js: G_zoom, G_zoomKnoepfe) */
+.g-zoomfeld{position:relative;display:inline-block;max-width:100%}
+.g-zoomfeld > svg{display:block;max-width:100%;height:auto;cursor:grab;user-select:none;-webkit-user-select:none}   /* Ziehen markiert keine Achsenzahlen */
+.g-zoom{position:absolute;right:14px;bottom:30px;display:flex;gap:6px}
+html.handy .g-zoom .knopf.rund{width:42px;height:42px}
+@media print{.g-zoom{display:none}}
+/* Vektor als Spalte aus Eingabefeldern (VK.spalte, vektor.js) – Klammern in der Schriftfarbe der Spalte */
+.vk{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;padding:0 7px;border-left:2px solid currentColor;border-right:2px solid currentColor;border-radius:9px;line-height:1.2;font-family:var(--m-schrift);margin:0 2px}
+.vk input{width:52px;font-size:17px;text-align:center;padding:1px 2px;margin:1px 0;font-family:var(--m-schrift);border:1.5px solid var(--m-grau);border-radius:5px;background:#fff}
+.vk input.falsch{border-color:var(--m-falsch);background:var(--m-falsch-h)}
+html.handy .vk input{width:52px;height:40px;font-size:17px}
 
 /* ==== technik/mathe/formel.css ==== */
 /* =====================================================================
@@ -939,9 +953,9 @@ html.handy .re-titelzeile{font-size:18px}
   html.re-druck .re-druckkopf img{height:10mm}
   html.re-druck .re-kopf, html.re-druck .re-titelzeile{display:none}   /* Fensterkopf und Überschrift: nur Aufgabe und Lösungsweg */
   html.re-druck .re-art{font-size:9.5pt;color:var(--tinte)}
-  html.re-druck .re-inhalt section{border:none;padding:0;margin:0 0 5mm;break-inside:avoid-page}
-  html.re-druck .re-inhalt h4{font-size:12pt;font-weight:700;letter-spacing:0;text-transform:none;color:var(--tinte);margin:0 0 2.5mm}
-  html.re-druck .re-absatz{overflow:visible;margin:0 0 2mm}
+  html.re-druck .re-inhalt section{border:none;padding:0;margin:0 0 5mm}   /* der Lösungsweg beginnt direkt nach der Aufgabe und bricht zwischen den Schritten um (Peter, 09.10.) */
+  html.re-druck .re-inhalt h4{font-size:12pt;font-weight:700;letter-spacing:0;text-transform:none;color:var(--tinte);margin:0 0 2.5mm;break-after:avoid-page}   /* Überschrift nie allein am Seitenende */
+  html.re-druck .re-absatz{overflow:visible;margin:0 0 2mm;break-inside:avoid-page}   /* ein Schritt bleibt beisammen */
   html.re-druck .re-absatz strong{color:var(--tinte);font-weight:700}
   html.re-druck .re-absatz math{font-size:1.05em}
   html.re-druck .re-absatz math[display="block"]{margin:2mm 0}
@@ -1611,6 +1625,9 @@ const T_polyMal = (p, q) => { const r = Array(p.length + q.length - 1).fill(0); 
                                           prozent/euro/grad: %, €, ° am Ende erlaubt (zusatz sagt, was da stand – umrechnen tut das Werkzeug)
                                           einheiten: ['cm', 'm'] am Ende · praefix: 'x' erlaubt „x =“ / „x ≈“ davor
                                           term: auch ein Zahlterm ohne x (√2, 3pi/4, ln(5)/2) über T_lies – dann stellen = Infinity
+     WZ.reglerEingabe(feld, setze, opt) · WZ.reglerWert(feld, text)
+                                          Schieber mit Eingabefeld: Wert eintippen (streng, Brüche) oder schieben; setze({q, v}) →
+                                          Fehlertext oder null. Feld: <input class="wz-eingabe wz-reglerwert"> im .wz-regler (Muster Parabeln)
      WZ.liesMenge(text, eintrag, {leer, pm, praefix})
                                           Lösungsmenge: „L =“, { }, Trennung mit ;, „x₁ =“ je Eintrag, „±“/„+-“ → zwei Einträge,
                                           leer ('keine', '∅', '{}', '-') → []. eintrag(t) liest einen Eintrag (z. B. t => WZ.liesZahl(t, {term: true}))
@@ -1698,6 +1715,29 @@ const WZ = {
     }
     return aus;
   },
+  /* Schieber mit Eingabefeld (Peter, 06.10., Parabeln: „so muss das sein“): <input class="wz-eingabe wz-reglerwert"> im .wz-regler.
+     Eintippen + Enter (oder Feld verlassen): streng lesen (liesZahl, Brüche erlaubt), setze({ q, v }) → Fehlertext oder null
+     (dann übernommen – setze() setzt den Zustand, zeichnet neu und ruft reglerWert für die Anzeige). Unsinn: Feld rot, Meldung, nichts ändert sich. */
+  reglerEingabe(feld, setze, optionen = {}){
+    const regler = feld.closest('.wz-regler'), meldung = WZ.reglerMeldung(regler);
+    const los = () => {
+      try { const z = WZ.liesZahl(feld.value, typeof optionen === 'function' ? optionen() : optionen);   // Optionen auch als Funktion (Einheit wechselt) if (!z.q && !Number.isFinite(z.v)) throw new Error('Bitte eine Zahl.');
+        const fehl = setze(z); if (fehl) throw new Error(fehl);
+        feld.classList.remove('falsch'); meldung.textContent = '';
+        regler.parentElement.querySelectorAll('.wz-reglerwert.falsch').forEach(f => f.classList.remove('falsch')); }
+      catch (e) { feld.classList.add('falsch'); meldung.textContent = e.message; } };
+    feld.addEventListener('change', los);
+    feld.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); los(); } });
+  },
+  /* Meldungszeile direkt unter der Gruppe aufeinanderfolgender Schieber (einmal angelegt) */
+  reglerMeldung(regler){
+    let n = regler; while (n.nextElementSibling && n.nextElementSibling.classList.contains('wz-regler')) n = n.nextElementSibling;
+    if (n.nextElementSibling && n.nextElementSibling.classList.contains('wz-reglerfehler')) return n.nextElementSibling;
+    const m = document.createElement('p'); m.className = 'wz-reglerfehler'; n.after(m); return m;
+  },
+  /* Anzeige im Feld nachführen – nicht, solange jemand darin tippt */
+  reglerWert(feld, text){ if (document.activeElement === feld) return; feld.value = String(text).replace(/-/g, '−'); feld.classList.remove('falsch');
+    const m = WZ.reglerMeldung(feld.closest('.wz-regler')); if (!m.parentElement.querySelector('.wz-reglerwert.falsch')) m.textContent = ''; },
   zahlPruefen(a, soll, { min = 2, fehler = [], fast = true, textStellen, textGenauer } = {}){
     const eps = 1e-9 * Math.max(1, Math.abs(soll)), d = Math.abs(a.v - soll);
     const t = a.stellen === Infinity ? eps : 0.5 * 10 ** -Math.max(min, a.stellen) + eps;

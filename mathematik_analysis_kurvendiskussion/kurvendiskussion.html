@@ -470,6 +470,11 @@ html.handy .wz-regler{flex-wrap:wrap} html.handy .wz-regler .wz-reglerwert{heigh
 .g-zoom{position:absolute;right:14px;bottom:30px;display:flex;gap:6px}
 html.handy .g-zoom .knopf.rund{width:42px;height:42px}
 @media print{.g-zoom{display:none}}
+/* Vektor als Spalte aus Eingabefeldern (VK.spalte, vektor.js) – Klammern in der Schriftfarbe der Spalte */
+.vk{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;padding:0 7px;border-left:2px solid currentColor;border-right:2px solid currentColor;border-radius:9px;line-height:1.2;font-family:var(--m-schrift);margin:0 2px}
+.vk input{width:52px;font-size:17px;text-align:center;padding:1px 2px;margin:1px 0;font-family:var(--m-schrift);border:1.5px solid var(--m-grau);border-radius:5px;background:#fff}
+.vk input.falsch{border-color:var(--m-falsch);background:var(--m-falsch-h)}
+html.handy .vk input{width:52px;height:40px;font-size:17px}
 
 /* ==== technik/mathe/formel.css ==== */
 /* =====================================================================
@@ -968,9 +973,9 @@ html.handy .re-titelzeile{font-size:18px}
   html.re-druck .re-druckkopf img{height:10mm}
   html.re-druck .re-kopf, html.re-druck .re-titelzeile{display:none}   /* Fensterkopf und Überschrift: nur Aufgabe und Lösungsweg */
   html.re-druck .re-art{font-size:9.5pt;color:var(--tinte)}
-  html.re-druck .re-inhalt section{border:none;padding:0;margin:0 0 5mm;break-inside:avoid-page}
-  html.re-druck .re-inhalt h4{font-size:12pt;font-weight:700;letter-spacing:0;text-transform:none;color:var(--tinte);margin:0 0 2.5mm}
-  html.re-druck .re-absatz{overflow:visible;margin:0 0 2mm}
+  html.re-druck .re-inhalt section{border:none;padding:0;margin:0 0 5mm}   /* der Lösungsweg beginnt direkt nach der Aufgabe und bricht zwischen den Schritten um (Peter, 09.10.) */
+  html.re-druck .re-inhalt h4{font-size:12pt;font-weight:700;letter-spacing:0;text-transform:none;color:var(--tinte);margin:0 0 2.5mm;break-after:avoid-page}   /* Überschrift nie allein am Seitenende */
+  html.re-druck .re-absatz{overflow:visible;margin:0 0 2mm;break-inside:avoid-page}   /* ein Schritt bleibt beisammen */
   html.re-druck .re-absatz strong{color:var(--tinte);font-weight:700}
   html.re-druck .re-absatz math{font-size:1.05em}
   html.re-druck .re-absatz math[display="block"]{margin:2mm 0}
@@ -1631,11 +1636,15 @@ const T_polyMal = (p, q) => { const r = Array(p.length + q.length - 1).fill(0); 
      linHtml([[k, 'x'], [k2, 'y'], [k3, '']]) → „2x − y + 3" · qLies("3/2" | "-1,5") → Bruch oder null
    ===================================================================== */
 const ggT = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) [a, b] = [b, a % b]; return a || 1; };
-function Q(z, n = 1){ if (n < 0) { z = -z; n = -n; } const g = ggT(z, n); return { z: z / g, n: n / g }; }
-const qAdd = (a, b) => Q(a.z * b.n + b.z * a.n, a.n * b.n);
-const qSub = (a, b) => Q(a.z * b.n - b.z * a.n, a.n * b.n);
-const qMul = (a, b) => Q(a.z * b.z, a.n * b.n);
-const qDiv = (a, b) => Q(a.z * b.n, a.n * b.z);
+/* Exakt heißt: Zähler und Nenner bleiben sichere Ganzzahlen (< 2^53). Darum vor dem Multiplizieren kürzen
+   (Hauptnenner statt Produkt, über Kreuz kürzen) – und laut scheitern statt still runden (08.10., Vierfeldertafel). */
+function Q(z, n = 1){ if (n < 0) { z = -z; n = -n; }
+  if (!Number.isSafeInteger(z) || !Number.isSafeInteger(n)) throw new Error('Die Zahlen werden zu groß für eine exakte Rechnung.');
+  const g = ggT(z, n); return { z: z / g, n: n / g }; }
+const qAdd = (a, b) => { const g = ggT(a.n, b.n); return Q(a.z * (b.n / g) + b.z * (a.n / g), a.n / g * b.n); };
+const qSub = (a, b) => qAdd(a, { z: -b.z, n: b.n });
+const qMul = (a, b) => { const g1 = ggT(a.z, b.n), g2 = ggT(b.z, a.n); return Q((a.z / g1) * (b.z / g2), (a.n / g2) * (b.n / g1)); };
+const qDiv = (a, b) => qMul(a, b.z < 0 ? { z: -b.n, n: -b.z } : { z: b.n, n: b.z });
 const qNeg = a => Q(-a.z, a.n);
 const qNull = a => a.z === 0;
 const qGleich = (a, b) => a.z === b.z && a.n === b.n;

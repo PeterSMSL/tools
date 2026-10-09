@@ -470,6 +470,11 @@ html.handy .wz-regler{flex-wrap:wrap} html.handy .wz-regler .wz-reglerwert{heigh
 .g-zoom{position:absolute;right:14px;bottom:30px;display:flex;gap:6px}
 html.handy .g-zoom .knopf.rund{width:42px;height:42px}
 @media print{.g-zoom{display:none}}
+/* Vektor als Spalte aus Eingabefeldern (VK.spalte, vektor.js) – Klammern in der Schriftfarbe der Spalte */
+.vk{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;padding:0 7px;border-left:2px solid currentColor;border-right:2px solid currentColor;border-radius:9px;line-height:1.2;font-family:var(--m-schrift);margin:0 2px}
+.vk input{width:52px;font-size:17px;text-align:center;padding:1px 2px;margin:1px 0;font-family:var(--m-schrift);border:1.5px solid var(--m-grau);border-radius:5px;background:#fff}
+.vk input.falsch{border-color:var(--m-falsch);background:var(--m-falsch-h)}
+html.handy .vk input{width:52px;height:40px;font-size:17px}
 
 /* ==== technik/mathe/raum3d.css ==== */
 /* RAUM3D — Aussehen des 3D-Koordinatensystems (Farben aus farben.css). Quelle: technik/mathe/raum3d.css */
@@ -1034,9 +1039,9 @@ html.handy .re-titelzeile{font-size:18px}
   html.re-druck .re-druckkopf img{height:10mm}
   html.re-druck .re-kopf, html.re-druck .re-titelzeile{display:none}   /* Fensterkopf und Überschrift: nur Aufgabe und Lösungsweg */
   html.re-druck .re-art{font-size:9.5pt;color:var(--tinte)}
-  html.re-druck .re-inhalt section{border:none;padding:0;margin:0 0 5mm;break-inside:avoid-page}
-  html.re-druck .re-inhalt h4{font-size:12pt;font-weight:700;letter-spacing:0;text-transform:none;color:var(--tinte);margin:0 0 2.5mm}
-  html.re-druck .re-absatz{overflow:visible;margin:0 0 2mm}
+  html.re-druck .re-inhalt section{border:none;padding:0;margin:0 0 5mm}   /* der Lösungsweg beginnt direkt nach der Aufgabe und bricht zwischen den Schritten um (Peter, 09.10.) */
+  html.re-druck .re-inhalt h4{font-size:12pt;font-weight:700;letter-spacing:0;text-transform:none;color:var(--tinte);margin:0 0 2.5mm;break-after:avoid-page}   /* Überschrift nie allein am Seitenende */
+  html.re-druck .re-absatz{overflow:visible;margin:0 0 2mm;break-inside:avoid-page}   /* ein Schritt bleibt beisammen */
   html.re-druck .re-absatz strong{color:var(--tinte);font-weight:700}
   html.re-druck .re-absatz math{font-size:1.05em}
   html.re-druck .re-absatz math[display="block"]{margin:2mm 0}
@@ -1519,6 +1524,11 @@ function qLies(text){
      VK.nullV(a) · VK.gleich(a, b) · VK.parallel(a, b)   Nullvektor? gleich? parallel (3D: Kreuzprodukt null)?
      VK.liesFelder(inputs, opt) → { v, meld }   Feldreihe streng lesen (WZ.liesZahl, opt wie dort): v = Vektor aus Brüchen
                                     oder null; falsche Felder bekommen .falsch, meld = Meldung des ersten (z. B. „2 5“ ist nicht 25)
+     VK.wurzel(q) → { c, r }          √q exakt für einen Bruch q ≥ 0: c·√r mit c Bruch, r quadratfrei (√(9/2) = 3/2·√2)
+     VK.wurzelTex(c, r)               c·√r als LaTeX (Bruch: Wurzel in den Zähler)
+     VK.laenge(a) → { c, r, q }      Betrag exakt (q = a·a)
+     VK.spalte(name, werte, klasse)  Spalte aus drei Eingabefeldern (<span class="vk" data-v="name">), Werte vorbelegt –
+                                    Stil in werkzeug.css (.vk); lesen mit VK.liesFelder(root.querySelectorAll('[data-v="name"] input'))
    Matrizen bleiben vorerst in ihren Werkzeugen (nur zwei brauchen sie).
    ===================================================================== */
 const VK = {
@@ -1531,6 +1541,19 @@ const VK = {
   nullV: a => a.every(qNull),
   gleich: (a, b) => a.length === b.length && a.every((x, i) => qGleich(x, b[i])),
   parallel: (a, b) => VK.nullV(VK.kreuz(a, b)),
+  wurzel(q){                                                     // √(z/n) = √(z·n)/n = k·√r / n
+    if (qNull(q)) return { c: Q(0), r: 1 };
+    const m = q.z * q.n; let k = 1; for (let t = 2; t * t <= m; t++) if (m % (t * t) === 0) k = t;
+    return { c: Q(k, q.n), r: m / (k * k) };
+  },
+  wurzelTex(c, r){
+    if (qNull(c)) return '0';
+    if (r === 1) return qTex(c);
+    const z = c.z === 1 ? `\\sqrt{${r}}` : `${c.z}\\sqrt{${r}}`;
+    return c.n === 1 ? z : `\\dfrac{${z}}{${c.n}}`;
+  },
+  laenge(a){ const q = VK.skalar(a, a); return { ...VK.wurzel(q), q }; },
+  spalte: (name, werte = ['', '', ''], klasse = '') => `<span class="vk${klasse ? ' ' + klasse : ''}" data-v="${name}">${werte.map((x, i) => `<input data-k="${i}" value="${typeof x === 'object' ? qText(x) : x}" spellcheck="false" autocomplete="off" aria-label="${name} ${'xyz'[i] || i + 1}">`).join('')}</span>`,
   liesFelder(felder, opt = {}){
     let meld = '';
     const q = [...felder].map(f => {
@@ -1704,6 +1727,9 @@ const WZ = {
    R3_einpassen(o, rand)             setzt einheit und mitte so, dass Achsen samt Namen ins Bild passen
                                      (bei 'dreh' über alle Drehwinkel – das Bild pumpt beim Drehen nicht)
    R3_drehen(svg, V, beiAenderung)   Ziehen dreht (nur bei art 'dreh')
+   R3_geradenStueck(P, u, lo, hi)    Stück der Geraden P + t·u im Würfel [lo; hi]³ → [A, B] oder null (Zahlen)
+   R3_ebenenStueck(n, d, lo, hi)     Schnitt der Ebene n·x = d mit dem Würfel → Eckpunkte im Umlauf (Zahlen), sonst []
+   R3_flaeche(V, ecken, klasse)      Vieleck als SVG-Pfad (z. B. das Ebenenstück)
    ===================================================================== */
 function R3_ansicht(o){
   const W = o.W, H = o.H, art = o.art || 'schraeg', s = o.einheit || 34;
@@ -1793,6 +1819,42 @@ function R3_drehen(svg, holeV, beiAenderung){
   const hoch = () => { start = null; };
   svg.addEventListener('pointerdown', runter); svg.addEventListener('pointermove', zieh);
   svg.addEventListener('pointerup', hoch); svg.addEventListener('pointercancel', hoch);
+}
+
+/* ---------- Geraden und Ebenen im Würfel (gemeinsam für Lage und Abstände, seit 08.10.) ---------- */
+function R3_geradenStueck(P, u, lo = -1, hi = 6){
+  let a = -Infinity, b = Infinity;
+  for (let i = 0; i < 3; i++){
+    const p = P[i], d = u[i];
+    if (Math.abs(d) < 1e-12){ if (p < lo - 1e-9 || p > hi + 1e-9) return null; continue; }
+    const s1 = (lo - p) / d, s2 = (hi - p) / d; a = Math.max(a, Math.min(s1, s2)); b = Math.min(b, Math.max(s1, s2));
+  }
+  if (a > b) return null;
+  const pt = t => P.map((x, i) => x + t * u[i]); return [pt(a), pt(b)];
+}
+function R3_ebenenStueck(n, d, lo = -1, hi = 6){
+  const ecken = [];
+  for (const x of [lo, hi]) for (const y of [lo, hi]) for (const z of [lo, hi]) ecken.push([x, y, z]);
+  const f = p => n[0] * p[0] + n[1] * p[1] + n[2] * p[2] - d, pts = [];
+  const dazu = p => { if (!pts.some(q => Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2]) < 1e-9)) pts.push(p); };
+  for (let i = 0; i < 8; i++) for (let j = i + 1; j < 8; j++){
+    const A = ecken[i], B = ecken[j];
+    if (A.filter((x, k) => x !== B[k]).length !== 1) continue;            // nur Kanten des Würfels
+    const fa = f(A), fb = f(B);
+    if (Math.abs(fa) < 1e-12) dazu(A);
+    if (Math.abs(fb) < 1e-12) dazu(B);
+    if (fa * fb < 0){ const t = fa / (fa - fb); dazu(A.map((x, k) => x + t * (B[k] - x))); }
+  }
+  if (pts.length < 3) return [];
+  const c = [0, 1, 2].map(k => pts.reduce((s, p) => s + p[k], 0) / pts.length);
+  const nl = Math.hypot(...n), nn = n.map(x => x / nl), hilf = Math.abs(nn[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
+  const kr = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], sk = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const e1 = kr(nn, hilf), e2 = kr(nn, e1);
+  return pts.map(p => { const r = p.map((x, k) => x - c[k]); return [Math.atan2(sk(r, e2), sk(r, e1)), p]; }).sort((a, b) => a[0] - b[0]).map(x => x[1]);
+}
+function R3_flaeche(V, ecken, klasse){
+  if (ecken.length < 3) return '';
+  return `<path class="${klasse}" d="${ecken.map((p, i) => { const [X, Y] = V.p(...p); return `${i ? 'L' : 'M'}${X.toFixed(1)} ${Y.toFixed(1)}`; }).join('')}Z"/>`;
 }
 
 /* ==== technik/mathe/temml/temml.min.js ==== */
