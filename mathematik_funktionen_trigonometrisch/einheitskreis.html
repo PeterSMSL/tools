@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Sinus und Kosinus am Einheitskreis: Punkt ziehen, die Kurve rollt sich ab. Werte besonderer Winkel exakt, Grad und Bogenmaß umrechnen, Winkel zu einem Sinus- oder Kosinuswert finden – mit Lösungsweg und Bild.">
-<title>Einheitskreis · Sinus und Kosinus</title>
+<meta name="description" content="Sinus, Kosinus und Tangens am Einheitskreis – einzeln oder zusammen: Punkt ziehen, die Kurven rollen sich ab. Werte besonderer Winkel exakt, Grad und Bogenmaß umrechnen, Winkel zu einem Sinus- oder Kosinuswert finden – mit Lösungsweg und Bild.">
+<title>Einheitskreis · Sinus, Kosinus, Tangens</title>
 <style>
 /* ==== HANDY-SCHICHT: technik/handy/handy.css ==== */
 /* =====================================================================
@@ -861,7 +861,7 @@ html.handy mroot > :last-child{font-size:max(14px, .6em)}     /* Wurzelexponent 
 .knopf math{math-style:normal}
 
 /* ---------- Einheitskreis (Farben: technik/mathe/farben.css) ----------
-   cos = waagerecht = --m-1 (blau, x-Richtung), sin = senkrecht = --m-2 (orange), Punkt P = --m-erg */
+   cos = waagerecht = --m-1 (blau, x-Richtung), sin = senkrecht = --m-2 (orange), tan = --m-3 (an der Tangente x = 1), Punkt P = --m-erg */
 .ek-leiste{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
 .ek-leiste .gruppe{display:flex;gap:4px;flex-wrap:wrap}
 .ek-leiste .knopf{font-size:14px;padding:5px 11px}
@@ -874,7 +874,7 @@ html.handy mroot > :last-child{font-size:max(14px, .6em)}     /* Wurzelexponent 
 .ek-zeile{white-space:nowrap}
 .ek-hinweis{flex-basis:100%;font-size:15px;color:var(--grau)}
 .ek-werte math *, .wz-weg math *, .wz-rueck math *{math-style:normal}        /* √3/2 in voller Größe */
-math .ek-s{color:var(--m-2)} math .ek-c{color:var(--m-1)}
+math .ek-s{color:var(--m-2)} math .ek-c{color:var(--m-1)} math .ek-t{color:var(--m-3)}
 svg .ek-kreis{fill:none;stroke:var(--tinte);stroke-width:2}
 svg .ek-radius{stroke:var(--m-erg);stroke-width:2.2}
 svg .ek-cos{stroke:var(--m-1);stroke-width:5;stroke-linecap:round}
@@ -887,6 +887,12 @@ svg .ek-griff{fill:transparent;cursor:grab}
 svg .ek-kschatten{fill:none;stroke:var(--m-grau);stroke-width:2;stroke-dasharray:5 5;opacity:.7}
 svg .ek-ksin{fill:none;stroke:var(--m-2);stroke-width:3.5}
 svg .ek-kcos{fill:none;stroke:var(--m-1);stroke-width:3.5}
+svg .ek-tan{stroke:var(--m-3);stroke-width:5;stroke-linecap:round}
+svg .ek-ktan{fill:none;stroke:var(--m-3);stroke-width:3.5}
+svg .ek-tp{fill:var(--m-3);stroke:var(--papier);stroke-width:2}
+svg .ek-tangente{stroke:var(--m-achse);stroke-width:1.4;stroke-dasharray:6 5}
+svg .ek-tanverl{stroke:var(--m-erg);stroke-width:1.6;stroke-dasharray:4 4}
+svg .ek-asym{stroke:var(--m-grau);stroke-width:1.5;stroke-dasharray:6 6}
 svg .ek-verbinder{stroke:var(--m-2);stroke-width:1.6;stroke-dasharray:4 5}
 svg .ek-hilfslinie{stroke:var(--m-ok);stroke-width:2.5;stroke-dasharray:7 5}
 .ek-titelbild svg{display:block;background:rgba(255,255,255,.95);border-radius:18px;box-shadow:0 14px 30px rgba(0,0,0,.25)}
@@ -2088,10 +2094,18 @@ function ekKreis(o){
       g += `<text class="ek-alpha" x="${f(cx + rt * Math.cos(am))}" y="${f(cy - rt * Math.sin(am) + 5)}" text-anchor="middle">α</text>`;
     }
     g += `<line class="ek-radius" x1="${f(cx)}" y1="${f(cy)}" x2="${f(px)}" y2="${f(py)}"/>`;
-    if (o.strecken !== false){
-      g += `<line class="ek-cos" x1="${f(cx)}" y1="${f(cy)}" x2="${f(px)}" y2="${f(cy)}"/>`;
-      g += `<line class="ek-sin" x1="${f(px)}" y1="${f(cy)}" x2="${f(px)}" y2="${f(py)}"/>`;
+    /* Strecken: Standard sin und cos; o.strecken = { sin, cos, tan } wählt einzeln (Labor) */
+    const st = o.strecken === false ? {} : o.strecken && typeof o.strecken === 'object' ? o.strecken : { sin: true, cos: true };
+    if (st.tan){                                           // Tangente x = 1; Gerade OP bis dorthin verlängert (liegt P links, durch O hindurch)
+      g += K.linie(1, -1.4, 1, 1.4, 'ek-tangente');
+      if (Math.abs(x) > 1e-9){
+        const tn = y / x;
+        g += K.linie(x, y, 1, tn, 'ek-tanverl') + K.linie(1, 0, 1, tn, 'ek-tan');
+        if (Math.abs(tn) <= 1.4) g += K.punkt(1, tn, 'ek-tp', 4.5);
+      }
     }
+    if (st.cos) g += `<line class="ek-cos" x1="${f(cx)}" y1="${f(cy)}" x2="${f(px)}" y2="${f(cy)}"/>`;
+    if (st.sin) g += `<line class="ek-sin" x1="${f(px)}" y1="${f(cy)}" x2="${f(px)}" y2="${f(py)}"/>`;
     g += `<circle class="ek-p" cx="${f(px)}" cy="${f(py)}" r="7"/>`;
     const rechts = x >= -0.05, oben = y >= 0;
     g += `<text class="ek-pt" x="${f(px + (rechts ? 10 : -10))}" y="${f(py + (oben ? -10 : 20))}" text-anchor="${rechts ? 'start' : 'end'}">P</text>`;
@@ -2135,7 +2149,7 @@ const folien = [
 {titel:"Einheitskreis", klasse:"kompakt oben", eyebrow:"Der Einheitskreis", h2:"Punkt ziehen – die Kurve rollt sich ab", roh:`
   <div class="interaktiv" data-ekreis>
     <div class="ek-leiste">
-      <span class="gruppe"><button class="knopf hell an" data-kurve="sin">Sinuskurve</button><button class="knopf hell" data-kurve="cos">Kosinuskurve</button></span>
+      <span class="gruppe"><button class="knopf hell an" data-kurve="sin" aria-pressed="true">Sinus</button><button class="knopf hell" data-kurve="cos" aria-pressed="false">Kosinus</button><button class="knopf hell" data-kurve="tan" aria-pressed="false">Tangens</button></span>
       <span class="gruppe"><button class="knopf hell an" data-einheit="grad">Grad</button><button class="knopf hell" data-einheit="bogen">Bogenmaß</button></span>
       <button class="knopf o" data-r="abrollen">Abrollen</button>
     </div>
@@ -2194,7 +2208,7 @@ folien.forEach((f,i)=>{
 const EKREIS = (() => {
   const root = document.querySelector('[data-ekreis]');
   const R = r => root.querySelector(`[data-r="${r}"]`);
-  const S = { g: 60, kurve: 'sin', einheit: 'grad', uhr: null, txt: null };   // txt: getippter Winkel, bleibt bis zur nächsten Änderung stehen
+  const S = { g: 60, an: { sin: true, cos: false, tan: false }, einheit: 'grad', uhr: null, txt: null };   // an: eingeschaltete Funktionen (mindestens eine)   // txt: getippter Winkel, bleibt bis zur nächsten Änderung stehen
   const rad = g => g * Math.PI / 180, f1 = v => v.toFixed(1);
   /* Winkel als Text fürs Feld: Vielfaches von π (nur ganze Grad), sonst null */
   const piText = g => { if (!Number.isInteger(g)) return null; const q = Q(g, 180); if (q.z === 0) return '0';
@@ -2203,53 +2217,79 @@ const EKREIS = (() => {
   let KK = null;                                              // Koordinaten des Kreises (für das Ziehen)
   const BOGEN_ZAHLEN = { 90: 'π/2', 180: 'π', 270: '3π/2', 360: '2π' };
 
+  /* eingeschaltete Funktionen in fester Reihenfolge; tan an Polstellen (cos α = 0) nicht definiert */
+  const FN = {
+    sin: x => Math.sin(rad(x)), cos: x => Math.cos(rad(x)),
+    tan: x => { const c = Math.cos(rad(x)); return Math.abs(c) < 1e-12 ? NaN : Math.sin(rad(x)) / c; } };
+  const aktiv = () => ['sin', 'cos', 'tan'].filter(f => S.an[f]);
+
   function kurve(W, H, rand){
-    const fn = S.kurve === 'sin' ? Math.sin : Math.cos, ff = x => fn(rad(x)), v = ff(S.g);
-    const K = G_koord({ W, H, xmin: -15, xmax: 400, ymin: -1.4, ymax: 1.4, sx: 90, sy: 0.5, zahlenX: 99, zahlenY: 2, rand,
-      xName: 'α', yName: S.kurve === 'sin' ? 'sin α' : 'cos α' });
+    const fs = aktiv(), mitTan = S.an.tan, ym = mitTan ? 3.2 : 1.4;
+    const K = G_koord({ W, H, xmin: -15, xmax: 400, ymin: -ym, ymax: ym, sx: 90, sy: mitTan ? 1 : 0.5, zahlenX: 99, zahlenY: mitTan ? 1 : 2, rand,
+      xName: 'α', yName: fs.length === 1 ? `${fs[0]} α` : 'y' });
     let g = K.grund;
-    // Zahl links neben dem Strich – unter der Achse, wenn die Kurve links davon oben verläuft, sonst darüber
-    [90, 180, 270, 360].forEach(t => { const oben = ff(t - 10) < 0;
+    const f0 = FN[fs[0]];
+    // Zahl links neben dem Strich – unter der Achse, wenn die (erste) Kurve links davon oben verläuft, sonst darüber
+    [90, 180, 270, 360].forEach(t => { const oben = f0(t - 10) < 0;
       g += `<text class="g-tick" x="${f1(K.px(t) - 4)}" y="${f1(K.py(0) + (oben ? -7 : 17))}" text-anchor="end">${S.einheit === 'grad' ? t + '°' : BOGEN_ZAHLEN[t]}</text>`; });
-    g += K.kurve(ff, 'ek-kschatten', 0, 360) + (S.g > 0 ? K.kurve(ff, S.kurve === 'sin' ? 'ek-ksin' : 'ek-kcos', 0, S.g) : '');
-    g += `<line class="${S.kurve === 'sin' ? 'ek-sin' : 'ek-cos'}" x1="${f1(K.px(S.g))}" y1="${f1(K.py(0))}" x2="${f1(K.px(S.g))}" y2="${f1(K.py(v))}"/>`;
-    g += K.punkt(S.g, v, 'ek-kp', 6);
+    if (mitTan) [90, 270].forEach(t => { g += K.linie(t, -ym, t, ym, 'ek-asym'); });   // Polstellen des Tangens
+    fs.forEach(f => {
+      const ff = FN[f], v = ff(S.g);
+      g += K.kurve(ff, 'ek-kschatten', 0, 360) + (S.g > 0 ? K.kurve(ff, 'ek-k' + f, 0, S.g) : '');
+      if (Number.isFinite(v)) {
+        g += K.linie(S.g, 0, S.g, v, 'ek-' + f);
+        if (Math.abs(v) <= ym) g += K.punkt(S.g, v, 'ek-kp', 6);
+      }
+    });
     return { inhalt: g, K };
   }
 
   function zeichne(){
     const h = WZ.handy(), feld = R('feld');
     if (h){
-      const k = ekKreis({ S: 320, g: S.g, griff: true, rand: { l: 14, r: 14, o: 14, u: 14 } }), c = kurve(340, 240, { l: 34, r: 12, o: 22, u: 26 });
+      const k = ekKreis({ S: 320, g: S.g, griff: true, strecken: S.an, rand: { l: 14, r: 14, o: 14, u: 14 } }), c = kurve(340, 240, { l: 34, r: 12, o: 22, u: 26 });
       KK = k.K;
       feld.innerHTML = `<svg class="ek-zieh" data-r="svg" width="320" height="320" viewBox="0 0 320 320">${k.inhalt}</svg>
         <svg width="340" height="240" viewBox="0 0 340 240">${c.inhalt}</svg>`;
     } else {
-      const k = ekKreis({ S: 300, g: S.g, griff: true }), c = kurve(600, 300, { l: 34, r: 12, o: 16, u: 16 }), ox = 320;
+      const k = ekKreis({ S: 300, g: S.g, griff: true, strecken: S.an }), c = kurve(600, 300, { l: 34, r: 12, o: 16, u: 16 }), ox = 320;
       KK = k.K;
-      const v = (S.kurve === 'sin' ? Math.sin : Math.cos)(rad(S.g));
-      const verbinder = S.kurve === 'sin'                    // nur beim Sinus liegt die Höhe auf gleicher Linie
+      const v = Math.sin(rad(S.g));
+      const verbinder = S.an.sin && !S.an.tan              // nur beim Sinus (gleicher Maßstab, also ohne Tangens) liegt die Höhe auf gleicher Linie
         ? `<line class="ek-verbinder" x1="${f1(k.K.px(Math.cos(rad(S.g))))}" y1="${f1(k.K.py(v))}" x2="${f1(ox + c.K.px(S.g))}" y2="${f1(c.K.py(v))}"/>` : '';
       feld.innerHTML = `<svg class="ek-zieh" data-r="svg" width="920" height="300" viewBox="0 0 920 300">${k.inhalt}<g transform="translate(${ox},0)">${c.inhalt}</g>${verbinder}</svg>`;
     }
-    root.querySelectorAll('[data-kurve]').forEach(b => b.classList.toggle('an', b.dataset.kurve === S.kurve));
+    root.querySelectorAll('[data-kurve]').forEach(b => { b.classList.toggle('an', !!S.an[b.dataset.kurve]); b.setAttribute('aria-pressed', S.an[b.dataset.kurve] ? 'true' : 'false'); });
     root.querySelectorAll('[data-einheit]').forEach(b => b.classList.toggle('an', b.dataset.einheit === S.einheit));
     R('ra').value = S.g;                                      // getippte Werte zwischen den Stufen: der Schieber springt auf die nächste
     WZ.reglerWert(R('raw'), S.txt !== null ? S.txt : S.einheit === 'grad' ? WZ.zahl(S.g, 4) + '°' : piText(S.g) ?? WZ.zahl(rad(S.g), 2));
     werte();
-    root.dataset.winkel = S.g;
+    root.dataset.winkel = S.g; root.dataset.an = aktiv().join(',');
   }
 
+  /* tan α exakt bei besonderen Winkeln ({ tex, w }), null an den Polstellen (cos α = 0) */
+  const TAN_BASIS = { 0: ['0', 0], 30: ['\\frac{\\sqrt{3}}{3}', Math.sqrt(3) / 3], 45: ['1', 1], 60: ['\\sqrt{3}', Math.sqrt(3)] };
+  function tanWert(g){
+    const s = ekWert('sin', g), c = ekWert('cos', g);
+    if (ekVz(c.w) === 0) return null;
+    if (!ekSpezial(g)) return { tex: null, w: s.w / c.w };
+    const vz = ekVz(s.w) * ekVz(c.w), b = TAN_BASIS[ekLage(g).ref];
+    return { tex: vz < 0 ? '-' + b[0] : vz === 0 ? '0' : b[0], w: vz * b[1] };
+  }
   function werte(){
     const g = S.g, s = ekWert('sin', g), c = ekWert('cos', g), pi = ekPiTex(g);
     const zahl = w => (Math.abs(w - Math.round(w)) < 1e-12 ? '= ' : '\\approx ') + zTex(w, 3);
     const wert = (f, x) => x.tex !== null ? (/frac/.test(x.tex) ? `= ${x.tex} ${zahl(x.w)}` : `= ${x.tex}`) : zahl(x.w);
     const { q } = ekLage(g), vz = v => ekVz(v) > 0 ? '> 0' : ekVz(v) < 0 ? '< 0' : '= 0';
+    const t = tanWert(g), tanZ = !S.an.tan ? '' : t === null
+      ? `<div class="ek-zeile">${F(kTex('ek-t', '\\tan\\alpha'))} ist nicht definiert ${F('(\\cos\\alpha = 0)')}</div>`
+      : `<div class="ek-zeile">${F(`${kTex('ek-t', '\\tan\\alpha')} ${wert('tan', t)}`)}</div>`;
     R('werte').innerHTML = `<div class="ek-zeile">${F(`\\alpha = ${gradTex(g)}${pi !== null ? ` = ${pi}` : ` \\approx ${zTex(rad(g), 3)}`}`)}</div>
-      <div class="ek-zeile">${F(`${kTex('ek-s', '\\sin\\alpha')} ${wert('sin', s)}`)}</div>
-      <div class="ek-zeile">${F(`${kTex('ek-c', '\\cos\\alpha')} ${wert('cos', c)}`)}</div>
+      ${S.an.sin ? `<div class="ek-zeile">${F(`${kTex('ek-s', '\\sin\\alpha')} ${wert('sin', s)}`)}</div>` : ''}
+      ${S.an.cos ? `<div class="ek-zeile">${F(`${kTex('ek-c', '\\cos\\alpha')} ${wert('cos', c)}`)}</div>` : ''}
+      ${tanZ}
       <div class="ek-hinweis">${q === 0 ? M(`$P$ liegt auf einer Achse: $P(${c.tex} \\mid ${s.tex})$.`)
-        : M(`${ekQuadrantName(q)} Quadrant: $\\sin\\alpha ${vz(s.w)}$, $\\cos\\alpha ${vz(c.w)}$.`)}</div>`;
+        : M(`${ekQuadrantName(q)} Quadrant: $\\sin\\alpha ${vz(s.w)}$, $\\cos\\alpha ${vz(c.w)}$${S.an.tan ? `, $\\tan\\alpha ${vz(t.w)}$` : ''}.`)}</div>`;
   }
 
   /* ---------- Ziehen am Punkt ---------- */
@@ -2292,7 +2332,8 @@ const EKREIS = (() => {
   const meldungZeigen = () => setTimeout(() => { const m = WZ.reglerMeldung(R('raw').closest('.wz-regler')); if (m.textContent) m.scrollIntoView({ block: 'nearest' }); });
   R('raw').addEventListener('change', meldungZeigen);
   R('raw').addEventListener('keydown', e => { if (e.key === 'Enter') meldungZeigen(); });
-  root.querySelectorAll('[data-kurve]').forEach(b => b.onclick = () => { S.kurve = b.dataset.kurve; zeichne(); });
+  root.querySelectorAll('[data-kurve]').forEach(b => b.onclick = () => {   // Schalter: an/aus, mindestens einer bleibt an
+    const f = b.dataset.kurve; if (S.an[f] && aktiv().length === 1) return; S.an[f] = !S.an[f]; zeichne(); });
   root.querySelectorAll('[data-einheit]').forEach(b => b.onclick = () => { S.einheit = b.dataset.einheit; S.txt = null; zeichne(); });
   window.addEventListener('handy-wechsel', zeichne);
   zeichne();
