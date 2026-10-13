@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Regler für a, b, c und d: Amplitude, Periode, Verschiebung und Mittellinie im Bild sehen. Parameter aus dem Graphen ablesen, Funktionsterm aus einer Beschreibung aufstellen, Periode berechnen, Riesenrad als Sachaufgabe – geprüft wird, ob die Funktion stimmt, nicht die Schreibweise.">
+<meta name="description" content="Regler für a, b, c und d an der Sinuskurve: Amplitude, Periode, Verschiebung und Mittellinie im Bild sehen, in beiden Schreibweisen (b(x − c) und ausmultipliziert), auf Wunsch mit f′. Parameter ablesen, Terme lesen und aufstellen, Nullstellen, Extrem- und Wendepunkte bestimmen – auch mit Ableitungen.">
 <title>a · sin(b(x − c)) + d · Parameter verstehen</title>
 <style>
 /* ==== HANDY-SCHICHT: technik/handy/handy.css ==== */
@@ -860,7 +860,7 @@ html.handy mroot > :last-child{font-size:max(14px, .6em)}     /* Wurzelexponent 
 /* Brüche in Knöpfen in voller Größe */
 .knopf math{math-style:normal}
 
-/* ---------- a·sin(b(x − c)) + d (Farben: technik/mathe/farben.css) ----------
+/* ---------- a·sin(b(x − c)) + d und a·cos(b(x − c)) + d – in beiden Werkzeugen gleich (Farben: technik/mathe/farben.css) ----------
    Graph f: --m-1 · a (Amplitude): --m-2 · b, Periode: --m-3 · c (Verschiebung, Startpunkt): --m-erg · d (Mittellinie): --m-tick */
 .tp-labor{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start}
 .tp-feld svg, .tp-bild svg{display:block;max-width:100%;height:auto}
@@ -909,6 +909,24 @@ html.handy svg .tp-t{font-size:15px}
 .tp-regler .wz-reglerfehler{grid-column:1/-1;margin:0}
 html.handy .tp-regler .wz-reglerwert{width:110px}   /* Feld bleibt neben dem Schieber */
 svg .tp-stelle{fill:var(--m-erg);stroke:var(--papier);stroke-width:2}
+/* Schreibweisen, Ableitung (13.10.2026): f′ gestrichelt in der Farbe der zweiten Größe (farben.css: Graph f′) */
+svg .tp-abl{fill:none;stroke:var(--m-2);stroke-width:2.4;stroke-dasharray:7 5}
+svg .tp-tabl{fill:var(--m-2-t)}
+svg .tp-lot{stroke:var(--m-2);stroke-width:1.4;stroke-dasharray:2 4}
+svg .tp-ablpunkt{fill:var(--papier);stroke:var(--m-2);stroke-width:2}
+.tp-strich{width:22px;height:3px;background:repeating-linear-gradient(90deg,var(--m-2) 0 7px,transparent 7px 11px);flex:none;display:inline-block}
+.tp-liste .tp-zabl{align-items:flex-start;margin-top:10px}
+.tp-liste .tp-zabl .tp-strich{margin-top:14px}
+.tp-formel .tp-erkl{font-size:15px;margin:6px 0 0}
+.tp-wegart{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}
+.tp-wegart .knopf{font-size:14px;padding:5px 11px}
+.tp-kand{margin:5px 0}
+.tp-wert{display:inline-block;margin-right:14px}
+.tp-kand math *{math-style:normal}
+html.handy .tp-wegart .knopf{font-size:15px}
+html.handy .tp-formel .tp-erkl{font-size:15px}
+.tp-skizze svg{display:block;max-width:100%;height:auto;margin:2px auto 6px}
+.tp-urteil{display:block;text-align:center;margin:-4px 0 8px;font-weight:700}
 
 /* Grundregel aller Werkzeuge: hidden gilt immer, auch wenn eine Klasse display:flex/grid setzt */
 [hidden]{display:none!important}
@@ -1931,7 +1949,8 @@ const WZ = {
   reglerEingabe(feld, setze, optionen = {}){
     const regler = feld.closest('.wz-regler'), meldung = WZ.reglerMeldung(regler);
     const los = () => {
-      try { const z = WZ.liesZahl(feld.value, typeof optionen === 'function' ? optionen() : optionen);   // Optionen auch als Funktion (Einheit wechselt) if (!z.q && !Number.isFinite(z.v)) throw new Error('Bitte eine Zahl.');
+      try { const z = WZ.liesZahl(feld.value, typeof optionen === 'function' ? optionen() : optionen);   // Optionen auch als Funktion (Einheit wechselt)
+        if (!z.q && !Number.isFinite(z.v)) throw new Error('Bitte eine Zahl.');
         const fehl = setze(z); if (fehl) throw new Error(fehl);
         feld.classList.remove('falsch'); meldung.textContent = '';
         regler.parentElement.querySelectorAll('.wz-reglerwert.falsch').forEach(f => f.classList.remove('falsch')); }
@@ -2030,8 +2049,13 @@ function M(text){ return String(text).replace(/\$\$([^$]+)\$\$/g, (_, t) => F(t,
 const KURS = "Mathematik · Funktionen";
 const REIHE = "Trigonometrische Funktionen";
 
+/* Sinus oder Kosinus: Die beiden Werkzeuge (mathematik_analysis_trigparameter, …_cosparameter) haben dieselben
+   Quellen – sie unterscheiden sich nur in dieser Zeile (und in meta.json). Änderungen immer in beiden Ordnern. */
+const TP_COS = false;
+const TP_FN = TP_COS ? Math.cos : Math.sin, TP_NAME = TP_COS ? 'cos' : 'sin', TP_WORT = TP_COS ? 'Kosinus' : 'Sinus';
+
 /* =====================================================================
-   a·sin(b(x − c)) + d – gemeinsame Teile (Titelbild, Labor, Trainer)
+   a·sin(b(x − c)) + d bzw. a·cos(b(x − c)) + d – gemeinsame Teile (Titelbild, Labor, Trainer)
    Ein Parameter ist { w (Zahl), tex (LaTeX), txt (Text fürs SVG) }.
    a, d: Zahlen in Halbschritten · b: Bruch · c: Vielfaches von π (bzw. Zahl beim Riesenrad).
    ===================================================================== */
@@ -2053,42 +2077,73 @@ const TP_zahlText = v => String(Math.round(v * 1000) / 1000).replace('-', '−')
 const TP_zahl = v => ({ w: v, tex: zTex(v, 3), txt: TP_zahlText(v) });
 const TP_bruch = q => ({ w: q.z / q.n, tex: qTex(q), txt: q.n === 1 ? String(q.z).replace('-', '−') : `${q.z}/${q.n}`.replace('-', '−'), q });
 const TP_pi = q => ({ w: q.z / q.n * TP_PI, tex: TP_piTex(q), txt: TP_piText(q), q, pi: true });
+/* Bruch als Parameter: abbrechende Dezimalzahl (bis drei Stellen) als Dezimalzahl, sonst als Bruch – immer mit q */
+const TP_rat = q => 1000 % q.n === 0 ? { ...TP_zahl(q.z / q.n), q } : TP_bruch(q);
+/* Parameter (ohne π) als Bruch: a und d sind Dezimalzahlen mit höchstens drei Stellen oder tragen ihr q */
+const TP_q = p => p.q && !p.pi ? p.q : Q(Math.round(p.w * 1000), 1000);
+/* b·c exakt – die Zahl, die in der ausmultiplizierten Form in der Klammer steht. null: b ist kein Bruch (Riesenrad, b mit π) */
+function TP_bc(P){
+  if (!P.b.q || P.b.pi) return null;
+  return P.c.pi ? TP_pi(qMul(P.b.q, P.c.q)) : TP_rat(qMul(P.b.q, TP_q(P.c)));
+}
+/* Gibt es zwei verschiedene Schreibweisen? Nur mit b ≠ 1 und c ≠ 0. */
+const TP_zwei = P => Math.abs(P.c.w) > 1e-12 && Math.abs(P.b.w - 1) > 1e-12 && !!TP_bc(P);
+/* Wer die Zahl in der Klammer (b·c) als Verschiebung liest: Ist das ein anderer Graph? Nicht immer – liegt b·c genau
+   ganze Perioden neben c, ist es derselbe (sin(3x − π): um π/3 verschoben, um π aber auch, das ist eine Periode weiter). */
+const TP_direktFalsch = P => { const k = (TP_bc(P).w - P.c.w) * P.b.w / (2 * TP_PI); return Math.abs(k - Math.round(k)) > 1e-9; };
 
 /* f als JS-Funktion und als Text für T_lies (Probe, Vergleich) */
-const TP_fn = P => x => P.a.w * Math.sin(P.b.w * (x - P.c.w)) + P.d.w;
-const TP_text = (P, v = 'x') => `(${P.a.w})*sin((${P.b.w})*(${v}-(${P.c.w})))+(${P.d.w})`;
+const TP_fn = P => x => P.a.w * TP_FN(P.b.w * (x - P.c.w)) + P.d.w;
+const TP_text = (P, v = 'x') => `(${P.a.w})*${TP_NAME}((${P.b.w})*(${v}-(${P.c.w})))+(${P.d.w})`;
 
-/* Funktionsterm als LaTeX. farbe: Parameter in ihren Farben (tp-a … tp-d) */
-function TP_term(P, v = 'x', farbe = false, name = 'f(x)'){
+/* Was in der Klammer steht, als LaTeX: b(x − c) – oder ausmultipliziert bx − b·c (aus: true; nur wenn TP_zwei).
+   farbe: Parameter in ihren Farben (tp-a … tp-d); b·c bleibt ungefärbt, es ist weder b noch c. */
+function TP_arg(P, v = 'x', aus = false, farbe = false){
   const k = (kl, t) => farbe ? kTex(kl, t) : t;
-  const a = P.a.w === 1 ? '' : P.a.w === -1 ? k('tp-a', '-') : k('tp-a', P.a.tex);
+  if (aus && TP_zwei(P)) { const bc = TP_bc(P); return `${k('tp-b', P.b.tex)}${v} ${bc.w > 0 ? '-' : '+'} ${bc.tex.replace(/^-/, '')}`; }
   let innen;
   if (Math.abs(P.c.w) < 1e-12) innen = v;
   else innen = P.c.w > 0 ? `${v} - ${k('tp-c', P.c.tex)}` : `${v} + ${k('tp-c', P.c.tex.replace(/^-/, ''))}`;
-  let arg;
-  if (Math.abs(P.b.w - 1) < 1e-12) arg = innen;
-  else arg = Math.abs(P.c.w) < 1e-12 ? `${k('tp-b', P.b.tex)}${v}` : `${k('tp-b', P.b.tex)}${klTex(innen)}`;
+  if (Math.abs(P.b.w - 1) < 1e-12) return innen;
+  return Math.abs(P.c.w) < 1e-12 ? `${k('tp-b', P.b.tex)}${v}` : `${k('tp-b', P.b.tex)}${klTex(innen)}`;
+}
+/* Funktionsterm als LaTeX. o.aus: ausmultiplizierte Schreibweise · o.fn: anderer Funktionsname (Ableitungen) */
+function TP_term(P, v = 'x', farbe = false, name = 'f(x)', o = {}){
+  const k = (kl, t) => farbe ? kTex(kl, t) : t;
+  const a = P.a.w === 1 ? '' : P.a.w === -1 ? k('tp-a', '-') : k('tp-a', P.a.tex);
   const d = Math.abs(P.d.w) < 1e-12 ? '' : P.d.w > 0 ? ` + ${k('tp-d', P.d.tex)}` : ` - ${k('tp-d', P.d.tex.replace(/^-/, ''))}`;
-  return `${name ? name + ' = ' : ''}${a}\\sin${klTex(arg)}${d}`;
+  return `${name ? name + ' = ' : ''}${a}\\${o.fn || TP_NAME}${klTex(TP_arg(P, v, o.aus, farbe))}${d}`;
+}
+/* n-te Ableitung (Kettenregel): Bei jedem Ableiten kommt der Faktor b dazu, die Funktion läuft im Ableitungskreis
+   sin → cos → −sin → −cos → sin. d fällt weg. Ergebnis: { P (Parameter mit dem neuen Faktor), fn, q (Faktor), f, tex() } */
+function TP_abl(P, n){
+  const kreis = [['sin', 1], ['cos', 1], ['sin', -1], ['cos', -1]], [fn, vz] = kreis[(n + (TP_COS ? 1 : 0)) % 4];
+  const vz0 = TP_COS ? kreis[1][1] : 1;
+  let q = TP_q(P.a); for (let i = 0; i < n; i++) q = qMul(q, P.b.q); if (vz !== vz0) q = qNeg(q);
+  const A = { ...P, a: P.a.q ? TP_bruch(q) : TP_rat(q), d: TP_zahl(0) }, FN = fn === 'cos' ? Math.cos : Math.sin;
+  return { P: A, fn, q, f: x => A.a.w * FN(P.b.w * (x - P.c.w)), tex: (v = 'x', name = '', o = {}) => TP_term(A, v, false, name, { ...o, fn }) };
 }
 
 /* Periode p = 2π/b als Parameter (b Bruch) */
 const TP_periode = P => !P.b.q ? TP_zahl(2 * TP_PI / P.b.w) : P.b.pi ? TP_bruch(qDiv(Q(2), P.b.q)) : TP_pi(qDiv(Q(2), P.b.q));
 
 /* ---------- Graph ----------
-   o: { W, H, P, normal (sin x blass), masse (Amplitude, Periode, Verschiebung, Mittellinie), xmax, ymin, ymax,
+   o: { W, H, P, normal (sin x bzw. cos x blass), abl (f′ mitzeichnen), masse (Amplitude, Periode, Verschiebung, Mittellinie), xmax, ymin, ymax,
         bogen (x-Achse in π), xName, yName, kurve (Klasse) }
    Die x-Achse wächst mit, bis eine ganze Periode ab dem Startpunkt zu sehen ist. */
 function TP_graph(o){
   const P = o.P, f = TP_fn(P), p = 2 * TP_PI / Math.abs(P.b.w), bogen = o.bogen !== false;
   const xmin = o.xmin !== undefined ? o.xmin : -TP_PI;
-  /* Startpunkt (Argument 0, f geht durch die Mittellinie) im Bild: kleinstes c + k·p ≥ xmin + 0,2 */
+  /* Startpunkt (Argument 0 – Sinus: f geht durch die Mittellinie · Kosinus: Hoch- bzw. Tiefpunkt) im Bild: kleinstes c + k·p ≥ xmin + 0,2 */
   let s0 = P.c.w; while (s0 - p >= xmin + 0.2) s0 -= p; while (s0 < xmin + 0.2) s0 += p;
   let xmax = o.xmax !== undefined ? o.xmax : 4 * TP_PI;
   if (o.masse && s0 + p > xmax - 0.3) xmax = s0 + p + 0.6;
   const A = Math.abs(P.a.w), luft = Math.max(0.5, 0.15 * A);           // Abstand der Periodenklammer, wächst mit der Amplitude
-  const ymin = o.ymin !== undefined ? o.ymin : Math.min(-1.5, P.d.w - A - (o.masse ? 2.6 * luft : 0.6));
-  const ymax = o.ymax !== undefined ? o.ymax : Math.max(1.5, P.d.w + A + (o.masse ? 2.6 * luft : 0.6));
+  let ymin = o.ymin !== undefined ? o.ymin : Math.min(-1.5, P.d.w - A - (o.masse ? 2.6 * luft : 0.6));
+  let ymax = o.ymax !== undefined ? o.ymax : Math.max(1.5, P.d.w + A + (o.masse ? 2.6 * luft : 0.6));
+  /* f′ schwingt um die x-Achse mit der Amplitude |a·b| – das Fenster wächst mit, bis sie ganz zu sehen ist */
+  const fAbl = o.abl ? TP_abl(P, 1) : null;
+  if (fAbl) { const Ab = Math.abs(fAbl.P.a.w) + 0.4; ymin = Math.min(ymin, -Ab); ymax = Math.max(ymax, Ab); }
   /* Zoom (graph.js): o.zoomFeld + o.zeichne – ab hier gilt der gezeigte Ausschnitt v */
   const v = o.zoomFeld ? G_zoom(o.zoomFeld, { xmin, xmax, ymin, ymax }, o.zeichne) : { xmin, xmax, ymin, ymax };
   /* π-Beschriftung alle u (π/2, auf dem Handy π); beim Zoomen verdoppelt bzw. halbiert, Gitter u/2 */
@@ -2110,18 +2165,34 @@ function TP_graph(o){
       g += `<text class="g-tick" x="${f1(K.px(x))}" y="${f1(y0)}" text-anchor="middle">${TP_piText(viel ? Q(k * n) : Q(k, n))}</text>`;
     }
   }
-  if (o.normal) g += K.kurve(Math.sin, 'tp-normal');
+  if (o.normal) g += K.kurve(TP_FN, 'tp-normal');
   if (o.masse){
     const yd = K.py(P.d.w);
     g += `<line class="tp-mitte" x1="${K.R.l}" y1="${f1(yd)}" x2="${o.W - K.R.r}" y2="${f1(yd)}"/>`;
   }
+  if (fAbl){
+    g += K.kurve(fAbl.f, 'tp-abl');
+    /* Name an der Kurve: am höchsten Punkt von f′, der gut im Bild liegt */
+    let hx = v.xmin, hy = -Infinity;
+    for (let i = 0; i <= 160; i++){ const x = v.xmin + (0.1 + 0.8 * i / 160) * br, y = fAbl.f(x); if (y > hy + 1e-9 && y < v.ymax){ hx = x; hy = y; } }
+    if (hy > -Infinity) g += `<text class="tp-t tp-tabl" x="${f1(K.px(hx))}" y="${f1(Math.max(14, K.py(hy) - 7))}" text-anchor="middle">f′</text>`;
+  }
   g += K.kurve(f, o.kurve || 'tp-kurve');
+  /* f′ = 0 ↔ Extrempunkt von f: Lot von der x-Achse zum Hoch- bzw. Tiefpunkt (nur solange es übersichtlich bleibt) */
+  if (fAbl && o.lote){
+    const e0 = P.c.w + (TP_COS ? 0 : p / 4), k0 = Math.ceil((v.xmin - e0) / (p / 2)), k1 = Math.floor((v.xmax - e0) / (p / 2));
+    if (k1 - k0 < 12){
+      let l = '';
+      for (let k = k0; k <= k1; k++){ const x = e0 + k * p / 2; l += `<line class="tp-lot" x1="${f1(K.px(x))}" y1="${f1(K.py(0))}" x2="${f1(K.px(x))}" y2="${f1(K.py(f(x)))}"/>` + K.punkt(x, 0, 'tp-ablpunkt', 3.5); }
+      g += `<g clip-path="url(#${K.id})">${l}</g>`;
+    }
+  }
   const g0 = g.length, gezoomt = ['xmin', 'xmax', 'ymin', 'ymax'].some(k => v[k] !== { xmin, xmax, ymin, ymax }[k]);
   if (o.masse){
     const yd = K.py(P.d.w), pf = (x1, y1, x2, y2, klasse) => K.pfeil(x1, y1, x2, y2, { klasse, doppelt: true });   // Maßpfeil aus graph.js
     /* Mittellinie beschriften (rechts über der Linie; liegt sie auf der x-Achse, genügt die Achse) */
     /* Hochpunkt nach dem Startpunkt (dort steht die Amplitude); liegt er rechts, wandern beide Beschriftungen nach links */
-    let xh = s0 + (P.a.w > 0 ? p / 4 : 3 * p / 4) * Math.sign(P.b.w);
+    let xh = TP_COS ? s0 + (P.a.w > 0 ? 0 : p / 2) : s0 + (P.a.w > 0 ? p / 4 : 3 * p / 4) * Math.sign(P.b.w);   // Kosinus: Hochpunkt am Startpunkt (a > 0)
     /* liegt dieser Hochpunkt außerhalb des Bildes, eine ganze Periode zurück oder vor */
     while (K.px(xh) > o.W - K.R.r - 8 && K.px(xh - p) >= K.R.l + 8) xh -= p;
     while (K.px(xh) < K.R.l + 8 && K.px(xh + p) <= o.W - K.R.r - 8) xh += p;
@@ -2140,10 +2211,25 @@ function TP_graph(o){
     if (Math.abs(P.c.w) > 1e-9 && P.c.w >= xmin && P.c.w <= xmax){
       g += pf(0, P.d.w, P.c.w, P.d.w, 'tp-pc') + `<text class="tp-t tp-tc" x="${f1(K.px(P.c.w / 2))}" y="${f1(yd + 18)}" text-anchor="middle">c = ${P.c.txt}</text>`;
     }
-    g += K.punkt(s0, P.d.w, 'tp-start', 6);
+    g += K.punkt(s0, TP_COS ? P.d.w + P.a.w : P.d.w, 'tp-start', 6);   // Kosinus: Startpunkt ist der Hoch- bzw. Tiefpunkt bei x = c
   }
   if (gezoomt) g = g.slice(0, g0) + `<g clip-path="url(#${K.id})">${g.slice(g0)}</g>`;   // gezoomt: Maße nicht über die Achsenzahlen
   return { svg: `<svg width="${o.W}" height="${o.H}" viewBox="0 0 ${o.W} ${o.H}">${g}</svg>`, K, s0, xmax };
+}
+
+/* Kleine Skizze im Lösungsweg: Wo ist der Sinus bzw. der Kosinus null? Eine Periode, die Nullstellen markiert, der Abstand π
+   als Maßpfeil. Erklärbild ohne Zoom (data-ohne-zoom); in der Rechnung steht es im Fenster und im Druck, der Text daneben trägt die .tex. */
+function TP_nullSkizze(fn){
+  const cos = fn === 'cos', f = cos ? Math.cos : Math.sin, W = 250, H = 128, f1 = v => v.toFixed(1);
+  const K = G_koord({ W, H, xmin: -0.5, xmax: 2 * TP_PI + 0.9, ymin: -1.45, ymax: 1.45, sx: TP_PI / 2, sy: 1, zahlenX: false, zahlenY: false, rand: { l: 8, r: 12, o: 10, u: 20 }, xName: 'u' });
+  let g = K.grund;
+  for (let k = 1; k <= 4; k++) g += `<text class="g-tick" x="${f1(K.px(k * TP_PI / 2))}" y="${f1(K.py(0) + 15)}" text-anchor="middle">${TP_piText(Q(k, 2))}</text>`;
+  g += K.kurve(f, 'tp-kurve');
+  const null0 = cos ? [1, 3] : [0, 2, 4], [p1, p2] = cos ? [1, 3] : [2, 4];          // in Vielfachen von π/2; Pfeil dort, wo die Kurve unter der Achse läuft
+  g += K.pfeil(p1 * TP_PI / 2, 0.62, p2 * TP_PI / 2, 0.62, { klasse: 'tp-pb', doppelt: true })
+    + `<text class="tp-t tp-tb" x="${f1(K.px((p1 + p2) * TP_PI / 4))}" y="${f1(K.py(0.62) - 6)}" text-anchor="middle">+ π</text>`;
+  null0.forEach(k => { g += K.punkt(k * TP_PI / 2, 0, 'tp-stelle tp-nullpunkt', 5); });
+  return `<div class="tp-skizze" data-ohne-zoom>${K.svg(g)}</div>`;
 }
 
 function titelBild(){
@@ -2158,8 +2244,8 @@ const folien = [
   <div class="links">
     <div class="balken"></div>
     <div class="eyebrow">Trigonometrische Funktionen</div>
-    <h1>a · sin(b(x − c)) + d</h1>
-    <p class="unter">Vier Parameter, vier Wirkungen: Amplitude, Periode, Verschiebung und Mittellinie. Erst sehen, dann ablesen, dann aufstellen.</p>
+    <h1>a · ${TP_NAME}(b(x − c)) + d</h1>
+    <p class="unter">Vier Parameter, vier Wirkungen: Amplitude, Periode, Verschiebung und Mittellinie. Erst sehen, dann ablesen und aufstellen – in beiden Schreibweisen, mit Extrem- und Wendepunkten.</p>
     <div class="meta"><span>Mathematik</span><span>Funktionen</span></div>
   </div>
   <div class="rechts">
@@ -2168,7 +2254,7 @@ const folien = [
   </div>
 `},
 
-{titel:"Parameter", klasse:"kompakt oben", eyebrow:"Die vier Parameter", h2:"Was a, b, c und d mit der Sinuskurve machen", roh:`
+{titel:"Parameter", klasse:"kompakt oben", eyebrow:"Die vier Parameter", h2:`Was a, b, c und d mit der ${TP_WORT}kurve machen`, roh:`
   <div class="interaktiv" data-tparam>
     <div class="tp-labor">
       <div class="tp-links">
@@ -2181,7 +2267,7 @@ const folien = [
         </div>
       </div>
       <div class="tp-rechts">
-        <div class="tp-schalter"><button class="knopf hell an" data-r="normal">sin x zum Vergleich</button><button class="knopf hell an" data-r="masse">Maße zeigen</button><button class="knopf hell" data-r="zurueck">Zurücksetzen</button></div>
+        <div class="tp-schalter"><button class="knopf hell an" data-r="normal">${TP_NAME} x zum Vergleich</button><button class="knopf hell an" data-r="masse">Maße zeigen</button><button class="knopf hell" data-r="aus">ausmultipliziert</button><button class="knopf hell" data-r="abl"><span>${F("f'")} einblenden</span></button><button class="knopf hell" data-r="zurueck">Zurücksetzen</button></div>
         <div class="tp-formel" data-r="formel"></div>
         <div class="tp-liste" data-r="liste"></div>
       </div>
@@ -2198,7 +2284,7 @@ const folien = [
       <div class="knopfleiste"><button class="knopf o" data-r="pruefen">Prüfen</button></div>
     </div>
     <div class="wz-arten"><span class="bt">Neue Aufgabe:</span>
-      <button class="knopf hell" data-art="ablesen">ablesen</button><button class="knopf hell" data-art="aufstellen">aufstellen</button>
+      <button class="knopf hell" data-art="ablesen">ablesen</button><button class="knopf hell" data-art="term">Term lesen</button><button class="knopf hell" data-art="aufstellen">aufstellen</button>
       <button class="knopf hell" data-art="periode">Periode</button><button class="knopf hell" data-art="riesenrad">Riesenrad</button>
       <button class="knopf hell" data-art="gemischt">gemischt</button></div>
     <div class="wz-rueck" data-r="rueck"></div>
@@ -2209,20 +2295,20 @@ const folien = [
   </div>
 `},
 
-{titel:"Nullstellen und Extrema", klasse:"kompakt oben", eyebrow:"Nullstellen und Extrempunkte", h2:"Unendlich viele Lösungen – welche liegen im Intervall?", roh:`
+{titel:"Nullstellen, Extrem- und Wendepunkte", klasse:"kompakt oben", eyebrow:"Nullstellen, Extrem- und Wendepunkte", h2:"Unendlich viele Lösungen – welche liegen im Intervall?", roh:`
   <div class="interaktiv" data-werkzeug data-nullex>
     <div class="wz-aufgabe">
       <span class="wz-was" data-r="was"></span>
       <div class="tp-auftrag" data-r="auftrag"></div>
-      <div class="tp-ein"><span class="tp-f"><span class="tp-l" data-r="label"></span><input class="wz-eingabe tp-breit" data-r="antwort" spellcheck="false" autocomplete="off" placeholder="z. B. pi/4; 5pi/4" aria-label="Stellen, mit ; getrennt"></span></div>
+      <div class="tp-ein"><span class="tp-f"><span class="tp-l re-nicht" data-r="label"></span><input class="wz-eingabe tp-breit" data-r="antwort" spellcheck="false" autocomplete="off" placeholder="z. B. pi/4; 5pi/4" aria-label="Stellen, mit ; getrennt"></span><span class="tp-f" data-r="yfeld"><span class="tp-l re-nicht" data-r="ylabel"></span><input class="wz-eingabe tp-kurz" data-r="yantwort" spellcheck="false" autocomplete="off" aria-label="y-Wert der Punkte"></span></div>
       <div class="knopfleiste"><button class="knopf o" data-r="pruefen">Prüfen</button></div>
     </div>
     <div class="wz-arten"><span class="bt">Neue Aufgabe:</span>
       <button class="knopf hell" data-art="null">Nullstellen</button><button class="knopf hell" data-art="hoch">Hochpunkte</button>
-      <button class="knopf hell" data-art="tief">Tiefpunkte</button><button class="knopf hell" data-art="gemischt">gemischt</button></div>
+      <button class="knopf hell" data-art="tief">Tiefpunkte</button><button class="knopf hell" data-art="wende">Wendepunkte</button><button class="knopf hell" data-art="gemischt">gemischt</button></div>
     <div class="wz-rueck" data-r="rueck"></div>
     <div class="wz-zwei">
-      <div class="wz-panel"><h3>Lösungsweg <span class="rechts"><button class="knopf hell" data-r="schritt">Nächster Schritt</button><button class="knopf hell" data-r="alle">Alle</button></span></h3><div class="wz-weg" data-r="weg"></div></div>
+      <div class="wz-panel"><h3>Lösungsweg <span class="rechts"><button class="knopf hell" data-r="schritt">Nächster Schritt</button><button class="knopf hell" data-r="alle">Alle</button></span></h3><div class="tp-wegart" data-r="wegart"><button class="knopf hell an" data-wegart="wert">über den Wertebereich</button><button class="knopf hell" data-wegart="abl">mit Ableitungen</button></div><div class="wz-weg" data-r="weg"></div></div>
       <div class="wz-panel"><h3>Graph <span class="rechts"><button class="knopf hell" data-r="bild">Bild zeigen</button></span></h3><div class="tp-bild" data-r="graph"></div></div>
     </div>
   </div>
@@ -2250,6 +2336,8 @@ folien.forEach((f,i)=>{
 /* =====================================================================
    Labor: Regler a, b, c, d – Graph mit Amplitude, Periode, Verschiebung, Mittellinie.
    Gezeichnet in der echten Kastenbreite (WZ.beiBreite), auf dem Handy schmal neu.
+   Schalter: Vergleichskurve · Maße · ausmultiplizierte Schreibweise (nur die Anzeige) · f′ mitzeichnen.
+   Sinus und Kosinus: dieselbe Datei, TP_COS (teil_folien.js) entscheidet.
    ===================================================================== */
 const TPARAM = (() => {
   const root = document.querySelector('[data-tparam]');
@@ -2260,37 +2348,46 @@ const TPARAM = (() => {
   const D_LISTE = [-3, -2.5, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5, 3];
   const START = { a: 9, b: 3, c: 5, d: 8 }, NORMAL = { a: 7, b: 1, c: 4, d: 6 };
   /* S.i: Stellung der Schieber · S.v: getippter Wert (genau, auch zwischen den Stufen) – überdeckt die Stellung */
-  const S = { i: { ...START }, v: {}, normal: true, masse: true };
+  const S = { i: { ...START }, v: {}, normal: true, masse: true, aus: false, abl: false };
   const STUFEN = { a: A_LISTE.map(TP_zahl), b: B_LISTE.map(TP_bruch), c: C_LISTE.map(TP_pi), d: D_LISTE.map(TP_zahl) };
   const P = () => ({ a: S.v.a || STUFEN.a[S.i.a], b: S.v.b || STUFEN.b[S.i.b], c: S.v.c || STUFEN.c[S.i.c], d: S.v.d || STUFEN.d[S.i.d] });
+  const betrag = t => t.replace(/^-/, '');
 
   function zeichne(){
     const p = P(), h = WZ.handy(), W = Math.max(280, Math.min(R('feld').clientWidth || 600, h ? 520 : 700));
-    const g = TP_graph({ W, H: h ? 300 : 340, P: p, normal: S.normal, masse: S.masse, ymin: -7, ymax: 7, rand: { l: 30, r: 14, o: 18, u: 22 }, zoomFeld: R('feld'), zeichne });
+    const g = TP_graph({ W, H: h ? 300 : 340, P: p, normal: S.normal, masse: S.masse, abl: S.abl, lote: true, ymin: -7, ymax: 7, rand: { l: 30, r: 14, o: 18, u: 22 }, zoomFeld: R('feld'), zeichne });
     R('feld').innerHTML = g.svg; G_zoomKnoepfe(R('feld'), g.K);
     ['a', 'b', 'c', 'd'].forEach(k => { R('r' + k).value = S.i[k]; WZ.reglerWert(R('w' + k), p[k].txt); });
-    R('formel').innerHTML = F(TP_term(p, 'x', true));
+    /* Schreibweise: nur die Anzeige. Ausmultipliziert stehen beide Formen untereinander, mit Gleichheitszeichen. */
+    const zwei = S.aus && TP_zwei(p);
+    R('formel').innerHTML = zwei
+      ? F(`\\begin{aligned} f(x) &= ${TP_term(p, 'x', true, '', { aus: true })} \\\\ &= ${TP_term(p, 'x', true, '')} \\end{aligned}`)
+        + `<p class="tp-erkl">${M(`Faktor $${p.b.tex}$ vor $x$ ausgeklammert. Verschoben wird um $${betrag(p.c.tex)}$${TP_direktFalsch(p) ? `, nicht um $${betrag(TP_bc(p).tex)}$` : ''}.`)}</p>`
+      : F(TP_term(p, 'x', true))
+        + (S.aus ? `<p class="tp-erkl">${M(Math.abs(p.c.w) < 1e-12 ? 'Ohne Verschiebung ($c = 0$) sehen beide Schreibweisen gleich aus.' : 'Mit $b = 1$ sehen beide Schreibweisen gleich aus.')}</p>` : '');
     const per = TP_periode(p), A = Math.abs(p.a.w);
     R('liste').innerHTML = [
       `<div class="tp-z"><i class="tp-pkt tp-ka"></i>${M(`Amplitude: $|a| = ${zTex(A, 3)}$${p.a.w < 0 ? ' – $a < 0$: an der Mittellinie gespiegelt.' : '.'}`)}</div>`,
       `<div class="tp-z"><i class="tp-pkt tp-kb"></i>${M(`Periode: $p = 2\\pi : b = ${per.tex}$.`)}</div>`,
-      `<div class="tp-z"><i class="tp-pkt tp-kc"></i>${Math.abs(p.c.w) < 1e-12 ? M('Keine Verschiebung: $c = 0$.') : M(`Verschiebung um $${p.c.tex.replace(/^-/, '')}$ nach ${p.c.w > 0 ? 'rechts' : 'links'}.`)}</div>`,
-      `<div class="tp-z"><i class="tp-pkt tp-kd"></i>${M(`Mittellinie: $y = ${p.d.tex}$.`)}</div>`].join('');
+      `<div class="tp-z"><i class="tp-pkt tp-kc"></i>${Math.abs(p.c.w) < 1e-12 ? M('Keine Verschiebung: $c = 0$.') : M(`Verschiebung um $${betrag(p.c.tex)}$ nach ${p.c.w > 0 ? 'rechts' : 'links'}.`)}</div>`,
+      `<div class="tp-z"><i class="tp-pkt tp-kd"></i>${M(`Mittellinie: $y = ${p.d.tex}$.`)}</div>`,
+      ...(S.abl ? [`<div class="tp-z tp-zabl"><i class="tp-strich"></i><span>${M(`Ableitung: $f'(x) = ${TP_abl(p, 1).tex()}$.`)}<br>${M(`$f'$ ist null: Hoch- oder Tiefpunkt von $f$. $f'$ ist am größten oder kleinsten: Wendepunkt von $f$, auf der Mittellinie.`)}</span></div>`] : [])].join('');
     R('normal').classList.toggle('an', S.normal); R('masse').classList.toggle('an', S.masse);
+    R('aus').classList.toggle('an', S.aus); R('abl').classList.toggle('an', S.abl);
     root.dataset.parameter = JSON.stringify({ a: p.a.w, b: p.b.w, c: p.c.w, d: p.d.w });
+    root.dataset.anzeige = JSON.stringify({ aus: S.aus, zwei, abl: S.abl });
   }
   ['a', 'b', 'c', 'd'].forEach(k => R('r' + k).addEventListener('input', () => { S.i[k] = +R('r' + k).value; delete S.v[k]; zeichne(); }));
   /* Wert eintippen (wie Parabeln): streng, Brüche; c auch als Vielfaches von π. Der Schieber springt auf die nächste Stufe. */
   const naechste = (k, w) => STUFEN[k].reduce((b, p, j) => Math.abs(p.w - w) < Math.abs(STUFEN[k][b].w - w) - 1e-12 ? j : b, 0);
-  const endlich = q => { let n = q.n; while (n % 2 === 0) n /= 2; while (n % 5 === 0) n /= 5; return n === 1 && q.n <= 1000; };   // 1,25 bleibt Dezimalzahl, 1/3 bleibt Bruch
-  const zahlParam = q => endlich(q) ? TP_zahl(q.z / q.n) : TP_bruch(q);
+  const zahlParam = q => TP_rat(q);   // 1,25 bleibt Dezimalzahl, 1/3 bleibt Bruch
   const piParam = z => {   // Vielfaches von π als Bruch · π erkennen; sonst eine gewöhnliche Zahl
     if (z.q) return z.q.z === 0 ? TP_pi(Q(0)) : zahlParam(z.q);
     const k = z.v / TP_PI; for (let n = 1; n <= 24; n++) { const m = Math.round(k * n); if (Math.abs(m / n - k) < 1e-9) return TP_pi(Q(m, n)); }
     return null; };
   const uebernimm = (k, p) => { S.v[k] = p; S.i[k] = naechste(k, p.w); zeichne(); return null; };
   const bis = (w, g) => Math.abs(w) <= g + 1e-12;
-  WZ.reglerEingabe(R('wa'), z => z.v === 0 ? 'Mit a = 0 gibt es keine Sinuskurve mehr.' : !bis(z.v, 3) ? 'Für a bitte eine Zahl zwischen −3 und 3.' : uebernimm('a', zahlParam(z.q)));
+  WZ.reglerEingabe(R('wa'), z => z.v === 0 ? `Mit a = 0 gibt es keine ${TP_WORT}kurve mehr.` : !bis(z.v, 3) ? 'Für a bitte eine Zahl zwischen −3 und 3.' : uebernimm('a', zahlParam(z.q)));
   WZ.reglerEingabe(R('wb'), z => z.v <= 0 ? 'b muss größer als 0 sein.' : z.v > 4 ? 'Für b bitte eine Zahl bis 4.' : uebernimm('b', TP_bruch(z.q)));
   WZ.reglerEingabe(R('wc'), z => { const p = piParam(z);
     if (!p) return 'c bitte als Zahl oder als Vielfaches von π, z. B. π/4 oder −2π/3.';
@@ -2302,6 +2399,8 @@ const TPARAM = (() => {
     R('w' + k).addEventListener('change', zeigen); R('w' + k).addEventListener('keydown', e => { if (e.key === 'Enter') zeigen(); }); });
   R('normal').onclick = () => { S.normal = !S.normal; zeichne(); };
   R('masse').onclick = () => { S.masse = !S.masse; zeichne(); };
+  R('aus').onclick = () => { S.aus = !S.aus; zeichne(); };
+  R('abl').onclick = () => { S.abl = !S.abl; zeichne(); };
   R('zurueck').onclick = () => { S.i = { ...NORMAL }; S.v = {}; zeichne(); };
   window.addEventListener('handy-wechsel', zeichne);
   WZ.beiBreite(R('feld'), zeichne);
@@ -2310,9 +2409,9 @@ const TPARAM = (() => {
 })();
 
 /* =====================================================================
-   Trainer: ablesen, aufstellen, Periode, Riesenrad.
+   Trainer: ablesen (vom Graphen), Term lesen (auch ausmultipliziert), aufstellen, Periode, Riesenrad.
    Prüfen über die FUNKTION an vielen Stellen, nicht über die Zahlen – c ist nur bis auf Perioden bestimmt,
-   und a < 0 mit verschobenem c beschreibt dieselbe Kurve.
+   a < 0 mit verschobenem c beschreibt dieselbe Kurve, und beide Schreibweisen sind dieselbe Funktion.
    ===================================================================== */
 const TRAINER = (() => {
   const root = document.querySelector('[data-trainer]');
@@ -2321,6 +2420,8 @@ const TRAINER = (() => {
   const weg = WZ.weg(root);
   const X_STELLEN = [...Array(41)].map((_, i) => -TP_PI + 0.13 + i * 5 * TP_PI / 41);
   const stellen = A => A.art === 'riesenrad' ? [...Array(41)].map((_, i) => 0.07 + i * 1.6 * A.T / 41) : X_STELLEN;
+  const FNT = `\\${TP_NAME}`, betrag = t => t.replace(/^-/, ''), zeile = t => `<span class="tp-zeile">${t}</span>`;
+  const vier = A => A.art === 'ablesen' || A.art === 'term';   // vier Felder a, b, c, d
 
   /* ---------- Aufgaben ---------- */
   const zufallP = (o = {}) => {
@@ -2338,43 +2439,58 @@ const TRAINER = (() => {
     for (let i = 0; i < 40; i++){
       let A;
       if (art === 'ablesen') A = { art, P: zufallP({ cNichtNull: Math.random() < 0.8 }) };
+      else if (art === 'term') {
+        const P = zufallP({ cNichtNull: Math.random() < 0.85, bListe: [Q(2), Q(2), Q(3), Q(4), Q(1, 2), Q(1)] });
+        A = { art, P, form: TP_zwei(P) && Math.random() < 0.65 ? 'aus' : 'haupt' };
+        if (A.form === 'aus' && !TP_direktFalsch(P)) continue;   // die Zahl in der Klammer soll wirklich die falsche Verschiebung sein
+      }
       else if (art === 'aufstellen') A = { art, P: zufallP({ bListe: [Q(1, 2), Q(1), Q(2), Q(3), Q(4), Q(2, 3)], neg: 0.2 }), form: WZ.eins(['amp', 'amp', 'maxmin']) };
       else if (art === 'periode'){
         const b = WZ.eins([TP_bruch(Q(2)), TP_bruch(Q(3)), TP_bruch(Q(4)), TP_bruch(Q(1, 2)), TP_bruch(Q(1, 3)), TP_bruch(Q(2, 3)), TP_bruch(Q(3, 2)),
           TP_pi(Q(1)), TP_pi(Q(1, 2)), TP_pi(Q(2))]);
-        A = { art, P: { ...zufallP({ neg: 0.2 }), b } };
+        const P = { ...zufallP({ neg: 0.2 }), b };
+        A = { art, P, form: TP_zwei(P) && Math.random() < 0.5 ? 'aus' : 'haupt' };
       } else {
         const D = WZ.eins([20, 30, 40, 50, 60, 80, 100]), H = D / 2 + WZ.eins([1, 2, 3, 5]), T = WZ.eins([20, 24, 30, 40, 60, 90, 120]);
-        A = { art: 'riesenrad', D, H, T, P: { a: TP_zahl(D / 2), b: TP_pi(Q(2, T)), c: TP_zahl(T / 4), d: TP_zahl(H) } };
+        /* Start unten. Sinus: steigend durch die Mittellinie nach einer Viertelumdrehung · Kosinus: −r·cos */
+        A = { art: 'riesenrad', D, H, T, P: TP_COS ? { a: TP_zahl(-D / 2), b: TP_pi(Q(2, T)), c: TP_zahl(0), d: TP_zahl(H) }
+          : { a: TP_zahl(D / 2), b: TP_pi(Q(2, T)), c: TP_zahl(T / 4), d: TP_zahl(H) } };
       }
       if (!alt || JSON.stringify(alt) !== JSON.stringify(A)) return A;
     }
   }
-  function neu(art){ S.art = art; setze(erzeuge(art === 'gemischt' ? WZ.eins(['ablesen', 'aufstellen', 'periode', 'riesenrad']) : art)); }
+  function neu(art){ S.art = art; setze(erzeuge(art === 'gemischt' ? WZ.eins(['ablesen', 'term', 'aufstellen', 'periode', 'riesenrad']) : art)); }
 
-  const feld = (k, label, breit = false, ph = '') => `<span class="tp-f"><span class="tp-l">${F(label)}</span><input class="wz-eingabe${breit ? ' tp-breit' : ' tp-kurz'}" data-k="${k}" spellcheck="false" autocomplete="off" placeholder="${ph}" aria-label="${k}"></span>`;
+  const feld = (k, label, breit = false, ph = '') => `<span class="tp-f"><span class="tp-l re-nicht">${F(label)}</span><input class="wz-eingabe${breit ? ' tp-breit' : ' tp-kurz'}" data-k="${k}" spellcheck="false" autocomplete="off" placeholder="${ph}" aria-label="${k}"></span>`;
+  /* Wo die Kurve „beginnt“: Sinus steigend/fallend durch die Mittellinie, Kosinus mit Hoch-/Tiefpunkt */
+  const startSatz = P => TP_COS ? `Bei $x = ${P.c.tex}$ liegt ein ${P.a.w > 0 ? 'Hochpunkt' : 'Tiefpunkt'}.`
+    : `Der Graph geht bei $x = ${P.c.tex}$ ${P.a.w > 0 ? 'steigend' : 'fallend'} durch die Mittellinie.`;
   function beschreibung(A){
-    const P = A.P, per = TP_periode(P), start = `bei $x = ${P.c.tex}$ ${P.a.w > 0 ? 'steigend' : 'fallend'} durch die Mittellinie`;
+    const P = A.P, per = TP_periode(P);
     if (A.form === 'maxmin'){
       const ymax = P.d.w + Math.abs(P.a.w), ymin = P.d.w - Math.abs(P.a.w);
-      return M(`Größter Wert $${zTex(ymax, 3)}$, kleinster Wert $${zTex(ymin, 3)}$, Periode $${per.tex}$. Der Graph geht ${start}.`);
+      return M(`Größter Wert $${zTex(ymax, 3)}$, kleinster Wert $${zTex(ymin, 3)}$, Periode $${per.tex}$. ${startSatz(P)}`);
     }
-    return M(`Amplitude $${zTex(Math.abs(P.a.w), 3)}$, Periode $${per.tex}$, Mittellinie $y = ${P.d.tex}$. Der Graph geht ${start}.`);
+    return M(`Amplitude $${zTex(Math.abs(P.a.w), 3)}$, Periode $${per.tex}$, Mittellinie $y = ${P.d.tex}$. ${startSatz(P)}`);
   }
+  const hauptform = `$f(x) = a${FNT}(b(x - c)) + d$`;
   function setze(A){
     S.A = A; S.bild = A.art === 'ablesen'; S.geloest = false;
-    const P = A.P;
-    R('was').textContent = { ablesen: 'Lies ab:', aufstellen: 'Stelle auf:', periode: 'Periode:', riesenrad: 'Riesenrad:' }[A.art];
-    R('auftrag').innerHTML = A.art === 'ablesen' ? M('Der Graph rechts gehört zu $f(x) = a\\sin(b(x - c)) + d$. Lies $a$, $b$, $c$ und $d$ ab.')
+    if (S.art !== 'gemischt') S.art = A.art;   // direkt gesetzte Aufgabe: der Knopf ihrer Art ist an
+    const P = A.P, aus = A.form === 'aus';
+    R('was').textContent = { ablesen: 'Lies ab:', term: 'Lies am Term ab:', aufstellen: 'Stelle auf:', periode: 'Periode:', riesenrad: 'Riesenrad:' }[A.art];
+    R('auftrag').innerHTML = A.art === 'ablesen' ? M(`Der Graph rechts gehört zu ${hauptform}. Lies $a$, $b$, $c$ und $d$ ab.`)
+      : A.art === 'term' ? `<span class="tp-gross">${F('f(x) =')} ${F(TP_term(P, 'x', false, '', { aus }))}</span>${zeile(M(`Schreibe in der Form ${hauptform}: Gib $a$, $b$, $c$ und $d$ an.`))}`
       : A.art === 'aufstellen' ? beschreibung(A)
-      : A.art === 'periode' ? `<span class="tp-gross">${F('f(x) =')} ${F(TP_term(P, 'x', false, ''))}</span>`
+      : A.art === 'periode' ? `<span class="tp-gross">${F('f(x) =')} ${F(TP_term(P, 'x', false, '', { aus }))}</span>`
       : M(`Ein Riesenrad hat $${A.D}\\,\\text{m}$ Durchmesser, seine Achse liegt $${zTex(A.H, 1)}\\,\\text{m}$ hoch, eine Umdrehung dauert $${A.T}\\,\\text{s}$. Eine Gondel startet bei $t = 0$ ganz unten. Gib ihre Höhe $h(t)$ in Metern an.`);
-    R('ein').innerHTML = A.art === 'ablesen' ? feld('a', 'a =') + feld('b', 'b =') + feld('c', 'c =', false, 'z. B. pi/4') + feld('d', 'd =')
-      : A.art === 'aufstellen' ? feld('f', 'f(x) =', true, 'z. B. 2sin(3(x-pi/4))+1')
+    R('ein').innerHTML = vier(A) ? feld('a', 'a =') + feld('b', 'b =') + feld('c', 'c =', false, 'z. B. pi/4') + feld('d', 'd =')
+      : A.art === 'aufstellen' ? feld('f', 'f(x) =', true, `z. B. 2${TP_NAME}(3(x-pi/4))+1`)
       : A.art === 'periode' ? feld('p', 'p =', false, 'z. B. 2pi/3')
-      : feld('h', 'h(t) =', true, 'z. B. 5sin(pi/10(t-5))+7');
+      : feld('h', 'h(t) =', true, TP_COS ? 'z. B. -5cos(pi/10*t)+7' : 'z. B. 5sin(pi/10(t-5))+7');
     root.querySelectorAll('[data-k]').forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') pruefe(); }));
     WZ.rueck(R('rueck'), '', A.art === 'periode' ? 'Exakt mit π (z. B. 2pi/3) oder als Dezimalzahl auf zwei Stellen.'
+      : A.art === 'aufstellen' ? 'Mit π und Brüchen schreiben: pi/4, 3pi/2, 0,5. Beide Schreibweisen zählen: b(x − c) oder ausmultipliziert.'
       : 'Mit π und Brüchen schreiben: pi/4, 3pi/2, 0,5. Jede gleichwertige Form zählt.');
     root.querySelectorAll('[data-art]').forEach(b => b.classList.toggle('an', b.dataset.art === S.art));
     root.dataset.aufgabe = JSON.stringify({ art: A.art, a: P.a.w, b: P.b.w, c: P.c.w, d: P.d.w, D: A.D, H: A.H, T: A.T, form: A.form });
@@ -2388,37 +2504,57 @@ const TRAINER = (() => {
 
   /* ---------- Lösungsweg ---------- */
   const neg = t => /^-/.test(t) ? `(${t})` : t;
+  /* Ausklammern als Gleichung: 2x − π/2 = 2(x − π/4) */
+  const ausklammern = P => `${TP_arg(P, 'x', true)} = ${TP_arg(P)}`;
+  const beideFormen = P => TP_zwei(P) ? zeile(M(`Ausmultipliziert dieselbe Funktion: $${TP_term(P, 'x', false, 'f(x)', { aus: true })}$`)) : '';
   function baueWeg(A){
     const P = A.P, s = [], per = TP_periode(P), Aw = Math.abs(P.a.w);
     const ymaxT = zTex(P.d.w + Aw, 3), yminT = zTex(P.d.w - Aw, 3);
     const bWeg = ['b', F(`\\begin{aligned} p &= ${per.tex} \\\\ b &= 2\\pi : p = 2\\pi : ${klTex(per.tex)} = ${P.b.tex} \\end{aligned}`)];
+    const amStart = P.a.w > 0 ? (TP_COS ? 'Am Startpunkt liegt ein Hochpunkt: $a > 0$.' : 'Am Startpunkt steigt der Graph: $a > 0$.')
+      : (TP_COS ? `Am Startpunkt liegt ein Tiefpunkt: $a = ${P.a.tex}$.` : `Am Startpunkt fällt der Graph: $a = ${P.a.tex}$.`);
+    if (A.art === 'term'){
+      if (A.form === 'aus') s.push(['Faktor vor x ausklammern', M(`In der Klammer steht $${TP_arg(P, 'x', true)}$. Die Verschiebung steht erst da, wenn der Faktor $${P.b.tex}$ vor $x$ ausgeklammert ist:`)
+        + zeile(F(ausklammern(P))) + zeile(`${F('f(x) =')} ${F(TP_term(P, 'x', false, ''))}`)]);
+      s.push(['Vergleichen', M(`Vergleiche mit ${hauptform}:`)
+        + (P.c.w < 0 ? zeile(F(`x + ${betrag(P.c.tex)} = x - \\left(-${betrag(P.c.tex)}\\right)`) + M(', also ist $c$ negativ.')) : '')
+        + zeile(['a', 'b', 'c', 'd'].map(k => `<span class="tp-wert">${F(`${k} = ${P[k].tex}`)}</span>`).join(' '))]);
+      s.push(['Ergebnis', [
+        M(`Amplitude $|a| = ${zTex(Aw, 3)}$${P.a.w < 0 ? ', wegen $a < 0$ an der Mittellinie gespiegelt' : ''}.`),
+        M(`Periode $p = \\frac{2\\pi}{b} = ${per.tex}$.`),
+        Math.abs(P.c.w) < 1e-12 ? 'Keine Verschiebung.' : M(`Verschiebung um $${betrag(P.c.tex)}$ nach ${P.c.w > 0 ? 'rechts' : 'links'}${A.form === 'aus' && TP_direktFalsch(P) ? ` – nicht um $${betrag(TP_bc(P).tex)}$` : ''}.`),
+        M(`Mittellinie $y = ${P.d.tex}$.`)].map(zeile).join(''), true]);
+      return s;
+    }
     if (A.art === 'ablesen' || (A.art === 'aufstellen' && A.form === 'maxmin')){
       s.push(['Mittellinie', F(`\\begin{aligned} y_{\\max} &= ${ymaxT} \\\\ y_{\\min} &= ${yminT} \\\\ d &= \\frac{y_{\\max} + y_{\\min}}{2} \\\\ &= \\frac{${ymaxT} + ${neg(yminT)}}{2} = ${P.d.tex} \\end{aligned}`)]);
-      s.push(['Amplitude', F(`\\begin{aligned} |a| &= \\frac{y_{\\max} - y_{\\min}}{2} \\\\ &= \\frac{${ymaxT} - ${neg(yminT)}}{2} = ${zTex(Aw, 3)} \\end{aligned}`)
-        + `<span class="tp-zeile">${M(P.a.w > 0 ? 'Am Startpunkt steigt der Graph: $a > 0$.' : `Am Startpunkt fällt der Graph: $a = ${P.a.tex}$.`)}</span>`]);
+      s.push(['Amplitude', F(`\\begin{aligned} |a| &= \\frac{y_{\\max} - y_{\\min}}{2} \\\\ &= \\frac{${ymaxT} - ${neg(yminT)}}{2} = ${zTex(Aw, 3)} \\end{aligned}`) + zeile(M(amStart))]);
     } else if (A.art === 'aufstellen'){
-      s.push(['Amplitude', M(`$|a| = ${zTex(Aw, 3)}$. ${P.a.w > 0 ? 'Steigend durch die Mittellinie: $a > 0$.' : `Fallend durch die Mittellinie: $a = ${P.a.tex}$.`}`)]);
+      const wo = P.a.w > 0 ? (TP_COS ? 'Hochpunkt am Startpunkt: $a > 0$.' : 'Steigend durch die Mittellinie: $a > 0$.')
+        : (TP_COS ? `Tiefpunkt am Startpunkt: $a = ${P.a.tex}$.` : `Fallend durch die Mittellinie: $a = ${P.a.tex}$.`);
+      s.push(['Amplitude', M(`$|a| = ${zTex(Aw, 3)}$. ${wo}`)]);
       s.push(['Mittellinie', F(`d = ${P.d.tex}`)]);
     }
     if (A.art === 'ablesen'){
       s.push(['Periode', M('Abstand zweier Hochpunkte: ') + F(`\\begin{aligned} p &= ${per.tex} \\\\ b &= 2\\pi : p = 2\\pi : ${klTex(per.tex)} = ${P.b.tex} \\end{aligned}`)]);
-      s.push(['Verschiebung', M(`Der Graph geht bei $x = ${P.c.tex}$ ${P.a.w > 0 ? 'steigend' : 'fallend'} durch die Mittellinie: $c = ${P.c.tex}$. Ein Startpunkt eine Periode weiter passt genauso.`)]);
-      s.push(['Ergebnis', F(TP_term(P)), true]);
+      s.push(['Verschiebung', M(`${startSatz(P).replace(/\.$/, '')}: $c = ${P.c.tex}$. Ein Startpunkt eine Periode weiter passt genauso.`)]);
+      s.push(['Ergebnis', F(TP_term(P)) + beideFormen(P), true]);
     } else if (A.art === 'aufstellen'){
       s.push(bWeg);
-      s.push(['Verschiebung', M(`Startpunkt bei $x = ${P.c.tex}$: $c = ${P.c.tex}$.`)]);
-      s.push(['Ergebnis', F(TP_term(P)), true]);
+      s.push(['Verschiebung', M(`${TP_COS ? (P.a.w > 0 ? 'Hochpunkt' : 'Tiefpunkt') : 'Startpunkt'} bei $x = ${P.c.tex}$: $c = ${P.c.tex}$.`)]);
+      s.push(['Ergebnis', F(TP_term(P)) + beideFormen(P), true]);
     } else if (A.art === 'periode'){
-      s.push(['Formel', F('p = \\frac{2\\pi}{b}')]);
+      s.push(['Formel', F('p = \\frac{2\\pi}{b}') + (A.form === 'aus' ? zeile(M('$b$ ist der Faktor vor $x$ – in beiden Schreibweisen.')) : '')]);
       const ungefaehr = per.pi || P.b.pi ? ` \\approx ${zTex(per.w, 3)}` : '';
       s.push(['Einsetzen', F(`p = 2\\pi : ${klTex(P.b.tex)} = ${per.tex}${per.pi ? ungefaehr : ''}`)]);
       s.push(['Ergebnis', M(`Nach $${per.tex}$ wiederholt sich der Graph. Nur $b$ bestimmt die Periode – $a$, $c$ und $d$ nicht.`), true]);
     } else {
       s.push(['Mittellinie', M(`Die Achse ist die Mitte der Bewegung: $d = ${P.d.tex}$.`)]);
-      s.push(['Amplitude', F(`a = \\frac{D}{2} = \\frac{${A.D}}{2} = ${P.a.tex}`) + M(' (der Radius).')]);
+      s.push(['Amplitude', F(`|a| = \\frac{D}{2} = \\frac{${A.D}}{2} = ${zTex(A.D / 2, 3)}`) + M(' (der Radius).')]);
       s.push(['Periode', F(`\\begin{aligned} p &= T = ${A.T} \\\\ b &= \\frac{2\\pi}{T} = ${P.b.tex} \\end{aligned}`)]);
-      s.push(['Start unten', M(`Steigend durch die Mittellinie geht die Gondel eine Viertelumdrehung nach dem Start: $c = \\frac{T}{4} = ${P.c.tex}$.`)]);
-      s.push(['Ergebnis', F(`\\begin{aligned} h(t) &= ${TP_term(P, 't', false, '')} \\\\ h(0) &= ${P.d.tex} - ${P.a.tex} = ${zTex(A.H - A.D / 2, 3)} \\end{aligned}`) + `<span class="tp-zeile">${M('Probe: ganz unten, wie verlangt.')}</span>`, true]);
+      s.push(['Start unten', TP_COS ? M(`Der Kosinus beginnt bei $t = 0$ ganz oben. Die Gondel beginnt ganz unten: Das Minus spiegelt an der Mittellinie, $a = ${P.a.tex}$. Keine Verschiebung: $c = 0$.`)
+        : M(`Steigend durch die Mittellinie geht die Gondel eine Viertelumdrehung nach dem Start: $a = ${P.a.tex}$ und $c = \\frac{T}{4} = ${P.c.tex}$.`)]);
+      s.push(['Ergebnis', F(`\\begin{aligned} h(t) &= ${TP_term(P, 't', false, '')} \\\\ h(0) &= ${P.d.tex} - ${zTex(A.D / 2, 3)} = ${zTex(A.H - A.D / 2, 3)} \\end{aligned}`) + zeile(M('Probe: ganz unten, wie verlangt.')), true]);
     }
     return s;
   }
@@ -2436,7 +2572,8 @@ const TRAINER = (() => {
     o.zoomFeld = kasten; o.zeichne = zeichneBild; const gb = TP_graph(o);
     kasten.innerHTML = gb.svg
       + `<p class="tp-erkl">${A.art === 'ablesen' && !masse ? 'Hoch- und Tiefpunkte, Mittellinie, Startpunkt: Was lässt sich ablesen?'
-        : A.art === 'riesenrad' ? M('Ganz unten bei $t = 0$, ganz oben nach einer halben Umdrehung.') : M('Startpunkt (Punkt): steigend bzw. fallend durch die Mittellinie.')}</p>`;
+        : A.art === 'riesenrad' ? M('Ganz unten bei $t = 0$, ganz oben nach einer halben Umdrehung.')
+        : TP_COS ? M('Startpunkt (Punkt): Hochpunkt ($a > 0$) bzw. Tiefpunkt ($a < 0$) bei $x = c$.') : M('Startpunkt (Punkt): steigend bzw. fallend durch die Mittellinie.')}</p>`;
     G_zoomKnoepfe(kasten, gb.K);
   }
 
@@ -2469,14 +2606,16 @@ const TRAINER = (() => {
   EH.melde(() => {
     const zahl = s => liesZahl(s).w;                                               // Zahlwert (dez: nur für die Rundungsprüfung)
     const term = v => s => { const f = liesTerm(s, v).f; return [0.3, 1.1, 2.4].map(f); };   // Funktion → Werte an drei Stellen
+    const N = TP_NAME;
     return {
       zeilen: [
         ...EH.zeilen(zahl, [['\\dfrac{\\pi}{4}', ['pi/4', 'π/4']], ['\\dfrac{2\\pi}{3}', ['2pi/3', '2π/3']], ['\\dfrac{1}{2}', ['1/2', '0,5']]]),
-        ...EH.zeilen(term('x'), [['f(x) = 2\\sin(3x)+1', ['2sin(3x)+1', 'f(x)=2sin(3x)+1']], ['\\sin\\bigl(2(x-\\tfrac{\\pi}{4})\\bigr)', ['sin(2(x-pi/4))']]]),
-        ...EH.zeilen(term('t'), [['h(t) = 5\\sin(\\tfrac{\\pi}{10}t)+7', ['5sin(pi/10*t)+7']]]),
+        ...EH.zeilen(term('x'), [[`f(x) = 2\\${N}(3x)+1`, [`2${N}(3x)+1`, `f(x)=2${N}(3x)+1`]], [`\\${N}\\bigl(2(x-\\tfrac{\\pi}{4})\\bigr)`, [`${N}(2(x-pi/4))`]],
+          [`\\${N}\\bigl(2x-\\tfrac{\\pi}{2}\\bigr)`, [`${N}(2x-pi/2)`]]]),
+        ...EH.zeilen(term('t'), [TP_COS ? ['h(t) = -5\\cos(\\tfrac{\\pi}{10}t)+7', ['-5cos(pi/10*t)+7']] : ['h(t) = 5\\sin(\\tfrac{\\pi}{10}t)+7', ['5sin(pi/10*t)+7']]]),
       ],
       hinweise: ['Winkel im Bogenmaß, ohne `°`: `pi/4` statt 45°.', 'Vor dem Term darf `f(x) =`, `h(t) =` oder `y =` stehen. Bei h(t) heißt die Variable `t`.',
-                 'Der Malpunkt darf fehlen: `2sin(3x)`. Hochzahl mit `^`, Brüche mit `/`.'],
+                 `Der Malpunkt darf fehlen: \`2${N}(3x)\`. Hochzahl mit \`^\`, Brüche mit \`/\`.`],
     };
   });
 
@@ -2484,8 +2623,18 @@ const TRAINER = (() => {
   const abw = (f, g, X) => { let m = 0; for (const x of X){ const a = f(x), b = g(x); if (!Number.isFinite(a) || !Number.isFinite(b)) return Infinity; m = Math.max(m, Math.abs(a - b)); } return m; };
   /* typische Fehler als Funktionen; nur die, die sich von der Lösung unterscheiden */
   function fehlerbilder(A){
-    const P = A.P, a = P.a.w, b = P.b.w, c = P.c.w, d = P.d.w, p = 2 * TP_PI / Math.abs(b), f = (aa, bb, cc, dd) => x => aa * Math.sin(bb * (x - cc)) + dd;
-    if (A.art === 'riesenrad') return [
+    const P = A.P, a = P.a.w, b = P.b.w, c = P.c.w, d = P.d.w, p = 2 * TP_PI / Math.abs(b), f = (aa, bb, cc, dd) => x => aa * TP_FN(bb * (x - cc)) + dd;
+    const GEGEN = TP_COS ? Math.sin : Math.cos;
+    let L;
+    if (A.art === 'riesenrad') L = TP_COS ? [   // Lösung: h(t) = −r·cos(2π/T · t) + H, also a = −r, c = 0
+      [f(-a, b, c, d), M('So startet die Gondel <b>oben</b> (Kosinus ohne Minus). Sie startet aber unten: $-r\\cos$.')],
+      [x => a * Math.sin(b * x) + d, M('Mit dem <b>Sinus</b> startet die Gondel auf Achshöhe, nicht unten. Unten startet $-r\\cos\\left(\\frac{2\\pi}{T}t\\right)$.')],
+      [x => -a * Math.sin(b * x) + d, M('Mit dem <b>Sinus</b> startet die Gondel auf Achshöhe, nicht unten. Unten startet $-r\\cos\\left(\\frac{2\\pi}{T}t\\right)$.')],
+      [f(a, A.T, c, d), M('Für $b$ gilt $b = \\frac{2\\pi}{T}$ – nicht $b = T$.')],
+      [f(a, 360 / A.T, c, d), M('Das ist $b$ in Grad ($\\frac{360}{T}$). Gerechnet wird im Bogenmaß: $b = \\frac{2\\pi}{T}$.')],
+      [f(2 * a, b, c, d), M('Die Amplitude ist der <b>Radius</b> $\\frac{D}{2}$, nicht der Durchmesser.')],
+      [f(a, b, c, 0), M('Die Mittellinie fehlt: Die Achse liegt in der Höhe $d$, das „$+ d$“ gehört dazu.')],
+    ] : [
       [f(a, b, 0, d), M('Die Gondel startet <b>unten</b>, nicht auf Achshöhe. Steigend durch die Mittellinie geht sie erst nach einer Viertelumdrehung: $c = \\frac{T}{4}$.')],
       [x => a * Math.cos(b * x) + d, M('So startet die Gondel <b>oben</b> (Kosinus ohne Minus). Sie startet aber unten.')],
       [f(a, A.T, c, d), M('Für $b$ gilt $b = \\frac{2\\pi}{T}$ – nicht $b = T$.')],
@@ -2493,17 +2642,31 @@ const TRAINER = (() => {
       [f(A.D, b, c, d), M('Die Amplitude ist der <b>Radius</b> $\\frac{D}{2}$, nicht der Durchmesser.')],
       [f(a, b, -c, d), M('Vorzeichen der Verschiebung: $t - c$ verschiebt nach rechts, $c = +\\frac{T}{4}$.')],
       [f(a, b, c, 0), M('Die Mittellinie fehlt: Die Achse liegt in der Höhe $d$, das „$+ d$“ gehört dazu.')],
-    ].filter(([g]) => g && abw(g, TP_fn(P), stellen(A)) > 1e-6);
-    return [
+    ];
+    else if (A.art === 'term') {
+      /* Term lesen: ausmultipliziert ist der typische Fehler, die Zahl in der Klammer direkt als Verschiebung zu nehmen */
+      const bc = A.form === 'aus' ? TP_bc(P) : null;
+      const direkt = bc ? `Die Zahl in der Klammer ist nicht die Verschiebung. Erst den Faktor $${P.b.tex}$ vor $x$ ausklammern: $${ausklammern(P)}$. Verschoben wird um $${betrag(P.c.tex)}$, nicht um $${betrag(bc.tex)}$.` : '';
+      L = [
+        ...(bc ? [[f(a, b, bc.w, d), M(direkt)], [f(a, b, -bc.w, d), M(direkt + ' Achte auch auf das Vorzeichen: $x - c$ verschiebt nach rechts, $x + c$ nach links.')]] : []),
+        [f(a, b, -c, d), M(`Vorzeichen der Verschiebung: In der Klammer steht $x - c$. Bei $x + \\ldots$ ist $c$ negativ, der Graph ist nach <b>links</b> verschoben.`)],
+        [f(d, b, c, a), M(`$a$ und $d$ vertauscht: $a$ ist der Faktor vor dem ${TP_WORT}, $d$ die Zahl am Ende.`)],
+        [f(a, p, c, d), M('Das ist die Periode. $b$ ist der Faktor vor $x$; die Periode ist $p = \\frac{2\\pi}{b}$.')],
+        [f(Math.abs(a), b, c, d), M('$a$ trägt sein Vorzeichen: Die Amplitude ist $|a|$, aber $a$ selbst ist hier negativ.')],
+      ];
+    }
+    else L = [
       [f(a, p, c, d), M('Für $b$ gilt $b = \\frac{2\\pi}{p}$ – du hast die Periode selbst als $b$ genommen.')],
       [f(a, b, -c, d), M('Vorzeichen der Verschiebung: $x - c$ verschiebt nach <b>rechts</b>, $x + c$ nach links.')],
-      [f(d, b, c, a), M('$a$ und $d$ vertauscht: $a$ ist die Amplitude (vor dem Sinus), $d$ die Mittellinie (am Ende).')],
-      [f(-a, b, c, d), M('Vorzeichen von $a$: Steigt der Graph am Startpunkt, ist $a > 0$; fällt er, ist $a < 0$.')],
+      [f(d, b, c, a), M(`$a$ und $d$ vertauscht: $a$ ist die Amplitude (vor dem ${TP_WORT}), $d$ die Mittellinie (am Ende).`)],
+      [f(-a, b, c, d), M(TP_COS ? 'Vorzeichen von $a$: Liegt bei $x = c$ ein Hochpunkt, ist $a > 0$; ein Tiefpunkt, ist $a < 0$.' : 'Vorzeichen von $a$: Steigt der Graph am Startpunkt, ist $a > 0$; fällt er, ist $a < 0$.')],
+      ...(TP_COS ? [[x => a * Math.sin(b * (x - c)) + d, M('Das ist der <b>Sinus</b>. Gefragt ist der Kosinus: Er beginnt bei $x = c$ mit einem Hoch- bzw. Tiefpunkt, nicht auf der Mittellinie.')]] : []),
       [f(a, b, c * 180 / TP_PI, d), M('Die Verschiebung ist in Grad. Im Term steht das Bogenmaß: $45^{\\circ} = \\frac{\\pi}{4}$.')],
-      [x => a * Math.sin(b * x - c) + d, M('Die Verschiebung steht in der Klammer: $b(x - c)$, nicht $bx - c$. Erst $b$ ausklammern.')],
+      [x => a * TP_FN(b * x - c) + d, M('Ausmultipliziert steht in der Klammer $bx - b \\cdot c$, nicht $bx - c$: Auch $c$ wird mit $b$ multipliziert.')],
       [f(2 * a, b, c, d), M('Die Amplitude ist der <b>halbe</b> Abstand von größtem und kleinstem Wert.')],
       [f(a, b, c, 0), M('Die Mittellinie fehlt: $d$ verschiebt den Graphen nach oben oder unten.')],
-    ].filter(([g]) => abw(g, TP_fn(P), stellen(A)) > 1e-6);
+    ];
+    return L.filter(([g]) => g && abw(g, TP_fn(P), stellen(A)) > 1e-6);
   }
 
   /* ---------- Prüfen ---------- */
@@ -2525,36 +2688,42 @@ const TRAINER = (() => {
     }
     let fu, dez, wAbl = null;
     const del = {};                                                // Rundungsspanne je Parameter nach getippten Stellen (mind. zwei)
-    if (A.art === 'ablesen'){
+    if (vier(A)){
       const w = {};
       for (const i of felder){ try { const e = liesZahl(i.value), st = WZ.stellen(i.value); w[i.dataset.k] = e.w; dez = dez || e.dez;
         del[i.dataset.k] = st === Infinity ? 1e-6 : 0.5 * 10 ** -Math.max(2, st) + 1e-9; } catch (err) { return aus('nein', `${F(i.dataset.k)}: ${err.message}`, [i]); } }
       if (Math.abs(w.a) < 1e-12) return aus('nein', M('Mit $a = 0$ ist der Graph eine Gerade.'), felder.filter(i => i.dataset.k === 'a'));
       if (Math.abs(w.b) < 1e-12) return aus('nein', M('Mit $b = 0$ schwingt nichts.'), felder.filter(i => i.dataset.k === 'b'));
-      fu = x => w.a * Math.sin(w.b * (x - w.c)) + w.d;
+      fu = x => w.a * TP_FN(w.b * (x - w.c)) + w.d;
       wAbl = w;
     } else {
       try { const e = liesTerm(felder[0].value, A.art === 'riesenrad' ? 't' : 'x'); fu = e.f; dez = e.dez; } catch (err) { return aus('nein', err.message); }
     }
     /* Funktion gleich? Mit Dezimalzahlen: so viel, wie Rundung der vier Parameter ausmachen kann (linear abgeschätzt) –
-       keine relative Spanne (früher 5 % der Amplitude: 2,09 galt für a = 2). Beim Ablesen zusätzlich a, b, d einzeln. */
+       keine relative Spanne (früher 5 % der Amplitude: 2,09 galt für a = 2). Bei vier Feldern zusätzlich a, b, d einzeln. */
     const xm = Math.max(...X.map(x => Math.abs(x))) + Math.abs(P.c.w), dd = k => del[k] ?? 0.0051;
     const tol = dez ? dd('a') + dd('d') + Aw * (xm * dd('b') + Math.abs(P.b.w) * dd('c')) : 1e-6 * (1 + Aw + Math.abs(P.d.w)), m = abw(fu, soll, X);
     const einzeln = !wAbl || (Math.abs(wAbl.d - P.d.w) <= dd('d') && Math.abs(Math.abs(wAbl.a) - Aw) <= dd('a') && Math.abs(Math.abs(wAbl.b) - Math.abs(P.b.w)) <= dd('b'));
     if (m <= tol && einzeln) return aus('ok', 'Richtig! ' + F(A.art === 'riesenrad' ? `h(t) = ${TP_term(P, 't', false, '')}` : TP_term(P))
-      + (A.art === 'ablesen' && Math.abs(wAbl.c - P.c.w) > 1e-6 ? M(' – auch mit einem anderen Startpunkt richtig.') : ''));
+      + (wAbl && Math.abs(wAbl.c - P.c.w) > 1e-6 ? M(A.art === 'term' ? ' – deine Werte beschreiben dieselbe Funktion.' : ' – auch mit einem anderen Startpunkt richtig.') : ''));
     /* typische Fehler zuerst; beschreiben zwei Fehlerbilder dieselbe Funktion, nennt die Meldung beide */
     const tolF = tol;
     const t = fehlerbilder(A).filter(([g, text]) => text && abw(fu, g, X) <= tolF);
-    if (t.length) return aus('nein', t.map(x => x[1]).join(' <span class="tp-oder">Oder:</span> '));
+    if (t.length) {
+      /* Meldungen, die eine andere nur verlängern (gleiche Funktion, z. B. um eine Periode versetzt), fallen weg */
+      const texte = [...new Set(t.map(x => x[1]))].filter((m, i, T) => !T.some(n => n !== m && m.startsWith(n.replace(/<\/math>$|\.$/, ''))));
+      const rot = !wAbl ? felder : (k => k.length ? k : ['c'])(['a', 'b', 'd'].filter(k => Math.abs(wAbl[k] - P[k].w) > dd(k)));
+      return aus('nein', texte.join(' <span class="tp-oder">Oder:</span> '), wAbl ? felder.filter(i => rot.includes(i.dataset.k)) : felder);
+    }
     if (dez && m <= 0.25 * Aw + 0.05) return aus('fast', M('Fast – zu grob gerundet. Schreib $\\pi$ statt $3{,}14$ und Brüche statt kurzer Dezimalzahlen.'));
     /* sonst: was stimmt nicht? Mittellinie und Amplitude sind eindeutig */
-    if (A.art === 'ablesen'){
-      const w = wAbl;
-      if (Math.abs(w.d - P.d.w) > dd('d')) return aus('nein', M(`Die Mittellinie stimmt nicht: Sie liegt in der Mitte zwischen größtem und kleinstem Wert.`), felder.filter(i => i.dataset.k === 'd'));
-      if (Math.abs(Math.abs(w.a) - Aw) > dd('a')) return aus('nein', M('Die Amplitude stimmt nicht: halber Abstand von größtem und kleinstem Wert.'), felder.filter(i => i.dataset.k === 'a'));
-      if (Math.abs(Math.abs(w.b) - Math.abs(P.b.w)) > dd('b')) return aus('nein', M('$b$ stimmt nicht: erst die Periode $p$ ablesen (Abstand zweier Hochpunkte), dann $b = \\frac{2\\pi}{p}$.'), felder.filter(i => i.dataset.k === 'b'));
-      return aus('nein', M('$a$, $b$ und $d$ passen – die Verschiebung $c$ nicht. Wo geht der Graph steigend durch die Mittellinie (bei $a < 0$: fallend)?'), felder.filter(i => i.dataset.k === 'c'));
+    if (vier(A)){
+      const w = wAbl, nur = k => felder.filter(i => i.dataset.k === k), T = A.art === 'term';
+      if (Math.abs(w.d - P.d.w) > dd('d')) return aus('nein', M(T ? `$d$ stimmt nicht: Das ist die Zahl, die am Ende addiert wird (steht keine da, ist $d = 0$).` : 'Die Mittellinie stimmt nicht: Sie liegt in der Mitte zwischen größtem und kleinstem Wert.'), nur('d'));
+      if (Math.abs(Math.abs(w.a) - Aw) > dd('a')) return aus('nein', M(T ? `$a$ stimmt nicht: Das ist der Faktor vor dem ${TP_WORT}.` : 'Die Amplitude stimmt nicht: halber Abstand von größtem und kleinstem Wert.'), nur('a'));
+      if (Math.abs(Math.abs(w.b) - Math.abs(P.b.w)) > dd('b')) return aus('nein', M(T ? '$b$ stimmt nicht: Das ist der Faktor vor $x$.' : '$b$ stimmt nicht: erst die Periode $p$ ablesen (Abstand zweier Hochpunkte), dann $b = \\frac{2\\pi}{p}$.'), nur('b'));
+      return aus('nein', M(T ? (A.form === 'aus' ? '$a$, $b$ und $d$ passen – die Verschiebung $c$ nicht. Klammere zuerst den Faktor vor $x$ aus, dann steht in der Klammer $x - c$.' : '$a$, $b$ und $d$ passen – die Verschiebung $c$ nicht. In der Klammer steht $x - c$.')
+        : TP_COS ? '$a$, $b$ und $d$ passen – die Verschiebung $c$ nicht. Wo liegt ein Hochpunkt (bei $a < 0$: ein Tiefpunkt)?' : '$a$, $b$ und $d$ passen – die Verschiebung $c$ nicht. Wo geht der Graph steigend durch die Mittellinie (bei $a < 0$: fallend)?'), nur('c'));
     }
     let hi = -Infinity, lo = Infinity;
     for (let k = 0; k <= 800; k++){ const x = X[0] + k * (X[X.length - 1] - X[0]) / 800, y = fu(x); if (Number.isFinite(y)) { hi = Math.max(hi, y); lo = Math.min(lo, y); } }
@@ -2575,52 +2744,57 @@ const TRAINER = (() => {
 })();
 
 /* =====================================================================
-   NULLSTELLEN UND EXTREMA – periodisch (Peter, 09.10.2026)
-   f(x) = a·sin(b(x − c)) + d, b > 0. Alle Stellen sind Scharen x = x₀ + k·p (k ∈ ℤ), x₀ und p als Vielfache von π –
-   exakt mit Brüchen (bruch.js). Nur wenn arcsin(s) keinen Standardwert hat, wird x₀ als Zahl geführt (≈).
-     Nullstellen: sin(b(x − c)) = s mit s = −d/a.  |s| > 1: keine · s = 0: u = kπ · s = ±1: u = ±π/2 + 2kπ (Berührstellen)
-                  sonst u₁ = arcsin(s) + 2kπ, u₂ = π − arcsin(s) + 2kπ.  x = c + u/b.
-     Hochpunkte:  sin = 1 (a > 0) bzw. −1 (a < 0); Tiefpunkte umgekehrt. y = d ± |a|.
-   Gesucht: alle Stellen im Intervall [L; R] (Ränder gehören dazu).
+   NULLSTELLEN, EXTREM- UND WENDEPUNKTE – periodisch (Peter, 09.10.2026; Ableitungen und Wendepunkte 13.10.2026)
+   f(x) = a·FN(b(x − c)) + d, b > 0, FN = sin oder cos (TP_COS). Alle Stellen sind Scharen x = x₀ + k·p (k ∈ ℤ),
+   x₀ und p als Vielfache von π – exakt mit Brüchen (bruch.js). Nur wenn arcsin/arccos keinen Standardwert hat,
+   wird x₀ als Zahl geführt (≈).
+     Nullstellen:  FN(u) = −d/a           Hoch-/Tiefpunkte: FN(u) = ±1           Wendepunkte: FN(u) = 0   (u = b(x − c))
+   Zwei Lösungswege für Hoch- und Tiefpunkte: über den Wertebereich (FN = ±1) oder mit Ableitungen (f′ = 0, Vorzeichen
+   von f″) – wie im Skript (E14, A13). Wendepunkte: f″ = 0, f‴ ≠ 0, sie liegen auf der Mittellinie (E15).
+   Die Aufgabe steht in einer der beiden Schreibweisen; ausmultipliziert beginnt der Weg mit dem Ausklammern.
+   Gesucht: alle Stellen im Intervall [L; R] (Ränder gehören dazu), bei Punkten dazu ihr gemeinsamer y-Wert.
    ===================================================================== */
 const NULLEX = (() => {
   const root = document.querySelector('[data-nullex]');
   const R = r => root.querySelector(`[data-r="${r}"]`);
-  const S = { art: 'null', A: null, bild: false, geloest: false };
+  const S = { art: 'null', A: null, bild: false, geloest: false, weg: 'wert' };
   const weg = WZ.weg(root);
   const PI = Math.PI, EPS = 1e-9;
+  const GEGEN = TP_COS ? 'sin' : 'cos', FNT = `\\${TP_NAME}`;
   /* Wert in π-Einheiten: { q } exakt (q·π) oder { w } als Zahl (in π-Einheiten) */
   const pw = v => v.q ? qWert(v.q) * PI : v.w * PI;
   const pTex = v => v.q ? TP_piTex(v.q).replace(/^\{\\pi\}$/, '\\pi') : zTex(v.w * PI, 3);
   const pTxt = v => v.q ? TP_piText(v.q).replace('−', '-') : String(Math.round(v.w * PI * 1000) / 1000).replace('.', ',');
   const ganz = q => Math.floor(q.z / q.n), oben = q => Math.ceil(q.z / q.n);
-  /* Standardwerte von arcsin (rationale s): 0, ±1/2, ±1 */
-  const ARCSIN = { '0/1': Q(0), '1/2': Q(1, 6), '-1/2': Q(-1, 6), '1/1': Q(1, 2), '-1/1': Q(-1, 2) };
-  const sTex = s => qTex(s);
-  /* k·p mit p = (m/n)·π: „kπ“, „2kπ“, „k·\frac{2π}{3}“ */
-  const kpTex = p => p.n === 1 ? `${p.z === 1 ? '' : p.z}k\\pi` : `k \\cdot \\frac{${p.z === 1 ? '' : p.z}\\pi}{${p.n}}`;
+  /* Standardwerte von arcsin und arccos (rationale s), in π-Einheiten */
+  const ARC = { sin: { '1/2': Q(1, 6), '-1/2': Q(-1, 6) }, cos: { '1/2': Q(1, 3), '-1/2': Q(2, 3) } };
+  /* k·p mit p = (m/n)·π: „kπ“, „k · 2π“, „k · 2π/3“ – wie im Skript */
+  const kpTex = p => p.z === 1 && p.n === 1 ? 'k\\pi' : `k \\cdot ${pTex({ q: p })}`;
+  const punkt = A => A.art !== 'null';                                            // Punkte: mit y-Wert
+  const wegArt = A => A.art === 'wende' ? 'abl' : A.art === 'null' ? 'wert' : S.weg;
+  const zwei = A => A.c.z !== 0 && !qGleich(A.b, Q(1));
 
   /* ---------- Rechnung ---------- */
-  /* Scharen in u = b(x − c): [{ al: {q}|{w}, st: Schritt in π-Einheiten (2 oder 1), tex: LaTeX für u }] */
-  function uScharen(A){
-    if (A.art !== 'null'){
-      const plus = (A.art === 'hoch') === (qWert(A.a) > 0);           // sin u = 1 ?
-      return { s: plus ? Q(1) : Q(-1), sch: [{ al: { q: plus ? Q(1, 2) : Q(3, 2) }, st: 2 }] };
-    }
-    const s = qDiv(qNeg(A.d), A.a), sw = qWert(s);
-    if (Math.abs(sw) > 1) return { s, sch: [] };
-    if (s.z === 0) return { s, sch: [{ al: { q: Q(0) }, st: 1 }] };
-    if (Math.abs(sw) === 1) return { s, sch: [{ al: { q: sw > 0 ? Q(1, 2) : Q(3, 2) }, st: 2 }] };
-    const std = ARCSIN[`${s.z}/${s.n}`];
-    if (std) return { s, sch: [{ al: { q: std }, st: 2 }, { al: { q: qSub(Q(1), std) }, st: 2 }] };
-    const w = Math.asin(sw) / PI;
-    return { s, sch: [{ al: { w }, st: 2, arc: true }, { al: { w: 1 - w }, st: 2, arc: true, zwei: true }], arc: true };
+  /* Lösungen von fn(u) = s als Scharen u = α + k·st·π (α in π-Einheiten) – so wie das Skript sie aufschreibt:
+     arcsin bzw. arccos liefert u₁; Sinus: u₂ = π − u₁ · Kosinus: u₂ = −u₁. s = 0: eine Schar im Abstand π. s = ±1: eine Schar. */
+  function lsg(fn, s){
+    const sw = qWert(s), cos = fn === 'cos';
+    if (Math.abs(sw) > 1) return [];
+    if (s.z === 0) return [{ al: { q: cos ? Q(1, 2) : Q(0) }, st: 1 }];
+    if (Math.abs(sw) === 1) return [{ al: { q: cos ? (sw > 0 ? Q(0) : Q(1)) : (sw > 0 ? Q(1, 2) : Q(3, 2)) }, st: 2 }];
+    const std = ARC[fn][`${s.z}/${s.n}`];
+    if (std) return [{ al: { q: std }, st: 2 }, { al: { q: cos ? qNeg(std) : qSub(Q(1), std) }, st: 2 }];
+    const w = (cos ? Math.acos(sw) : Math.asin(sw)) / PI;
+    return [{ al: { w }, st: 2 }, { al: { w: cos ? -w : 1 - w }, st: 2 }];
   }
-  /* Schar in x: x = x₀ + k·p mit x₀ = c + α/b, p = Schritt/b */
+  /* Welche Gleichung FN(u) = s beschreibt die gesuchten Stellen? */
+  const sVon = A => A.art === 'null' ? qDiv(qNeg(A.d), A.a) : A.art === 'wende' ? Q(0) : ((A.art === 'hoch') === (qWert(A.a) > 0) ? Q(1) : Q(-1));
+  const uScharen = A => { const s = sVon(A); return { s, sch: lsg(TP_NAME, s) }; };
+  /* Schar in x: x = x₀ + k·p mit x₀ = c + α/b, p = Schritt/b. Die Optionen bauen die typischen Fehler nach. */
   const xSchar = (A, u, o = {}) => {
-    const b = o.ohneB ? Q(1) : A.b, c = o.ohneC ? Q(0) : o.cNeg ? qNeg(A.c) : A.c;
+    const b = o.ohneB ? Q(1) : A.b, c = o.ohneC ? Q(0) : o.cNeg ? qNeg(A.c) : o.direkt ? qMul(A.b, A.c) : A.c;
     const x0 = u.al.q ? { q: qAdd(c, qDiv(u.al.q, b)) } : { w: qWert(c) + u.al.w / qWert(b) };
-    const p = o.periode2pi ? Q(u.st) : qDiv(Q(u.st), b);
+    const p = o.periode2pi ? Q(u.st) : qDiv(Q(o.doppelt ? 2 * u.st : u.st), b);
     return { x0, p };
   };
   /* Stellen einer x-Schar im Intervall: k von … bis …  → [{ k, x: {q}|{w} }] */
@@ -2634,14 +2808,15 @@ const NULLEX = (() => {
   }
   const sortiert = L => L.slice().sort((u, v) => pw(u.x) - pw(v.x));
   function loese(A, o = {}){
+    if (o.tauschen) return loese({ ...A, art: A.art === 'hoch' ? 'tief' : 'hoch' });
+    if (o.beide) return { stellen: sortiert([...loese({ ...A, art: 'hoch' }).stellen, ...loese({ ...A, art: 'tief' }).stellen]) };
     const U = uScharen(A), sch = (o.nurEine ? U.sch.slice(0, 1) : U.sch).map(u => ({ u, ...xSchar(A, u, o) }));
-    let st = sch.flatMap((s, i) => imIntervall(A, s).map(e => ({ ...e, i })));
-    if (o.tauschen && A.art !== 'null') { const B = { ...A, art: A.art === 'hoch' ? 'tief' : 'hoch' }; return loese(B, {}); }
-    /* zwei Scharen können sich nicht treffen (α ≠ π − α + 2kπ, außer s = ±1 – dort nur eine Schar) */
-    return { U, sch, stellen: sortiert(st) };
+    /* zwei Scharen können sich nicht treffen (u₁ ≠ u₂ + 2kπ, außer s = ±1 – dort nur eine Schar) */
+    return { U, sch, stellen: sortiert(sch.flatMap((s, i) => imIntervall(A, s).map(e => ({ ...e, i })))) };
   }
-  const yWert = A => A.art === 'hoch' ? qAdd(A.d, Q(Math.abs(A.a.z), A.a.n)) : qSub(A.d, Q(Math.abs(A.a.z), A.a.n));
-  const fW = A => x => qWert(A.a) * Math.sin(qWert(A.b) * (x - qWert(A.c) * PI)) + qWert(A.d);
+  const betragA = A => Q(Math.abs(A.a.z), A.a.n);
+  const yWert = A => A.art === 'hoch' ? qAdd(A.d, betragA(A)) : A.art === 'tief' ? qSub(A.d, betragA(A)) : A.d;
+  const fW = A => x => qWert(A.a) * TP_FN(qWert(A.b) * (x - qWert(A.c) * PI)) + qWert(A.d);
 
   /* ---------- Aufgaben ---------- */
   const P_von = A => ({ a: TP_bruch(A.a), b: TP_bruch(A.b), c: TP_pi(A.c), d: TP_bruch(A.d) });
@@ -2659,182 +2834,253 @@ const NULLEX = (() => {
         if (d.n > 2 || Math.abs(qWert(d)) > 4) continue;
       } else d = WZ.eins([Q(0), Q(1), Q(-1), Q(2), Q(1, 2), Q(-1, 2), Q(3)]);
       const A = { art, a, b, c, d };
+      A.form = zwei(A) && Math.random() < 0.5 ? 'aus' : 'haupt';
       [A.L, A.R] = WZ.eins(INTERVALLE(A));
       const n = loese(A).stellen.length;
       if (n > 7 || (n === 0 && Math.random() < 0.7)) continue;
       if (!alt || JSON.stringify(alt) !== JSON.stringify(A)) return A;
     }
-    return { art, a: Q(2), b: Q(1), c: Q(0), d: Q(1), L: Q(0), R: Q(2) };
+    return { art, a: Q(2), b: Q(1), c: Q(0), d: Q(1), L: Q(0), R: Q(2), form: 'haupt' };
   }
-  function neu(art){ S.art = art; setze(erzeuge(art === 'gemischt' ? WZ.eins(['null', 'hoch', 'tief']) : art)); }
+  function neu(art){ S.art = art; setze(erzeuge(art === 'gemischt' ? WZ.eins(['null', 'hoch', 'tief', 'wende']) : art)); }
   const iTex = A => `\\left[${pTex({ q: A.L })};\\, ${pTex({ q: A.R })}\\right]`;
-  const WAS = { null: 'Nullstellen', hoch: 'Hochpunkte', tief: 'Tiefpunkte' };
+  const WAS = { null: 'Nullstellen', hoch: 'Hochpunkte', tief: 'Tiefpunkte', wende: 'Wendepunkte' };
+  const KURZ = { null: '', hoch: 'H', tief: 'T', wende: 'W' };
   function setze(A){
+    if (!A.form) A.form = 'haupt';
     S.A = A; S.geloest = false;
-    const P = P_von(A);
+    if (S.art !== 'gemischt') S.art = A.art;
+    const P = P_von(A), pk = punkt(A);
     R('was').textContent = WAS[A.art] + ':';
-    R('auftrag').innerHTML = `<span class="tp-gross">${F(TP_term(P))}</span><span class="tp-zeile">`
-      + M(A.art === 'null' ? `Gib alle Nullstellen im Intervall $${iTex(A)}$ an.` : `Gib die $x$-Werte aller ${A.art === 'hoch' ? 'Hochpunkte' : 'Tiefpunkte'} im Intervall $${iTex(A)}$ an.`)
+    R('auftrag').innerHTML = `<span class="tp-gross">${F('f(x) =')} ${F(TP_term(P, 'x', false, '', { aus: A.form === 'aus' }))}</span><span class="tp-zeile">`
+      + M(pk ? `Gib die ${WAS[A.art]} im Intervall $${iTex(A)}$ an: alle $x$-Werte und den gemeinsamen $y$-Wert.` : `Gib alle Nullstellen im Intervall $${iTex(A)}$ an.`)
       + '</span>';
-    R('label').innerHTML = F(A.art === 'null' ? 'x =' : `x_{${A.art === 'hoch' ? 'H' : 'T'}} =`);
+    R('label').innerHTML = F(pk ? `x_{${KURZ[A.art]}} =` : 'x =');
+    R('yfeld').hidden = !pk; R('ylabel').innerHTML = pk ? F(`y_{${KURZ[A.art]}} =`) : '';
     R('antwort').value = ''; R('antwort').className = 'wz-eingabe tp-breit';
+    R('yantwort').value = ''; R('yantwort').className = 'wz-eingabe tp-kurz';
     WZ.rueck(R('rueck'), '', 'Mehrere Stellen mit ; trennen. Exakt mit π (z. B. 5pi/6) oder auf zwei Nachkommastellen. Ränder gehören dazu. Keine Stelle: „keine“.');
     root.querySelectorAll('[data-art]').forEach(b => b.classList.toggle('an', b.dataset.art === S.art));
+    R('wegart').hidden = A.art === 'null' || A.art === 'wende';
+    root.querySelectorAll('[data-wegart]').forEach(b => b.classList.toggle('an', b.dataset.wegart === S.weg));
     const L = loese(A);
-    root.dataset.aufgabe = JSON.stringify({ art: A.art, a: qWert(A.a), b: qWert(A.b), c: qWert(A.c) * PI, d: qWert(A.d), L: qWert(A.L) * PI, R: qWert(A.R) * PI });
+    root.dataset.aufgabe = JSON.stringify({ art: A.art, form: A.form, a: qWert(A.a), b: qWert(A.b), c: qWert(A.c) * PI, d: qWert(A.d), L: qWert(A.L) * PI, R: qWert(A.R) * PI });
     root.dataset.loesung = JSON.stringify(L.stellen.map(e => pw(e.x)));
+    root.dataset.y = pk ? String(qWert(yWert(A))) : '';
     root.dataset.texte = JSON.stringify(L.stellen.map(e => pTxt(e.x)));
     root.dataset.fehlerbilder = JSON.stringify(fehlerbilder(A).map(([L2, t]) => ({ x: L2.map(e => pw(e.x)), t: t.replace(/<[^>]+>/g, '').slice(0, 40) })));
+    root.dataset.yfehler = JSON.stringify(pk ? yFehler(A).map(([v, t]) => ({ v, t: t.replace(/<[^>]+>/g, '').slice(0, 40) })) : []);
     delete root.dataset.pruefung;
     weg.setze(baueWeg(A));
     zeichneBild();
   }
 
-  /* ---------- Lösungsweg (Peter, 09.10.: klarer, festes Schema für Sinus und Kosinus) ----------
-     1 Gleichung aufstellen · 2 Ersetzen (u) · 3 Grundlösungen in [0; 2π) mit Begründung · 4 Alle Lösungen (+ 2kπ)
-     5 Zurück zu x (je Schar Zeile für Zeile, Rechenschritt rechts) · 6 Im Intervall (Tabelle mit den k, die gerade
-     herausfallen) · 7 Ergebnis. Die Werte der Schritte gehen als data-weg an die Probe. */
-  const IST_COS = false, FN = IST_COS ? '\\cos' : '\\sin', NAME = IST_COS ? 'Kosinus' : 'Sinus', ARC = IST_COS ? '\\arccos' : '\\arcsin';
+  /* ---------- Lösungsweg (Peter, 09.10.: klarer, festes Schema) ----------
+     Je Zeile eine Gleichung, die Rechenoperation steht rechts. Immer gleich: Ersetzen (u) · Lösungen in einer Periode ·
+     Alle Lösungen · Zurück zu x · Im Intervall (Tabelle mit den k, die gerade herausfallen). Davor steht, woher die
+     Gleichung kommt (f(x) = 0, Wertebereich oder eine Ableitung = 0), danach die Prüfung und das Ergebnis.
+     Die Werte der Schritte gehen als data-weg an die Probe. */
   const zw = v => zTex(v, 4), D = t => M(`$$${t}$$`);   // abgesetzte Formel – in der .tex \[ \]
-  /* Grundlösungen von FN u = s in [0; 2π) – in π-Einheiten ({q} exakt, {w} Zahl), dazu die Zeilen des Wegs */
-  function grund(A, U){
-    const sw = qWert(U.s), sT = sTex(U.s), arcT = `${ARC}\\left(${sT}\\right)`;
-    const nurEine = (al, wo) => ({ al: [al], vor: M(`In $[0;\\, 2\\pi)$ ist $${FN} u = ${sT}$ nur ${wo}:`), z: [`u &= ${pTex(al)}`],
-      nach: A.art === 'null' ? M('Nur eine Lösung je Periode: Der Graph berührt die $x$-Achse dort nur – das sind zugleich Extrempunkte.') : '' });
-    if (Math.abs(sw) === 1) return IST_COS ? nurEine({ q: sw > 0 ? Q(0) : Q(1) }, sw > 0 ? 'bei $u = 0$' : 'bei $u = \\pi$')
-      : nurEine({ q: sw > 0 ? Q(1, 2) : Q(3, 2) }, sw > 0 ? 'bei $u = \\frac{\\pi}{2}$' : 'bei $u = \\frac{3\\pi}{2}$');
-    if (U.s.z === 0) {
-      const al = IST_COS ? [{ q: Q(1, 2) }, { q: Q(3, 2) }] : [{ q: Q(0) }, { q: Q(1) }];
-      return { al, vor: M(`$${FN} u = 0$ ${IST_COS ? 'oben und unten am Einheitskreis' : 'rechts und links am Einheitskreis'}:`),
-        z: [`u_1 &= ${pTex(al[0])}`, `u_2 &= ${pTex(al[1])}`], nach: '' };
+  const op = t => `\\;\\; \\mid ${t}`;   // knapper Abstand: mit \quad ragen lange Zeilen auf dem Handy aus dem Kasten
+  const zahlTex = q => qWert(q) < 0 ? klTex(qTex(q)) : qTex(q);
+  const strich = n => "'".repeat(n);
+  /* Die Schritte „Ersetzen“ bis „Im Intervall“ für fn(u) = s. Rückgabe: die Stellen im Intervall (mit ihrem u), oder null */
+  function loeseSchritte(A, P, fn, s, schritte, info, immer = ''){
+    const cos = fn === 'cos', FT = `\\${fn}`, NAME = cos ? 'Kosinus' : 'Sinus', sT = qTex(s), sw = qWert(s), argI = TP_arg(P), sch = lsg(fn, s);
+    schritte.push(['Ersetzen', M(`Setze $u = ${argI}$. Dann bleibt:`) + D(`${FT} u = ${sT}`)]);
+    if (!sch.length){
+      schritte.push(['Keine Lösung', M(`Der ${NAME} liegt immer zwischen $-1$ und $1$ – den Wert $${sT}$ erreicht er nie. $f$ hat keine Nullstellen, auch nicht im Intervall.`), true]);
+      return null;
     }
-    const std = (IST_COS ? ARCCOS : ARCSIN)[`${U.s.z}/${U.s.n}`];
-    const z = [], al = [];
-    if (IST_COS) {                                       // arccos s liegt in (0; π); zweite Lösung 2π − u₁
-      const u1 = std ? { q: std } : { w: Math.acos(sw) / PI }, u2 = std ? { q: qSub(Q(2), std) } : { w: 2 - u1.w };
-      z.push(`u_1 &= ${arcT} ${std ? '= ' + pTex(u1) : '\\approx ' + zw(pw(u1))}`);
-      al.push(u1, u2);
-      return { al, vor: M('Eine Lösung liefert der Arkuskosinus:'), z,
-        nach: M('Der Kosinus ist symmetrisch zu $u = \\pi$ (am Einheitskreis: Spiegelung an der $x$-Achse). Darum gibt es in jeder Periode eine zweite Lösung:')
-          + D(`u_2 = 2\\pi - u_1 ${std ? '= ' + pTex(u2) : '\\approx ' + zw(pw(u2))}`) };
-    }
-    /* Sinus: arcsin s liegt in [−π/2; π/2]; negativ → + 2π; zweite Lösung π − arcsin s */
-    const a0 = std ? { q: std } : { w: Math.asin(sw) / PI }, neg = pw(a0) < 0;
-    const u1 = neg ? (std ? { q: qAdd(std, Q(2)) } : { w: a0.w + 2 }) : a0, u2 = std ? { q: qSub(Q(1), std) } : { w: 1 - a0.w };
-    const eq = std ? '=' : '\\approx', val = v => std ? pTex(v) : zw(pw(v));
-    if (neg) z.push(`${arcT} &${eq} ${val(a0)}`, `u_1 &${eq} ${val(a0)} + 2\\pi ${eq} ${val(u1)}`);
-    else z.push(`u_1 &= ${arcT} ${eq} ${val(a0)}`);
-    al.push(u1, u2);
-    return { al, vor: M('Eine Lösung liefert der Arkussinus' + (neg ? ' – sie ist negativ, darum $+\\,2\\pi$, damit sie in $[0;\\, 2\\pi)$ liegt:' : ':')), z,
-      nach: M('Der Sinus ist symmetrisch zu $u = \\frac{\\pi}{2}$ (am Einheitskreis: Spiegelung an der $y$-Achse). Darum gibt es in jeder Periode eine zweite Lösung:')
-        + D(`u_2 = \\pi - ${arcT} ${std ? '= ' + pTex(u2) : '\\approx ' + zw(pw(u2))}`) };
-  }
-  function baueWeg(A){
-    const P = P_von(A), s = [], L = loese(A), U = L.U;
-    const P1 = { ...P, a: TP_bruch(Q(1)), d: TP_bruch(Q(0)) }, fT = TP_term(P1, 'x', false, '');     // FN(b(x − c))
-    const argT = fT.replace(/^\\(sin|cos)/, '');
-    const argI = /^\\left\(/.test(argT) ? argT.replace(/^\\left\(|\\right\)$/g, '') : argT.replace(/^\(|\)$/g, '');
-    const Pa = { ...P, d: TP_bruch(Q(0)) }, aFT = TP_term(Pa, 'x', false, '');
-    const op = t => `\\quad \\mid ${t}`, sT = sTex(U.s), info = { u: [], x0: [], p: null, tab: [] };
-    const zahlTex = q => qWert(q) < 0 ? klTex(qTex(q)) : qTex(q);
-    /* 1. Gleichung aufstellen – die Rechenoperation steht rechts neben der Zeile, auf die sie angewandt wird */
-    if (A.art === 'null'){
-      const z = [[`${TP_term(P, 'x', false, '')}`, '0', '']];
-      if (A.d.z !== 0) { z[z.length - 1][2] = op(qWert(A.d) > 0 ? `-\\,${qTex(A.d)}` : `+\\,${qTex(qNeg(A.d))}`); z.push([aFT, qTex(qNeg(A.d)), '']); }
-      if (!qGleich(A.a, Q(1))) { z[z.length - 1][2] = op(`:${zahlTex(A.a)}`); z.push([fT, sT, '']); }
-      s.push(['Gleichung aufstellen', M('Nullstellen: $f(x) = 0$.') + D(`\\begin{aligned} ${z.map(([l, r, o]) => `${l} &= ${r}${o}`).join(' \\\\ ')} \\end{aligned}`)]);
-    } else {
-      const plus = qWert(U.s) > 0, hoch = A.art === 'hoch';
-      s.push(['Gleichung aufstellen', M(`Der ${NAME} liegt zwischen $-1$ und $1$. Wegen $${qWert(A.a) > 0 ? 'a > 0' : 'a < 0'}$ ist $f$ am ${hoch ? 'größten (Hochpunkte)' : 'kleinsten (Tiefpunkte)'}, wo der ${NAME} $${plus ? '1' : '-1'}$ ist:`)
-        + D(`${fT} = ${plus ? '1' : '-1'}`)]);
-    }
-    /* 2. Ersetzen */
-    s.push(['Ersetzen', M(`Setze $u = ${argI}$. Dann bleibt:`) + D(`${FN} u = ${sT}`)]);
-    if (!U.sch.length){
-      s.push(['Keine Lösung', M(`Der ${NAME} liegt immer zwischen $-1$ und $1$ – den Wert $${sT}$ erreicht er nie. $f$ hat keine Nullstellen, auch nicht im Intervall.`), true]);
-      root.dataset.weg = JSON.stringify(info);
-      return s;
-    }
-    /* 3. Grundlösungen */
-    const G = grund(A, U), idx = G.al.length > 1, n = i => idx ? `_${i + 1}` : '';
-    info.u = G.al.map(pw);
-    s.push(['Grundlösungen in [0; 2π)', G.vor + D(`\\begin{aligned} ${G.z.join(' \\\\ ')} \\end{aligned}`) + G.nach]);
-    /* 4. Alle Lösungen */
+    const idx = sch.length > 1, n = i => idx ? `_${i + 1}` : '';
+    info.u = sch.map(u => pw(u.al)); info.st = sch.map(u => u.st * PI);
+    const kU = st => st === 2 ? 'k \\cdot 2\\pi' : 'k\\pi';
     const uR = al => al.q ? (al.q.z === 0 ? '' : pTex(al) + ' + ') : zw(pw(al)) + ' + ';
-    s.push(['Alle Lösungen', M(`Der ${NAME} hat die Periode $2\\pi$ – zu jeder Lösung kommen alle Vielfachen von $2\\pi$ dazu:`)
-      + D(`\\begin{aligned} ${G.al.map((al, i) => `u${n(i)} &${al.q ? '=' : '\\approx'} ${uR(al)}2k\\pi`).join(' \\\\ ')} \\end{aligned}`) + M('mit $k \\in \\mathbb{Z}$.')]);
-    /* 5. Zurück zu x */
-    const b = A.b, c = A.c, p = qDiv(Q(2), b), cT = pTex({ q: qWert(c) < 0 ? qNeg(c) : c });
-    const sch = G.al.map(al => ({ al, x0: al.q ? { q: qAdd(c, qDiv(al.q, b)) } : { w: qWert(c) + al.w / qWert(b) }, p }));
-    info.x0 = sch.map(sc => pw(sc.x0)); info.p = qWert(p) * PI;
-    const zurueck = sch.map((sc, i) => {
-      const gl = sc.al.q ? '=' : '\\approx', z = [[argI, `${uR(sc.al)}2k\\pi`, '', gl]];
+    /* fn(u) = 0: kein Rechnen, sondern Wissen über die Grundfunktion – ein Schritt mit Skizze (Peter, 13.10.: „warum hat der
+       Kosinus da eine Nullstelle, gilt das immer?“). Die zweite Nullstelle liegt π hinter der ersten, darum eine Schar mit Abstand π. */
+    if (s.z === 0) schritte.push([`Wo ist der ${NAME} null?`, TP_nullSkizze(fn)
+      + M(cos ? 'Am Graphen: Der Kosinus ist null bei $u = \\frac{\\pi}{2}$ und wieder bei $u = \\frac{3\\pi}{2} = \\frac{\\pi}{2} + \\pi$. Die Nullstellen folgen im Abstand $\\pi$ aufeinander:'
+        : 'Am Graphen: Der Sinus ist null bei $u = 0$ und wieder bei $u = \\pi$. Die Nullstellen folgen im Abstand $\\pi$ aufeinander:')
+      + D(`u = ${uR(sch[0].al)}k\\pi`) + M('mit $k \\in \\mathbb{Z}$.') + (immer ? `<span class="tp-zeile">${M(immer)}</span>` : '')]);
+    /* Lösungen in einer Periode */
+    let eine;
+    if (s.z === 0) eine = '';
+    else if (Math.abs(sw) === 1) eine = M(`In einer Periode ist $${FT} u = ${sT}$ nur einmal:`) + D(`u = ${pTex(sch[0].al)}`)
+      + (A.art === 'null' ? M('Nur eine Lösung je Periode: Der Graph berührt die $x$-Achse dort nur – das sind zugleich Extrempunkte.') : '');
+    else {
+      const std = !!sch[0].al.q, eq = std ? '=' : '\\approx', val = v => v.q ? pTex(v) : zw(pw(v));
+      eine = M(`Eine Lösung liefert der ${cos ? 'Arkuskosinus' : 'Arkussinus'}${std ? '' : ` (Taschenrechner im Bogenmaß, Taste $${FT}^{-1}$)`}:`)
+        + D(`u_1 = \\arc${fn}\\left(${sT}\\right) ${eq} ${val(sch[0].al)}`)
+        + M(cos ? 'Der Kosinus ist achsensymmetrisch zur $y$-Achse, deshalb ist auch $-u_1$ eine Lösung:' : 'Der Sinus ist symmetrisch zu $u = \\frac{\\pi}{2}$, deshalb gibt es in jeder Periode eine zweite Lösung:')
+        + D(`u_2 = ${cos ? '-u_1' : '\\pi - u_1'} ${eq} ${val(sch[1].al)}`);
+    }
+    if (s.z !== 0) schritte.push(['Lösungen in einer Periode', eine]);
+    /* Alle Lösungen */
+    if (s.z !== 0) schritte.push(['Alle Lösungen', M(`Der ${NAME} hat die Periode $2\\pi$ – zu jeder Lösung kommen alle Vielfachen von $2\\pi$ dazu:`)
+      + D(`\\begin{aligned} ${sch.map((u, i) => `u${n(i)} &${u.al.q ? '=' : '\\approx'} ${uR(u.al)}${kU(u.st)}`).join(' \\\\ ')} \\end{aligned}`) + M('mit $k \\in \\mathbb{Z}$.')]);
+    /* Zurück zu x */
+    const b = A.b, c = A.c, cT = pTex({ q: qWert(c) < 0 ? qNeg(c) : c });
+    const xs = sch.map(u => ({ u, al: u.al, x0: u.al.q ? { q: qAdd(c, qDiv(u.al.q, b)) } : { w: qWert(c) + u.al.w / qWert(b) }, p: qDiv(Q(u.st), b) }));
+    info.x0 = xs.map(sc => pw(sc.x0)); info.p = xs.map(sc => qWert(sc.p) * PI);
+    const zurueck = xs.map((sc, i) => {
+      const gl = sc.al.q ? '=' : '\\approx', z = [[argI, `${uR(sc.al)}${kU(sc.u.st)}`, '', gl]];
       if (!qGleich(b, Q(1))) {
         z[z.length - 1][2] = op(`:${/frac/.test(P.b.tex) ? klTex(P.b.tex) : P.b.tex}`);
         const ab = sc.al.q ? { q: qDiv(sc.al.q, b) } : { w: sc.al.w / qWert(b) };
-        z.push([c.z === 0 ? 'x' : `x ${qWert(c) > 0 ? '-' : '+'} ${cT}`, `${ab.q ? (ab.q.z === 0 ? '' : pTex(ab) + ' + ') : zw(pw(ab)) + ' + '}${kpTex(p)}`, '', gl]);
+        z.push([c.z === 0 ? 'x' : `x ${qWert(c) > 0 ? '-' : '+'} ${cT}`, `${ab.q ? (ab.q.z === 0 ? '' : pTex(ab) + ' + ') : zw(pw(ab)) + ' + '}${kpTex(sc.p)}`, '', gl]);
       }
       if (c.z !== 0) {
         z[z.length - 1][2] = op(qWert(c) > 0 ? `+\\,${cT}` : `-\\,${cT}`);
-        z.push(['x', `${sc.x0.q ? (sc.x0.q.z === 0 ? '' : pTex(sc.x0) + ' + ') : zw(pw(sc.x0)) + ' + '}${kpTex(p)}`, '', gl]);
+        z.push(['x', `${sc.x0.q ? (sc.x0.q.z === 0 ? '' : pTex(sc.x0) + ' + ') : zw(pw(sc.x0)) + ' + '}${kpTex(sc.p)}`, '', gl]);
       }
       z[z.length - 1][0] = `x${n(i)}`;
       return M(idx ? `Schar ${i + 1}, aus $u${n(i)}$:` : 'Aus $u$:') + D(`\\begin{aligned} ${z.map(([l, r, o, g]) => `${l} &${g} ${r}${o}`).join(' \\\\ ')} \\end{aligned}`);
     });
-    s.push(['Zurück zu x', zurueck.join('')
-      + M(`Periode $p = ${qGleich(b, Q(1)) ? '2\\pi' : (f => f === pTex({ q: p }) ? f : `${f} = ${pTex({ q: p })}`)(`\\frac{2\\pi}{${P.b.tex}}`)}$: Aufeinanderfolgende Stellen einer Schar haben diesen Abstand.`)]);
-    /* 6. Im Intervall – je Schar die k im Intervall und die beiden, die gerade herausfallen */
-    const Lw = qWert(A.L) * PI, Rw = qWert(A.R) * PI;
-    const tab = sch.map((sc, i) => {
-      const x0 = pw(sc.x0), pp = qWert(p) * PI;
-      const k1 = sc.x0.q ? oben(qDiv(qSub(A.L, sc.x0.q), p)) : Math.ceil((Lw - x0) / pp - EPS);
-      const k2 = sc.x0.q ? ganz(qDiv(qSub(A.R, sc.x0.q), p)) : Math.floor((Rw - x0) / pp + EPS);
+    const pP = qDiv(Q(2), b), pT = qGleich(b, Q(1)) ? '2\\pi' : (f => f === pTex({ q: pP }) ? f : `${f} = ${pTex({ q: pP })}`)(`\\frac{2\\pi}{${P.b.tex}}`);
+    schritte.push(['Zurück zu x', zurueck.join('')
+      + M(sch[0].st === 2 ? `Periode $p = ${pT}$: Aufeinanderfolgende Stellen einer Schar haben diesen Abstand.`
+        : `Periode $p = ${pT}$: Aufeinanderfolgende Stellen haben den Abstand $${pTex({ q: xs[0].p })}$, eine halbe Periode.`)]);
+    /* Im Intervall – je Schar die k im Intervall und die beiden, die gerade herausfallen */
+    const Lw = qWert(A.L) * PI, Rw = qWert(A.R) * PI, kand = [];
+    const tab = xs.map((sc, i) => {
+      const x0 = pw(sc.x0), pp = qWert(sc.p) * PI;
+      const k1 = sc.x0.q ? oben(qDiv(qSub(A.L, sc.x0.q), sc.p)) : Math.ceil((Lw - x0) / pp - EPS);
+      const k2 = sc.x0.q ? ganz(qDiv(qSub(A.R, sc.x0.q), sc.p)) : Math.floor((Rw - x0) / pp + EPS);
       const zeilen = [];
       for (let k = Math.min(k1, k2) - (k1 <= k2 ? 1 : 0); k <= Math.max(k1, k2) + (k1 <= k2 ? 1 : 0); k++) {
-        const x = sc.x0.q ? { q: qAdd(sc.x0.q, qMul(Q(k), p)) } : { w: sc.x0.w + k * qWert(p) }, xv = pw(x);
+        const x = sc.x0.q ? { q: qAdd(sc.x0.q, qMul(Q(k), sc.p)) } : { w: sc.x0.w + k * qWert(sc.p) }, xv = pw(x);
         const drin = k >= k1 && k <= k2, urteil = drin ? '\\checkmark' : xv < Lw ? '\\text{zu klein}' : '\\text{zu groß}';
         info.tab.push({ i, k, x: xv, drin });
+        if (drin) kand.push({ i, k, x, u: sc.al.q ? { q: qAdd(sc.al.q, Q(k * sc.u.st)) } : { w: sc.al.w + k * sc.u.st } });
         const wert = x.q && (drin || x.q.z === 0) ? '= ' + pTex(x) + (x.q.z !== 0 ? ` \\approx ${zTex(xv, 2)}` : '') : '\\approx ' + zTex(xv, 2);
         zeilen.push(`k = ${k}\\colon\\; x${n(i)} &${wert} \\quad ${urteil}`);
       }
       return (idx ? M(`Schar ${i + 1}:`) : '') + D(`\\begin{aligned} ${zeilen.join(' \\\\ ')} \\end{aligned}`);
     });
-    s.push(['Im Intervall', M(`Welche $k$ liefern Stellen in $${iTex(A)}$? Zum Vergleich: $${iTex(A)} \\approx \\left[${zTex(Lw, 2)};\\, ${zTex(Rw, 2)}\\right]$.`) + tab.join('')]);
-    /* 7. Ergebnis */
-    const erg = L.stellen.length ? L.stellen.map(e => pTex(e.x)).join(';\\; ') : '';
-    if (A.art === 'null')
-      s.push(['Ergebnis', L.stellen.length ? M(`Nullstellen in $${iTex(A)}$:`) + D(`x \\in \\left\\{ ${erg} \\right\\}`) : M(`Keine Nullstellen in $${iTex(A)}$.`), true]);
-    else {
-      const sv = qWert(U.s) > 0 ? '1' : '(-1)', y = yWert(A), K = A.art === 'hoch' ? 'H' : 'T';
-      const yZ = M(`$y$-Wert: ${NAME} $= ${qWert(U.s) > 0 ? '1' : '-1'}$ eingesetzt –`) + D(`y = ${qWert(A.a) < 0 ? klTex(qTex(A.a)) : qTex(A.a)} \\cdot ${sv} ${A.d.z === 0 ? '' : (qWert(A.d) > 0 ? '+ ' + qTex(A.d) : '- ' + qTex(qNeg(A.d)))} = ${qTex(y)}`);
-      const pk = L.stellen.map((e, j) => `${K}${L.stellen.length > 1 ? `_{${j + 1}}` : ''}\\left(${pTex(e.x)} \\;\\middle|\\; ${qTex(y)}\\right)`);
-      s.push(['Ergebnis', yZ + (L.stellen.length ? M(`${WAS[A.art]} in $${iTex(A)}$:`) + D(`\\begin{aligned} ${pk.join(' \\\\ ')} \\end{aligned}`) : M(`Keine ${WAS[A.art]} in $${iTex(A)}$.`)), true]);
+    schritte.push(['Im Intervall', M(`Welche $k$ liefern Stellen in $${iTex(A)}$? Zum Vergleich: $${iTex(A)} \\approx \\left[${zTex(Lw, 2)};\\, ${zTex(Rw, 2)}\\right]$.`) + tab.join('')]);
+    return sortiert(kand);
+  }
+  const koef = q => qGleich(q, Q(1)) ? '' : qGleich(q, Q(-1)) ? '-' : qTex(q);
+  function baueWeg(A){
+    const P = P_von(A), s = [], L = loese(A), art = wegArt(A), argI = TP_arg(P), K = KURZ[A.art];
+    const info = { art, u: [], st: [], x0: [], p: [], tab: [], abl: [], hin: [] };
+    const P1 = { ...P, a: TP_bruch(Q(1)), d: TP_bruch(Q(0)) }, fT = TP_term(P1, 'x', false, '');     // FN(b(x − c))
+    const fertig = () => { root.dataset.weg = JSON.stringify(info); return s; };
+    /* 0. Ausmultipliziert: erst ausklammern, dann steht die Hauptform da */
+    if (A.form === 'aus') s.push(['Faktor vor x ausklammern', D(`${TP_arg(P, 'x', true)} = ${argI}`) + `<span class="tp-zeile">${F('f(x) =')} ${F(TP_term(P, 'x', false, ''))}</span>`
+      + `<span class="tp-zeile">${M(`Verschoben um $${pTex({ q: A.c }).replace(/^-/, '')}$ nach ${qWert(A.c) > 0 ? 'rechts' : 'links'}.`)}</span>`]);
+    const ableitungen = n => {
+      const ab = [1, 2, 3].slice(0, n).map(i => TP_abl(P, i));
+      info.abl = ab.map((a, i) => ({ n: i + 1, fn: a.fn, k: qWert(a.q) }));
+      s.push(['Ableitungen', (qGleich(A.b, Q(1)) ? '' : M(`Kettenregel: Bei jedem Ableiten kommt die innere Ableitung $${P.b.tex}$ als Faktor dazu.`))
+        + D(`\\begin{aligned} ${ab.map((a, i) => `f${strich(i + 1)}(x) &= ${a.tex()}`).join(' \\\\ ')} \\end{aligned}`)]);
+      return ab;
+    };
+    const notwendig = (a, i, wort) => {
+      /* Der Faktor vor der Winkelfunktion ist nie null – übrig bleibt, dass die Winkelfunktion null ist */
+      s.push(['Notwendige Bedingung', M(`${wort}: $f${strich(i)}(x) = 0$.`) + D(`${a.tex()} = 0`)
+        + (qGleich(a.q, Q(1)) ? '' : M(`Der Faktor $${qTex(a.q)}$ ist nicht null, also:`) + D(`\\${a.fn}${klTex(argI)} = 0`))]);
+    };
+    const punkte = (St, y) => St.map((e, j) => `${K}${St.length > 1 ? `_{${j + 1}}` : ''}\\left(${pTex(e.x)} \\;\\middle|\\; ${qTex(y)}\\right)`);
+    /* y-Wert der Extrempunkte: FN = ±1 eingesetzt */
+    const yExtrem = () => { const sv = qWert(sVon(A)) > 0, y = yWert(A);
+      return M(`$y$-Wert: ${TP_WORT} $= ${sv ? '1' : '-1'}$ eingesetzt –`) + D(`y = ${qWert(A.a) < 0 ? klTex(qTex(A.a)) : qTex(A.a)} \\cdot ${sv ? '1' : '(-1)'} ${A.d.z === 0 ? '' : (qWert(A.d) > 0 ? '+ ' + qTex(A.d) : '- ' + qTex(qNeg(A.d)))} = ${qTex(y)}`); };
+    const ergebnisPunkte = (vor, nach = '') => s.push(['Ergebnis', vor + (L.stellen.length ? M(`${WAS[A.art]} in $${iTex(A)}$:`) + D(`\\begin{aligned} ${punkte(L.stellen, yWert(A)).join(' \\\\ ')} \\end{aligned}`) : M(`Keine ${WAS[A.art]} in $${iTex(A)}$.`))
+      + (nach ? `<span class="tp-zeile">${nach}</span>` : ''), true]);
+
+    if (A.art === 'null'){
+      /* Gleichung aufstellen – die Rechenoperation steht rechts neben der Zeile, auf die sie angewandt wird */
+      const U = L.U, Pa = { ...P, d: TP_bruch(Q(0)) }, z = [[TP_term(P, 'x', false, ''), '0', '']];
+      if (A.d.z !== 0) { z[z.length - 1][2] = op(qWert(A.d) > 0 ? `-\\,${qTex(A.d)}` : `+\\,${qTex(qNeg(A.d))}`); z.push([TP_term(Pa, 'x', false, ''), qTex(qNeg(A.d)), '']); }
+      if (!qGleich(A.a, Q(1))) { z[z.length - 1][2] = op(`:${zahlTex(A.a)}`); z.push([fT, qTex(U.s), '']); }
+      s.push(['Gleichung aufstellen', M('Nullstellen: $f(x) = 0$.') + D(`\\begin{aligned} ${z.map(([l, r, o]) => `${l} &= ${r}${o}`).join(' \\\\ ')} \\end{aligned}`)]);
+      if (!loeseSchritte(A, P, TP_NAME, U.s, s, info)) return fertig();
+      /* lange Mengen in Zeilen zu je drei, sonst ragt die Formel auf dem Handy aus dem Kasten */
+      const el = L.stellen.map(e => pTex(e.x)), reihen = []; for (let i = 0; i < el.length; i += 3) reihen.push(el.slice(i, i + 3).join(';\\; '));
+      const erg = el.length <= 3 ? `x \\in \\left\\{ ${reihen[0]} \\right\\}` : `\\begin{aligned} x \\in \\bigl\\{\\, & ${reihen.join(';\\; \\\\ & ')} \\,\\bigr\\} \\end{aligned}`;
+      s.push(['Ergebnis', L.stellen.length ? M(`Nullstellen in $${iTex(A)}$:`) + D(erg) : M(`Keine Nullstellen in $${iTex(A)}$.`), true]);
+    } else if (art === 'wert'){
+      const plus = qWert(sVon(A)) > 0, hoch = A.art === 'hoch';
+      s.push(['Gleichung aufstellen', M(`Der ${TP_WORT} liegt zwischen $-1$ und $1$. Wegen $${qWert(A.a) > 0 ? 'a > 0' : 'a < 0'}$ ist $f$ am ${hoch ? 'größten (Hochpunkte)' : 'kleinsten (Tiefpunkte)'}, wo der ${TP_WORT} $${plus ? '1' : '-1'}$ ist:`)
+        + D(`${fT} = ${plus ? '1' : '-1'}`)]);
+      loeseSchritte(A, P, TP_NAME, sVon(A), s, info);
+      ergebnisPunkte(yExtrem());
+    } else if (A.art === 'wende'){
+      /* f″(x) = 0 und f‴(x) ≠ 0; die Wendepunkte liegen auf der Mittellinie (Skript E14, E15, A13 d) */
+      const ab = ableitungen(3);
+      notwendig(ab[1], 2, 'Wendestellen');
+      const kand = loeseSchritte(A, P, TP_NAME, Q(0), s, info, `Das gilt für jede Funktion $a${FNT}(b(x - c)) + d$: Ihre zweite Ableitung ist ein Vielfaches des ${TP_WORT}, die Wendestellen liegen immer bei $u = ${TP_COS ? '\\frac{\\pi}{2} + ' : ''}k\\pi$.`);
+      const zeilen = kand.map(e => { const v = qMul(ab[2].q, Q(Math.round((TP_COS ? Math.sin : Math.cos)(pw(e.u)))));
+        info.hin.push({ x: pw(e.x), f3: qWert(v) });
+        return D(`\\begin{aligned} f'''${klTex(pTex(e.x))} &= ${koef(ab[2].q)}\\${GEGEN}${klTex(pTex(e.u))} \\\\ &= ${qTex(v)} \\neq 0 \\end{aligned}`); });
+      s.push(['Hinreichende Bedingung', kand.length ? M(`Setze jede Stelle in $f'''$ ein. In der Klammer steht dann der zugehörige Wert von $u$.`) + zeilen.join('') + M(`Überall ist $f'''(x) \\neq 0$: Es sind Wendestellen.`) : M(`Im Intervall liegt keine Stelle mit $f''(x) = 0$.`)]);
+      ergebnisPunkte(M(`An jeder Wendestelle ist der ${TP_WORT} null:`) + D(`f(x_W) = ${qWert(A.a) < 0 ? klTex(qTex(A.a)) : qTex(A.a)} \\cdot 0 ${A.d.z === 0 ? '' : (qWert(A.d) > 0 ? '+ ' + qTex(A.d) : '- ' + qTex(qNeg(A.d)))} = ${qTex(A.d)}`),
+        M(`Die Wendepunkte liegen auf der Mittellinie $y = ${qTex(A.d)}$. Dort ist der Graph am steilsten.`));
+    } else {
+      /* f′(x) = 0, dann das Vorzeichen von f″ (Skript E14, A13 c) */
+      const ab = ableitungen(2);
+      notwendig(ab[0], 1, 'Extremstellen');
+      const kand = loeseSchritte(A, P, GEGEN, Q(0), s, info, `Das gilt für jede Funktion $a${FNT}(b(x - c)) + d$: Ihre Ableitung ist ein Vielfaches des ${TP_COS ? 'Sinus' : 'Kosinus'}, die Extremstellen liegen immer bei $u = ${TP_COS ? '' : '\\frac{\\pi}{2} + '}k\\pi$.`);
+      const zeilen = kand.map(e => { const v = qMul(ab[1].q, Q(Math.round(TP_FN(pw(e.u))))), hoch = qWert(v) < 0;
+        info.hin.push({ x: pw(e.x), f2: qWert(v), typ: hoch ? 'hoch' : 'tief' });
+        return D(`\\begin{aligned} f''${klTex(pTex(e.x))} &= ${koef(ab[1].q)}${FNT}${klTex(pTex(e.u))} \\\\ &= ${qTex(v)} ${hoch ? '<' : '>'} 0 \\end{aligned}`) + `<span class="tp-urteil">also ${hoch ? 'Hochpunkt' : 'Tiefpunkt'}.</span>`; });
+      s.push(['Hinreichende Bedingung', kand.length ? M(`Setze jede Stelle in $f''$ ein. In der Klammer steht dann der zugehörige Wert von $u$. Das Vorzeichen entscheidet: $f''(x) < 0$ Hochpunkt, $f''(x) > 0$ Tiefpunkt.`) + zeilen.join('') : M(`Im Intervall liegt keine Stelle mit $f'(x) = 0$.`)]);
+      const Aw = betragA(A);
+      /* y-Wert wie im Skript (A13): die erste gesuchte Stelle in f einsetzen */
+      const e1 = L.stellen.length ? kand.find(e => Math.abs(pw(e.x) - pw(L.stellen[0].x)) < 1e-9) : null, sv = qWert(sVon(A)) > 0, dT = A.d.z === 0 ? '' : (qWert(A.d) > 0 ? ' + ' + qTex(A.d) : ' - ' + qTex(qNeg(A.d)));
+      const yEin = !e1 ? yExtrem() : M(`$y$-Wert: eine der Stellen in $f$ einsetzen, zum Beispiel $x = ${pTex(e1.x)}$.`)
+        + D(`\\begin{aligned} f${klTex(pTex(e1.x))} &= ${koef(A.a)}${FNT}${klTex(pTex(e1.u))}${dT} \\\\ &= ${qWert(A.a) < 0 ? klTex(qTex(A.a)) : qTex(A.a)} \\cdot ${sv ? '1' : '(-1)'}${dT} = ${qTex(yWert(A))} \\end{aligned}`);
+      ergebnisPunkte(yEin, M(`Kontrolle: Mit Amplitude $${qTex(Aw)}$ und Mittellinie $y = ${qTex(A.d)}$ liegen die Funktionswerte zwischen $${qTex(qSub(A.d, Aw))}$ und $${qTex(qAdd(A.d, Aw))}$.`));
     }
-    root.dataset.weg = JSON.stringify(info);
-    return s;
+    return fertig();
   }
 
   /* ---------- typische Fehler: Stellen-Mengen, die nur dann zählen, wenn sie sich von der Lösung unterscheiden ---------- */
   const gleicheMenge = (L1, L2) => L1.length === L2.length && L1.every((e, i) => Math.abs(pw(e.x) - pw(L2[i].x)) < 1e-7);
   function fehlerbilder(A){
-    const richtig = loese(A).stellen, U = uScharen(A);
+    const richtig = loese(A).stellen, U = uScharen(A), P = P_von(A), halb = U.sch.length && U.sch[0].st === 1;
     const L = [];
-    if (U.sch.length > 1) L.push([loese(A, { nurEine: true }).stellen, M('Nur eine Lösungsschar: $\\sin u = s$ hat in jeder Periode <b>zwei</b> Lösungen, $u_1$ und $u_2 = \\pi - u_1$.')]);
-    if (qWert(A.b) !== 1) L.push([loese(A, { periode2pi: true }).stellen, M('Der Abstand der Stellen ist die Periode $\\frac{2\\pi}{b}$ – nicht $2\\pi$. Auch $2k\\pi$ wird durch $b$ geteilt.')]);
+    if (A.form === 'aus') L.push([loese(A, { direkt: true }).stellen, M(`Erst den Faktor $${P.b.tex}$ vor $x$ ausklammern: $${TP_arg(P, 'x', true)} = ${TP_arg(P)}$. Die Verschiebung ist $${pTex({ q: A.c }).replace(/^-/, '')}$, nicht $${pTex({ q: qMul(A.b, A.c) }).replace(/^-/, '')}$.`)]);
+    if (U.sch.length > 1) L.push([loese(A, { nurEine: true }).stellen, M(TP_COS ? 'Nur eine Lösungsschar: $\\cos u = s$ hat in jeder Periode <b>zwei</b> Lösungen, $u_1$ und $u_2 = -u_1$.' : 'Nur eine Lösungsschar: $\\sin u = s$ hat in jeder Periode <b>zwei</b> Lösungen, $u_1$ und $u_2 = \\pi - u_1$.')]);
+    if (A.art === 'wende') L.push([loese(A, { beide: true }).stellen, M(`Das sind die Extremstellen ($f'(x) = 0$). Wendestellen: $f''(x) = 0$.`)]);
+    if (A.art === 'wende') L.push([loese(A, { doppelt: true }).stellen, M(`Es fehlt jede zweite Wendestelle: $${FNT} u = 0$ gilt in jeder Periode <b>zweimal</b>, die Lösungen haben den Abstand $\\pi$.`)]);
+    if (A.art === 'hoch' || A.art === 'tief') L.push([loese(A, { beide: true }).stellen, M(`Das sind alle Extremstellen, Hoch- und Tiefpunkte zusammen. $f'(x) = 0$ ist nur die notwendige Bedingung: Prüfe mit $f''$ oder mit dem Wert des ${TP_WORT}.`)]);
+    if (qWert(A.b) !== 1) L.push([loese(A, { periode2pi: true }).stellen, M(halb ? 'Auch $k\\pi$ wird durch $b$ geteilt: Der Abstand der Stellen ist $\\frac{\\pi}{b}$.' : 'Der Abstand der Stellen ist die Periode $\\frac{2\\pi}{b}$ – nicht $2\\pi$. Auch $k \\cdot 2\\pi$ wird durch $b$ geteilt.')]);
     if (qWert(A.b) !== 1) L.push([loese(A, { ohneB: true }).stellen, M('Durch $b$ teilen nicht vergessen: $x = c + \\frac{u}{b}$.')]);
     if (A.c.z !== 0) L.push([loese(A, { ohneC: true }).stellen, M('Die Verschiebung fehlt: $x = c + \\frac{u}{b}$, nicht nur $\\frac{u}{b}$.')]);
     if (A.c.z !== 0) L.push([loese(A, { cNeg: true }).stellen, M('Vorzeichen der Verschiebung: Aus $u = b(x - c)$ folgt $x = c + \\frac{u}{b}$ – also $+c$.')]);
-    if (A.art !== 'null' && qWert(A.a) < 0) L.push([loese(A, { tauschen: true }).stellen, M('Hoch- und Tiefpunkte vertauscht: Mit $a < 0$ ist der Graph am höchsten, wo der Sinus $-1$ ist.')]);
+    if ((A.art === 'hoch' || A.art === 'tief') && qWert(A.a) < 0) L.push([loese(A, { tauschen: true }).stellen, M(`Hoch- und Tiefpunkte vertauscht: Mit $a < 0$ ist der Graph am höchsten, wo der ${TP_WORT} $-1$ ist.`)]);
+    if ((A.art === 'hoch' || A.art === 'tief') && qWert(A.a) > 0) L.push([loese(A, { tauschen: true }).stellen, M(`Hoch- und Tiefpunkte vertauscht: $f''(x) < 0$ heißt Hochpunkt, $f''(x) > 0$ Tiefpunkt.`)]);
     return L.filter(([m]) => !gleicheMenge(m, richtig));
+  }
+  /* typische Fehler beim y-Wert der Punkte: [Wert, Meldung] */
+  function yFehler(A){
+    const d = qWert(A.d), Aw = Math.abs(qWert(A.a)), y = qWert(yWert(A)), L = [];
+    if (A.art === 'wende'){
+      L.push([0, M(`Die Wendepunkte liegen auf der Mittellinie $y = ${qTex(A.d)}$, nicht auf der $x$-Achse. Auf der $x$-Achse liegen sie nur für $d = 0$.`)]);
+      L.push([d + Aw, M(`Das ist der $y$-Wert der Hochpunkte. An einer Wendestelle ist der ${TP_WORT} null: $f(x_W) = a \\cdot 0 + d$, die Wendepunkte liegen auf der Mittellinie.`)]);
+      L.push([d - Aw, M(`Das ist der $y$-Wert der Tiefpunkte. An einer Wendestelle ist der ${TP_WORT} null: $f(x_W) = a \\cdot 0 + d$, die Wendepunkte liegen auf der Mittellinie.`)]);
+      L.push([qWert(A.a), M(`Das ist $a$. An einer Wendestelle ist der ${TP_WORT} null: $f(x_W) = a \\cdot 0 + d$.`)]);
+    } else {
+      const hoch = A.art === 'hoch';
+      L.push([hoch ? d - Aw : d + Aw, M(`Das ist der $y$-Wert der ${hoch ? 'Tiefpunkte' : 'Hochpunkte'}.`)]);
+      L.push([hoch ? Aw : -Aw, M('Die Mittellinie fehlt: $y = d \\pm |a|$.')]);
+      L.push([d, M(`Das ist die Mittellinie. Die ${hoch ? 'Hochpunkte liegen um die Amplitude darüber' : 'Tiefpunkte liegen um die Amplitude darunter'}.`)]);
+      L.push([d + qWert(A.a) * (hoch ? 1 : -1), M(`Mit $a < 0$ ist $f$ am ${hoch ? 'größten' : 'kleinsten'}, wo der ${TP_WORT} $${hoch ? '-1' : '1'}$ ist.`)]);
+    }
+    return L.filter(([v], i) => Math.abs(v - y) > 1e-9 && L.findIndex(([w]) => Math.abs(w - v) < 1e-9) === i);
   }
 
   /* ---------- Lesen und Prüfen ---------- */
   const lies = text => WZ.liesMenge(text, t => WZ.liesZahl(t, { term: true }), { pm: false, praefix: 'x' });
+  const liesY = text => WZ.liesZahl(text, { term: true, praefix: 'y' });
   EH.melde(() => {
-    const L = s => lies(s).map(z => z.v);
-    return { zeilen: EH.zeilen(L, [['\\left\\{\\tfrac{\\pi}{6};\\,\\tfrac{5\\pi}{6}\\right\\}', ['pi/6; 5pi/6', 'π/6; 5π/6']], ['\\{0;\\,\\pi;\\,2\\pi\\}', ['0; pi; 2pi']],
+    const L = s => lies(s).map(z => z.v), Y = s => liesY(s).v;
+    return { zeilen: [...EH.zeilen(L, [['\\left\\{\\tfrac{\\pi}{6};\\,\\tfrac{5\\pi}{6}\\right\\}', ['pi/6; 5pi/6', 'π/6; 5π/6']], ['\\{0;\\,\\pi;\\,2\\pi\\}', ['0; pi; 2pi']],
         ['\\{1{,}05;\\,2{,}09\\}', ['1,05; 2,09']], ['\\{\\,\\}', ['keine']]]),
-      hinweise: ['Mehrere Stellen mit Semikolon trennen: `pi/6; 5pi/6`. Exakt mit `pi` oder auf zwei Nachkommastellen.', 'Keine Stelle im Intervall: `keine`.'] };
+        ...EH.zeilen(Y, [['y = -\\tfrac{1}{2}', ['-1/2', '-0,5', 'y = -0,5']]])],
+      hinweise: ['Mehrere Stellen mit Semikolon trennen: `pi/6; 5pi/6`. Exakt mit `pi` oder auf zwei Nachkommastellen.', 'Keine Stelle im Intervall: `keine`.',
+        'Bei Hoch-, Tief- und Wendepunkten kommt der gemeinsame y-Wert ins zweite Feld.'] };
   });
   /* getippte Liste gegen eine Menge: jede Stelle genau einmal getroffen? (Toleranz nach getippten Stellen, mind. zwei) */
   function vergleiche(ein, L){
@@ -2848,51 +3094,74 @@ const NULLEX = (() => {
     }
     return { treffer, grob, falsch, fehlt: frei.filter(x => x !== null).length };
   }
-  function pruefe(){
-    const A = S.A, f = R('antwort');
-    const aus = (art, t) => { WZ.rueck(R('rueck'), art, t); f.className = 'wz-eingabe tp-breit' + (art ? ' ' + art : ''); if (art === 'ok') { S.geloest = true; zeichneBild(); } };
-    let ein;
-    try { ein = lies(f.value).map(z => ({ v: z.v, stellen: z.stellen })); } catch (e) { return aus('nein', e.message); }
-    const L = loese(A).stellen, r = vergleiche(ein, L);
-    const name = A.art === 'null' ? 'Nullstelle' : A.art === 'hoch' ? 'Hochstelle' : 'Tiefstelle';
-    if (!r.falsch.length && !r.fehlt && !r.grob.length) return aus('ok', 'Richtig! ' + (L.length ? F(`x \\in \\left\\{ ${L.map(e => pTex(e.x)).join(';\\; ')} \\right\\}`) : 'Keine Stelle im Intervall.'));
-    if (!r.falsch.length && !r.fehlt) return aus('fast', 'Fast – bitte genauer: exakt mit π oder auf zwei Nachkommastellen.');
+  /* Urteil über die Stellen: { art, text } */
+  function pruefeX(A, ein, L){
+    const r = vergleiche(ein, L);
+    const name = { null: 'Nullstelle', hoch: 'Hochstelle', tief: 'Tiefstelle', wende: 'Wendestelle' }[A.art];
+    if (!r.falsch.length && !r.fehlt && !r.grob.length) return { art: 'ok' };
+    if (!r.falsch.length && !r.fehlt) return { art: 'fast', text: 'Fast – bitte genauer: exakt mit π oder auf zwei Nachkommastellen.' };
     const fb = fehlerbilder(A).filter(([m]) => { const v = vergleiche(ein, m); return !v.falsch.length && !v.fehlt; }).map(x => x[1]);
-    if (fb.length) return aus('nein', fb.join(' <span class="tp-oder">Oder:</span> '));
+    if (fb.length) return { art: 'nein', text: [...new Set(fb)].join(' <span class="tp-oder">Oder:</span> ') };
     const t = [];
     if (r.fehlt) t.push(r.fehlt === 1 ? 'Es fehlt eine Stelle.' : `Es fehlen ${r.fehlt} Stellen.`);
     if (r.falsch.length) t.push(M(`${r.falsch.map(z => `$${zTex(z.v, 3)}$`).join(', ')} ${r.falsch.length === 1 ? `ist keine ${name}` : `sind keine ${name}n`} im Intervall.`));
     if (!L.length && r.falsch.length) t.push('Im Intervall liegt keine Stelle – „keine“.');
-    return aus('nein', t.join(' '));
+    return { art: 'nein', text: t.join(' ') };
+  }
+  function pruefe(){
+    const A = S.A, f = R('antwort'), fy = R('yantwort');
+    const aus = (art, t, ax = art, ay = art) => { WZ.rueck(R('rueck'), art, t); f.className = 'wz-eingabe tp-breit' + (ax ? ' ' + ax : ''); fy.className = 'wz-eingabe tp-kurz' + (ay ? ' ' + ay : '');
+      if (art === 'ok') { S.geloest = true; zeichneBild(); } };
+    let ein, ey = null;
+    try { ein = lies(f.value).map(z => ({ v: z.v, stellen: z.stellen })); } catch (e) { return aus('nein', e.message, 'nein', ''); }
+    const L = loese(A).stellen, mitY = punkt(A) && L.length > 0;
+    if (mitY) { try { ey = liesY(fy.value); } catch (e) { return aus('nein', M(`$y$-Wert: `) + e.message, '', 'nein'); } }
+    const rx = pruefeX(A, ein, L);
+    if (!mitY){
+      if (rx.art === 'ok') return aus('ok', 'Richtig! ' + (L.length ? `${WAS[A.art]}: ` + L.map(e => F(pTex(e.x))).join('; ') : 'Keine Stelle im Intervall.'), 'ok', '');
+      return aus(rx.art, rx.text, rx.art, '');
+    }
+    const y = yWert(A), ry = WZ.zahlPruefen({ v: ey.v, stellen: ey.stellen }, qWert(y), { fehler: yFehler(A) });
+    const yText = ry.art === 'ok' ? '' : ry.text || (A.art === 'wende' ? M('Der $y$-Wert stimmt nicht: Setze eine Wendestelle in $f$ ein. Die Wendepunkte liegen auf der Mittellinie.')
+      : M(`Der $y$-Wert stimmt nicht: Setze eine der Stellen in $f$ ein.`));
+    if (rx.art === 'ok' && ry.art === 'ok') return aus('ok', 'Richtig! ' + L.map((e, j) => F(`${KURZ[A.art]}${L.length > 1 ? `_{${j + 1}}` : ''}\\left(${pTex(e.x)} \\;\\middle|\\; ${qTex(y)}\\right)`)).join(', '));
+    if (rx.art === 'ok') return aus(ry.art, 'Die Stellen stimmen. ' + yText, 'ok', ry.art);
+    return aus(rx.art, rx.text + (ry.art === 'ok' ? ' Der y-Wert stimmt.' : ' ' + yText), rx.art, ry.art === 'ok' ? 'ok' : ry.art);
   }
 
-  /* ---------- Bild ---------- */
+  /* ---------- Bild: Graph, Intervall, die gesuchten Stellen – mit Ableitungen zusätzlich f′ ---------- */
   function zeichneBild(){
     const A = S.A, kasten = R('graph');
     if (!S.bild) { kasten.innerHTML = '<p class="wz-leer">Der Graph mit dem Intervall und den gesuchten Stellen: „Bild zeigen".</p>'; R('bild').textContent = 'Bild zeigen'; return; }
     R('bild').textContent = 'Bild ausblenden';
     const h = WZ.handy(), W = Math.max(280, Math.min(kasten.clientWidth || 520, h ? 520 : 560));
-    const L0 = qWert(A.L) * PI, R0 = qWert(A.R) * PI, rand = 0.15 * (R0 - L0);
-    const o = { W, H: h ? 270 : 250, P: P_von(A), masse: false, normal: false, xmin: L0 - rand, xmax: R0 + rand, rand: { l: 30, r: 14, o: 18, u: 22 } };
-    o.zoomFeld = kasten; o.zeichne = zeichneBild; const gb = TP_graph(o), K = gb.K, f = fW(A);
-    const f1 = v => v.toFixed(1);
+    const L0 = qWert(A.L) * PI, R0 = qWert(A.R) * PI, rand = 0.15 * (R0 - L0), abl = wegArt(A) === 'abl', P = P_von(A);
+    const o = { W, H: h ? 270 : 250, P, masse: false, normal: false, abl, xmin: L0 - rand, xmax: R0 + rand, rand: { l: 30, r: 14, o: 18, u: 22 } };
+    o.zoomFeld = kasten; o.zeichne = zeichneBild; const gb = TP_graph(o), K = gb.K, f = fW(A), f1 = v => v.toFixed(1), fs = abl ? TP_abl(P, 1).f : null;
     let g = [L0, R0].map(x => `<line class="tp-hilf" x1="${f1(K.px(x))}" y1="${K.R.o}" x2="${f1(K.px(x))}" y2="${f1(o.H - K.R.u)}"/>`).join('');
-    loese(A).stellen.forEach(e => { const x = pw(e.x); g += K.punkt(x, f(x), 'tp-stelle', 5.5); });
-    kasten.innerHTML = gb.svg.replace('</svg>', g + '</svg>')
-      + `<p class="tp-erkl">${M(`Gestrichelt: die Ränder des Intervalls $${iTex(A)}$. Punkte: die gesuchten Stellen.`)}</p>`;
+    if (A.art === 'wende') g += `<line class="tp-mitte" x1="${K.R.l}" y1="${f1(K.py(qWert(A.d)))}" x2="${W - K.R.r}" y2="${f1(K.py(qWert(A.d)))}"/>`;
+    loese(A).stellen.forEach(e => { const x = pw(e.x);
+      if (abl) g += `<line class="tp-lot" x1="${f1(K.px(x))}" y1="${f1(K.py(fs(x)))}" x2="${f1(K.px(x))}" y2="${f1(K.py(f(x)))}"/>` + K.punkt(x, fs(x), 'tp-ablpunkt', 4);
+      g += K.punkt(x, f(x), 'tp-stelle', 5.5); });
+    kasten.innerHTML = gb.svg.replace('</svg>', `<g clip-path="url(#${K.id})">${g}</g></svg>`)
+      + `<p class="tp-erkl">${M(`Senkrechte Linien: die Ränder des Intervalls $${iTex(A)}$. Punkte: die gesuchten Stellen.`
+        + (!abl ? '' : A.art === 'wende' ? ` Gestrichelt: $f'$ und die Mittellinie. Wo $f'$ am größten oder kleinsten ist, liegt ein Wendepunkt.` : ` Gestrichelt: $f'$. Wo $f'$ die $x$-Achse schneidet, liegt ein Extrempunkt.`))}</p>`;
     G_zoomKnoepfe(kasten, K);
   }
 
   /* ---------- Bedienung ---------- */
   R('pruefen').onclick = pruefe;
-  R('antwort').addEventListener('keydown', e => { if (e.key === 'Enter') pruefe(); });
+  [R('antwort'), R('yantwort')].forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') pruefe(); }));
   root.querySelectorAll('[data-art]').forEach(b => b.onclick = () => neu(b.dataset.art));
+  root.querySelectorAll('[data-wegart]').forEach(b => b.onclick = () => { S.weg = b.dataset.wegart;
+    root.querySelectorAll('[data-wegart]').forEach(x => x.classList.toggle('an', x === b));
+    weg.setze(baueWeg(S.A)); zeichneBild(); });
   R('bild').onclick = () => { S.bild = !S.bild; zeichneBild(); };
   window.addEventListener('handy-wechsel', () => { if (S.bild) zeichneBild(); });
   WZ.beiBreite(R('graph'), () => { if (S.bild) zeichneBild(); });
-  /* Start: 2·sin(2(x − π/4)) + 1, Nullstellen in [0; 2π] */
-  setze({ art: 'null', a: Q(2), b: Q(2), c: Q(1, 4), d: Q(1), L: Q(0), R: Q(2) });
-  return { S, neu, setze, pruefe, erzeuge, loese, fehlerbilder, lies };
+  /* Start: 2·sin(2(x − π/4)) + 1 bzw. 2·cos(2(x − π/4)) + 1, Nullstellen in [0; 2π] */
+  setze({ art: 'null', a: Q(2), b: Q(2), c: Q(1, 4), d: Q(1), L: Q(0), R: Q(2), form: 'haupt' });
+  return { S, neu, setze, pruefe, erzeuge, loese, fehlerbilder, yFehler, lies, wegart: w => root.querySelector(`[data-wegart="${w}"]`).click() };
 })();
 /* =====================================================================
    Folien-Navigation
@@ -2948,7 +3217,9 @@ stage.addEventListener('touchend', e=>{ if(wischX === null) return; const dx = e
 document.getElementById('uebBtn').onclick = ()=> ueb.classList.toggle('an');
 document.getElementById('vor').onclick = vor;
 document.getElementById('zurueck').onclick = zurueck;
-stage.addEventListener('click', e=>{ if(!e.target.closest('a, button, input, select, .interaktiv')) vor(); });
+/* Klick auf die Folie blättert – nicht aber ein Klick auf Bedienbares. Geprüft wird der Weg des Ereignisses (composedPath):
+   Zeichnet ein Werkzeug das angeklickte Element beim Klick neu, hängt e.target nicht mehr im Dokument, und closest() fände .interaktiv nicht. */
+stage.addEventListener('click', e=>{ if(!e.composedPath().some(el=>el.matches && el.matches('a, button, input, select, .interaktiv'))) vor(); });
 skalieren();
 zeige(parseInt(location.hash.slice(1)) - 1 || 0);
 </script>
