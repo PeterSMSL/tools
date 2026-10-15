@@ -2800,7 +2800,8 @@ const REIHE = "Integralrechnung";
 
 /* =====================================================================
    SB — Integration durch Substitution, der Rechenkern (lokal in diesem Werkzeug; integral.js bleibt unverändert).
-   Schreibweise wie bei der Kettenregel (ableitung.js): außen g(z), innen h(x), z = h(x).
+   Im Code wie bei der Kettenregel (ableitung.js): außen g(z), innen h(x), z = h(x).
+   Angezeigt wird nach Lambacher Schweizer: außen f(z) mit Stammfunktion F(z), innen g(x), z = g(x).
      Integrand  f(x) = c · g(h(x)) · h′(x)   mit einer Grundfunktion g:  zⁿ (auch negativ, gebrochen), e^z, sin z, cos z, 1/z
      ∫ f(x) dx = ∫ c · g(z) dz = c · G(z) + C = c · G(h(x)) + C
    Kein CAS: SB.erkenne(f, h, h′) teilt f an vielen Stellen durch h′ und prüft, ob c · g(h(x)) mit einer rationalen Zahl c
@@ -2982,7 +2983,7 @@ const SB = (() => {
     const fTex = TX(f), hTex = TX(h), dhTex = TX(dh);
     const A = erkenne(f, h, dh);
     if (A && A.irr) throw FEHL(`Mit $z = ${hTex}$ bleibt ein Zahlfaktor übrig, der kein Bruch ist. Wähle als $z$ die ganze innere Funktion – zum Beispiel den ganzen Exponenten.`, 'h');
-    if (!A){ const e = FEHL(`Mit $z = ${hTex}$ bleibt nach dem Teilen durch $h'(x) = ${dhTex}$ noch $x$ stehen – diese Substitution führt nicht zum Ziel. Wähle als $z$ die ganze innere Funktion, deren Ableitung als Faktor im Integranden steht.`, 'h');
+    if (!A){ const e = FEHL(`Mit $z = ${hTex}$ bleibt nach dem Teilen durch $g'(x) = ${dhTex}$ noch $x$ stehen – diese Substitution führt nicht zum Ziel. Wähle als $z$ die ganze innere Funktion, deren Ableitung als Faktor im Integranden steht.`, 'h');
       e.rest = { f, h, dh, fTex, hTex, dhTex }; throw e; }
     const Fz = T_lies(GText(A, '(x)')), gz = T_lies(gText(A, '(x)')), Fx = einsetzen(Fz, { t: '()', a: h }), FxText = GText(A, `(${ht})`);
     const fW = x => T_wert(f, x), FW = x => T_wert(Fx, x);
@@ -3029,9 +3030,9 @@ const SB = (() => {
   }
 
   /* ---------- Lösungsweg ---------- */
-  const REGEL = `\\begin{aligned} & \\int g(${I('h')}(x)) \\cdot ${I('h')}'(x)\\,dx \\\\ &= \\int g(z)\\,dz \\end{aligned}`;
-  const REGEL_B = `\\begin{aligned} & \\int_{a}^{b} g(${I('h')}(x)) \\cdot ${I('h')}'(x)\\,dx \\\\ &= \\int_{${I('h')}(a)}^{${I('h')}(b)} g(z)\\,dz \\end{aligned}`;
-  const GRUND = { pot: '\\int z^{n}\\,dz = \\frac{1}{n+1}\\,z^{n+1}', exp: '\\int e^{z}\\,dz = e^{z}', sin: '\\int \\sin z\\,dz = -\\cos z', cos: '\\int \\cos z\\,dz = \\sin z', kehr: '\\int \\frac{1}{z}\\,dz = \\ln|z|' };
+  const REGEL = `\\begin{aligned} & \\int f(${I('g')}(x)) \\cdot ${I('g')}'(x)\\,dx \\\\ &= \\int f(z)\\,dz \\end{aligned}`;
+  const REGEL_B = `\\begin{aligned} & \\int_{a}^{b} f(${I('g')}(x)) \\cdot ${I('g')}'(x)\\,dx \\\\ &= \\int_{${I('g')}(a)}^{${I('g')}(b)} f(z)\\,dz \\end{aligned}`;
+  const GRUND = { pot: '\\int z^{n}\\,dz = \\frac{1}{n+1}\\,z^{n+1} + C \\quad (n \\neq -1)', exp: '\\int e^{z}\\,dz = e^{z} + C', sin: '\\int \\sin z\\,dz = -\\cos z + C', cos: '\\int \\cos z\\,dz = \\sin z + C', kehr: '\\int \\frac{1}{z}\\,dz = \\ln|z| + C' };
   const klam = t => t.startsWith('-') ? `\\left(${t}\\right)` : t;
   /* dx durch dz ausdrücken: { html (Rechenzeile), kw (Kehrwert von h′, wenn h′ ein Bruch ist), dx (LaTeX für dx), gl („dx = …“) } */
   function dxTex(dh){
@@ -3048,7 +3049,7 @@ const SB = (() => {
     const fI = T_istSumme(P.f) ? `\\left(${P.fTex}\\right)` : P.fTex;
     const gx = best ? `_{${P.a.tex}}^{${P.b.tex}}` : '', gzL = zg ? `_{${P.za.tex}}^{${P.zb.tex}}` : '';
     const konstant = A.typ === 'pot' && qNull(A.r);
-    s.push(['Regel', karte(zg ? REGEL_B : REGEL) + ' mit ' + F(`z = ${I('h')}(x)`)]);
+    s.push(['Regel', karte(zg ? REGEL_B : REGEL) + ' mit ' + F(`z = ${I('g')}(x)`)]);
     s.push(['Innere Funktion', F(`z = ${I(P.hTex)}`)]);
     /* h′ ist ein Bruch (1/x): mit dem Kehrwert malnehmen statt Doppelbruch */
     const kw = (() => { let d = ohne(P.dh), m = ''; if (d.t === 'neg'){ m = '-'; d = ohne(d.a); } if (d.t !== '/') return null;
@@ -3102,7 +3103,7 @@ const folien = [
   <div class="rechts">
     <div class="logokachel"><img src="${LOGO}" alt="Logo Montessori-Schule Landau"></div>
     <div class="titelkarte">
-      ${F("\\begin{aligned} \\int g(h(x)) \\cdot h'(x)\\,dx &= \\int g(z)\\,dz \\\\ z &= h(x) \\end{aligned}", true)}</div>
+      ${F("\\begin{aligned} \\int f(g(x)) \\cdot g'(x)\\,dx &= \\int f(z)\\,dz \\\\ z &= g(x) \\end{aligned}", true)}</div>
   </div>
 `},
 
@@ -3120,14 +3121,14 @@ const folien = [
     <div class="su-rechts">
       <div class="su-karte blau">
         <h3>Kettenregel</h3>
-        ${F("\\bigl(G(h(x))\\bigr)' = g(h(x)) \\cdot h'(x)", true)}
-        <p>${M('Rückwärts gelesen, mit $z = h(x)$ und $G\' = g$:')}</p>
-        ${F("\\int g(h(x)) \\cdot h'(x)\\,dx = \\int g(z)\\,dz", true)}
+        ${F("\\bigl(F(g(x))\\bigr)' = f(g(x)) \\cdot g'(x)", true)}
+        <p>${M('Rückwärts gelesen, mit $z = g(x)$ und $F\' = f$:')}</p>
+        ${F("\\int f(g(x)) \\cdot g'(x)\\,dx = \\int f(z)\\,dz", true)}
       </div>
       <div class="su-karte" data-r="karte"></div>
       <div class="su-karte orange">
         <h3>Woran erkenne ich, dass es geht?</h3>
-        <p>${M('Neben der <b>inneren Funktion</b> $h(x)$ steht ihre <b>Ableitung</b> $h\'(x)$ als Faktor – ein Zahlfaktor darf fehlen.')}</p>
+        <p>${M('Neben der <b>inneren Funktion</b> $g(x)$ steht ihre <b>Ableitung</b> $g\'(x)$ als Faktor – ein Zahlfaktor darf fehlen.')}</p>
       </div>
     </div>
   </div>
@@ -3143,13 +3144,13 @@ const folien = [
     <div class="su-kandzeile"><span class="bt">${M('Innere Funktion $z$ wählen:')}</span><span class="su-kand" data-r="kand"></span><button class="knopf hell" data-r="keine">keine davon</button></div>
     <div class="wz-rueck" data-r="rueck"></div>
     <div class="su-proben" data-r="proben"></div>
-    <p class="su-merk">${M('Die Probe ist immer dieselbe: $\\dfrac{dz}{dx} = h\'(x)$ bilden, $dx = \\dfrac{dz}{h\'(x)}$ einsetzen – kürzt sich alles mit $x$ weg, passt die Substitution.')}</p>
+    <p class="su-merk">${M('Die Probe ist immer dieselbe: $\\dfrac{dz}{dx} = g\'(x)$ bilden, $dx = \\dfrac{dz}{g\'(x)}$ einsetzen – kürzt sich alles mit $x$ weg, passt die Substitution.')}</p>
   </div>
 `},
 
 {titel:"Stammfunktion", klasse:"kompakt oben", eyebrow:"Stammfunktion", h2:"Substituieren, integrieren, zurück zu x", roh: suFolie('stamm')},
 
-{titel:"Bestimmtes Integral", klasse:"kompakt oben", eyebrow:"Bestimmtes Integral", h2:"Die Grenzen wandern mit – oder zurück zu x", roh: suFolie('best')},
+{titel:"Bestimmtes Integral", klasse:"kompakt oben", eyebrow:"Bestimmtes Integral", h2:"Die Grenzen werden umgerechnet – oder zurück zu x", roh: suFolie('best')},
 
 ];
 
@@ -3168,7 +3169,7 @@ function suFolie(art){
     <div class="wz-arten"><span class="bt">Neue Aufgabe, innere Funktion:</span>
       <button class="knopf hell" data-art="lin">linear</button><button class="knopf hell" data-art="pot">x², x³</button>
       <button class="knopf hell" data-art="eln">eˣ, ln x</button><button class="knopf hell" data-art="trig">sin, cos</button>
-      <button class="knopf hell" data-art="quot">h′ durch h</button><button class="knopf hell" data-art="gemischt">gemischt</button></div>
+      <button class="knopf hell" data-art="quot">g′ durch g</button><button class="knopf hell" data-art="gemischt">gemischt</button></div>
     <div class="su-eigenzeile"><span class="bt">Eigenes:</span>
       <span class="su-eigenpaar">${F('f(x) =')}<input class="wz-eingabe su-eigen" data-r="eigen" spellcheck="false" autocomplete="off" placeholder="z. B. x*e^(x^2)" aria-label="eigener Integrand"></span>
       <span class="su-eigenpaar">${F('z =')}<input class="wz-eingabe su-eigen su-z" data-r="eigenz" spellcheck="false" autocomplete="off" placeholder="z. B. x^2" aria-label="innere Funktion z"></span>
@@ -3270,7 +3271,7 @@ const IDEE = (() => {
   function zeichneZ(){ const T = stand(), E = T.E, A = E.P.A, z0 = E.h(0), z1 = E.h(E.bmax), pol = A.typ === 'kehr' || (A.typ === 'pot' && A.r.z < 0);
     const zu = Math.min(z0, z1), u = pol && zu > 0 ? zu * 0.5 : Math.min(0, zu), o = Math.max(z0, z1), sp = o - u;   // Polstelle bei z = 0 bleibt draußen
     SB_graph(R('bildz'), { kurven: [{ f: E.g, kl: 'g-k3' }], x0: pol && zu > 0 ? u : u - 0.08 * sp, x1: o + 0.07 * sp, name: 'z', H: 196, maxW: 420, fest: true,
-      fl: { f: E.g, a: T.za.v, b: T.zb.v, namen: ['h(0)', 'h(b)'], streifen: T.streifen.map(s => s.z), an: S.an } }, zeichneZ); }
+      fl: { f: E.g, a: T.za.v, b: T.zb.v, namen: ['g(0)', 'g(b)'], streifen: T.streifen.map(s => s.z), an: S.an } }, zeichneZ); }
   function zeige(){
     const T = stand(), E = T.E, P = E.P, A = P.A, bT = SB_qTex(S.q, 3);
     root.querySelectorAll('[data-ex]').forEach(k => k.classList.toggle('an', +k.dataset.ex === S.i));
@@ -3282,11 +3283,11 @@ const IDEE = (() => {
     /* dx ersetzen, Schritt für Schritt: ableiten, mit dx malnehmen, durch h′ teilen */
     const dhK = T_istSumme(P.dh) ? klTex(P.dhTex) : P.dhTex;
     R('karte').innerHTML = `<h3>Warum wird dx so ersetzt?</h3>
-      <div class="su-dx">${F(`\\begin{aligned} z &= h(x) = \\class{in-i}{${P.hTex}} && \\\\ \\frac{dz}{dx} &= \\class{in-i}{${P.dhTex}} && \\mid\\,\\cdot\\,dx \\\\ dz &= \\class{in-i}{${dhK}}\\,dx && \\mid\\,:${dhK} \\\\ dx &= \\frac{dz}{${P.dhTex}} && \\end{aligned}`, true)}
+      <div class="su-dx">${F(`\\begin{aligned} z &= g(x) = \\class{in-i}{${P.hTex}} && \\\\ \\frac{dz}{dx} &= \\class{in-i}{${P.dhTex}} && \\mid\\,\\cdot\\,dx \\\\ dz &= \\class{in-i}{${dhK}}\\,dx && \\mid\\,:${dhK} \\\\ dx &= \\frac{dz}{${P.dhTex}} && \\end{aligned}`, true)}
       <p>${M(`Die <b>Ableitung</b> von $z$ sagt: Geht $x$ ein kleines Stück $dx$ weiter, geht $z$ um $${dhK} \\cdot dx$ weiter. Die Streifen zeigen es.`)}</p></div>
-      <p class="su-gleich"><b>Die Grenzen wandern mit:</b> ${F(`x = 0 \\;\\Rightarrow\\; z = h(0) = ${T.za.lang}`)}</p><p>${F(`x = ${bT} \\;\\Rightarrow\\; z = h(${bT}) = ${T.zb.lang}`)}</p>`;
+      <p class="su-gleich"><b>Die Grenzen werden umgerechnet:</b> ${F(`x = 0 \\;\\Rightarrow\\; z = g(0) = ${T.za.lang}`)}</p><p>${F(`x = ${bT} \\;\\Rightarrow\\; z = g(${bT}) = ${T.zb.lang}`)}</p>`;
     const s = T.streifen[S.an], xm = s ? (s.x[0] + s.x[1]) / 2 : 0, vh = s ? (s.z[1] - s.z[0]) / (s.x[1] - s.x[0]) : 0;
-    R('streifen').innerHTML = s ? M(`<b>Streifen ${S.an + 1} von ${N}:</b> $\\Delta x ${SB_gl(s.x[1] - s.x[0])}$, $\\Delta z ${SB_gl(s.z[1] - s.z[0])}$, also $\\Delta z : \\Delta x \\approx ${zTex(vh, 2)}$ – das ist die Ableitung ${F(P.dhTex)} in der Streifenmitte: $h'(${zTex(xm, 3)}) \\approx ${zTex(T_wert(P.dh, xm), 2)}$. Rechts ist der Streifen ${Math.abs(vh) >= 1 ? '' : 'nur '}${WZ.zahl(Math.abs(vh), 2)}-mal so breit und dafür um denselben Faktor ${Math.abs(vh) >= 1 ? 'niedriger' : 'höher'}; Fläche beide Male $\\approx ${zTex(s.ax, 4)}$.`)
+    R('streifen').innerHTML = s ? M(`<b>Streifen ${S.an + 1} von ${N}:</b> $\\Delta x ${SB_gl(s.x[1] - s.x[0])}$, $\\Delta z ${SB_gl(s.z[1] - s.z[0])}$, also $\\Delta z : \\Delta x \\approx ${zTex(vh, 2)}$ – das ist die Ableitung ${F(P.dhTex)} in der Streifenmitte: $g'(${zTex(xm, 3)}) \\approx ${zTex(T_wert(P.dh, xm), 2)}$. Rechts ist der Streifen ${Math.abs(vh) >= 1 ? '' : 'nur '}${WZ.zahl(Math.abs(vh), 2)}-mal so breit und dafür um denselben Faktor ${Math.abs(vh) >= 1 ? 'niedriger' : 'höher'}; Fläche beide Male $\\approx ${zTex(s.ax, 4)}$.`)
       : M('Schiebe $b$ nach rechts: Die Fläche wird in Streifen zerlegt.');
     R('svor').disabled = !s || S.an <= 0; R('snach').disabled = !s || S.an >= N - 1;
     root.dataset.ax = T.ax; root.dataset.az = T.az;
@@ -3322,7 +3323,7 @@ const ERK = (() => {
     { t: 'x^2*sqrt(x^3+1)', k: ['x^2', 'x^3+1'] },
     { t: '(ln(x))^2/x', k: ['ln(x)', '1/x'] },
     { t: 'x/(x^2+1)^2', k: ['2x', 'x^2+1'] },
-    { t: 'x*cos(x)', k: ['x^2', 'cos(x)'], note: 'Hier steckt keine innere Funktion mit ihrer Ableitung als Faktor – ein Produkt wie dieses braucht ein anderes Verfahren (partielle Integration).' },
+    { t: 'x*cos(x)', k: ['x^2', 'cos(x)'], note: 'Hier steckt keine innere Funktion mit ihrer Ableitung als Faktor – ein Produkt wie dieses braucht ein anderes Verfahren (Produktintegration).' },
     { t: '(2x+3)^4', k: ['x^4', '2x+3'] },
     { t: '(sin(x))^2', k: ['sin(x)', 'cos(x)'], note: 'Der Faktor $\\cos x$ fehlt: Die Ableitung der inneren Funktion steht nicht im Integranden.' },
     { t: 'x/sqrt(x^2+4)', k: ['x^2+4', 'sqrt(x^2+4)'] },
@@ -3484,7 +3485,7 @@ function suLabor(root, best){
   function fehlerbilder(P){
     const A = P.A, c = A.c.z / A.c.n, h = x => T_wert(P.h, x), g = SB.gW(A), L = [];
     const G1 = z => T_wert(P.Fz, z) / c;
-    if (A.typ !== 'exp' && !(A.typ === 'pot' && A.r.z === 0)) L.push([x => c * g(h(x)), M('Die <b>äußere Funktion</b> ist noch nicht integriert: Nach dem Kürzen steht $\\int g(z)\\,dz$ da – erst integrieren, dann zurück zu $x$.')]);
+    if (A.typ !== 'exp' && !(A.typ === 'pot' && A.r.z === 0)) L.push([x => c * g(h(x)), M('Die <b>äußere Funktion</b> ist noch nicht integriert: Nach dem Kürzen steht $\\int f(z)\\,dz$ da – erst integrieren, dann zurück zu $x$.')]);
     if (SB.hatX(P.kp)) try { const Pk = IN.stamm(P.kp), pk = x => T_wert(Pk, x), txt = 'Ein Produkt darf man nicht <b>Faktor für Faktor</b> integrieren. Erst substituieren: Dann kürzt sich der Faktor mit $x$ weg.';
       L.push([x => pk(x) * G1(h(x)), M(txt)], [x => pk(x) * g(h(x)), M(txt)]); } catch (e) { /* Faktor ohne Schulregel: kein Fehlerbild */ }
     /* was zufällig (bis auf einen Zahlfaktor) eine Stammfunktion ist, ist kein eigenes Fehlerbild */
@@ -3510,14 +3511,14 @@ function suLabor(root, best){
     if (nah(lam, -1)){
       if (A.typ === 'sin') t.push(M('Vorzeichen: $\\int \\sin z\\,dz = -\\cos z$.'));
       if (A.typ === 'cos') t.push(M('Vorzeichen: $\\int \\cos z\\,dz = +\\sin z$.'));
-      if (T_wert(P.dh, 0.7) < 0 && (m === -1 || m === null)) t.push(M(`Vorzeichen: $h'(x) = ${P.dhTex}$ ist negativ – das Minus gehört zu $dx$.`));
+      if (T_wert(P.dh, 0.7) < 0 && (m === -1 || m === null)) t.push(M(`Vorzeichen: $g'(x) = ${P.dhTex}$ ist negativ – das Minus gehört zu $dx$.`));
       if (!t.length) t.push('Das Vorzeichen stimmt nicht.');
       return t.join(' Oder: ');
     }
     if (m !== null && m !== 1 && nah(lam, m)) t.push(M(`$dx$ nicht vollständig ersetzt: ${dx} – der Faktor $${qTex(Q(1, m))}$ fehlt.`));
     if (m !== null && Math.abs(m) !== 1 && nah(lam, m * m)) t.push(M(`Faktor falsch herum: ${dx} – es wird durch $${m}$ <b>geteilt</b>, nicht damit malgenommen.`));
     if (m === null && c !== 1 && nah(lam, 1 / c)) t.push(M(`$dx$ nicht vollständig ersetzt: ${dx} – der Zahlfaktor fehlt.`));
-    if (m === null && Math.abs(c) !== 1 && nah(lam, 1 / (c * c))) t.push(M(`Faktor falsch herum: ${dx} – es wird durch $h'(x)$ <b>geteilt</b>, nicht damit malgenommen.`));
+    if (m === null && Math.abs(c) !== 1 && nah(lam, 1 / (c * c))) t.push(M(`Faktor falsch herum: ${dx} – es wird durch $g'(x)$ <b>geteilt</b>, nicht damit malgenommen.`));
     if (!t.length) t.push(M(`Bis auf einen Zahlfaktor richtig – der Faktor vor der Stammfunktion stimmt nicht. ${dx}.`));
     return t.join(' Oder: ');
   }
@@ -3539,15 +3540,15 @@ function suLabor(root, best){
   function fehlerWerte(){
     const P = S.P, A = P.A, c = A.c.z / A.c.n, m = S.m, w = P.wert, G = z => T_wert(P.Fz, z), g = z => T_wert(P.gz, z), L = [];
     const dx = `aus $\\dfrac{dz}{dx} = ${P.dhTex}$ folgt $${SB.dxTex(P.dh).gl}$`;
-    L.push([G(P.b.v) - G(P.a.v), M('Du hast die <b>alten Grenzen</b> für $x$ in die Stammfunktion in $z$ eingesetzt. Entweder die Grenzen umrechnen ($z = h(a)$, $z = h(b)$) – oder erst rücksubstituieren.')]);
-    if (m !== null && m !== 1) L.push([w * m, M(m === -1 ? `Vorzeichen: $h'(x) = ${P.dhTex}$ ist negativ – das Minus gehört zu $dx$.` : `$dx$ nicht vollständig ersetzt: ${dx} – der Faktor $${qTex(Q(1, m))}$ fehlt.`)]);
+    L.push([G(P.b.v) - G(P.a.v), M('Du hast die <b>alten Grenzen</b> für $x$ in die Stammfunktion in $z$ eingesetzt. Entweder die Grenzen umrechnen ($z = g(a)$, $z = g(b)$) – oder erst rücksubstituieren.')]);
+    if (m !== null && m !== 1) L.push([w * m, M(m === -1 ? `Vorzeichen: $g'(x) = ${P.dhTex}$ ist negativ – das Minus gehört zu $dx$.` : `$dx$ nicht vollständig ersetzt: ${dx} – der Faktor $${qTex(Q(1, m))}$ fehlt.`)]);
     if (m !== null && Math.abs(m) !== 1) L.push([w * m * m, M(`Faktor falsch herum: ${dx} – es wird durch $${m}$ <b>geteilt</b>, nicht damit malgenommen.`)]);
     if (m === null && c !== 1) L.push([w / c, M(`$dx$ nicht vollständig ersetzt: ${dx} – der Zahlfaktor fehlt.`)]);
-    if (m === null && Math.abs(c) !== 1) L.push([w / (c * c), M(`Faktor falsch herum: ${dx} – es wird durch $h'(x)$ <b>geteilt</b>, nicht damit malgenommen.`)]);
-    L.push([-w, M('Vorzeichen: obere Grenze zuerst, $G(z_b) - G(z_a)$ – auch dann, wenn die neue obere Grenze die kleinere Zahl ist.')]);
+    if (m === null && Math.abs(c) !== 1) L.push([w / (c * c), M(`Faktor falsch herum: ${dx} – es wird durch $g'(x)$ <b>geteilt</b>, nicht damit malgenommen.`)]);
+    L.push([-w, M('Vorzeichen: obere Grenze zuerst, $F(z_b) - F(z_a)$ – auch dann, wenn die neue obere Grenze die kleinere Zahl ist.')]);
     if (A.typ === 'sin') L.push([-w, M('Vorzeichen: $\\int \\sin z\\,dz = -\\cos z$.')]);
     if (A.typ === 'cos') L.push([-w, M('Vorzeichen: $\\int \\cos z\\,dz = +\\sin z$.')]);
-    if (A.typ !== 'exp' && !(A.typ === 'pot' && A.r.z === 0)) L.push([g(P.zb.v) - g(P.za.v), M('Die <b>äußere Funktion</b> ist noch nicht integriert: erst $\\int g(z)\\,dz$ bilden, dann die Grenzen einsetzen.')]);
+    if (A.typ !== 'exp' && !(A.typ === 'pot' && A.r.z === 0)) L.push([g(P.zb.v) - g(P.za.v), M('Die <b>äußere Funktion</b> ist noch nicht integriert: erst $\\int f(z)\\,dz$ bilden, dann die Grenzen einsetzen.')]);
     if (Math.abs(G(P.za.v)) > 1e-9) L.push([G(P.zb.v), M('Die untere Grenze fehlt: obere Grenze einsetzen <b>minus</b> untere Grenze einsetzen.')], [G(P.zb.v) + G(P.za.v), M('Minus statt plus: obere Grenze einsetzen <b>minus</b> untere Grenze einsetzen.')]);
     return L;
   }
@@ -3595,7 +3596,7 @@ function suLabor(root, best){
     }
     const bereich = (u, w) => { const lo = Math.min(u, w), hi = Math.max(u, w), rand = Math.max(0.5, (hi - lo) * 0.25); return [lo - rand, hi + rand]; };
     const zx = () => { const [x0, x1] = bereich(P.a.v, P.b.v); SB_graph(feld.querySelector('[data-b="x"]'), { kurven: [{ f: S.f, kl: 'g-k1' }], x0, x1, name: 'x', H: 176, fl: { f: S.f, a: P.a.v, b: P.b.v, namen: ['a', 'b'] } }, zx); };
-    const zz = () => { const [x0, x1] = bereich(P.za.v, P.zb.v); SB_graph(feld.querySelector('[data-b="z"]'), { kurven: [{ f: g, kl: 'g-k3' }], x0, x1, name: 'z', H: 176, fl: { f: g, a: P.za.v, b: P.zb.v, namen: ['h(a)', 'h(b)'] } }, zz); };
+    const zz = () => { const [x0, x1] = bereich(P.za.v, P.zb.v); SB_graph(feld.querySelector('[data-b="z"]'), { kurven: [{ f: g, kl: 'g-k3' }], x0, x1, name: 'z', H: 176, fl: { f: g, a: P.za.v, b: P.zb.v, namen: ['g(a)', 'g(b)'] } }, zz); };
     zx(); zz();
   }
   R('pruefen').onclick = pruefe;

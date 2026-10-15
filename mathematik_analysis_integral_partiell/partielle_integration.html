@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Partielle Integration als umgekehrte Produktregel: die Idee am Rechteck u · v, die Wahl von u und v′ trainieren, Stammfunktionen und bestimmte Integrale Schritt für Schritt (Polynom mal e-Funktion, sin, cos, ln, zweimal, Kreis).">
-<title>Partielle Integration · Produktregel rückwärts</title>
+<meta name="description" content="Produktintegration als umgekehrte Produktregel: die Idee am Rechteck u · v, die Wahl von u und v′ trainieren, Stammfunktionen und bestimmte Integrale Schritt für Schritt (Polynom mal e-Funktion, sin, cos, (ax + b)ⁿ, ln, zweimal, zyklisch).">
+<title>Produktintegration (partielle Integration)</title>
 <style>
 /* ==== HANDY-SCHICHT: technik/handy/handy.css ==== */
 /* =====================================================================
@@ -951,6 +951,7 @@ html.handy .pa-wn{min-width:0;flex:1 1 calc(100% - 30px)}
 html.handy .pa-lage, html.handy .pa-karte p, html.handy .pa-faust, html.handy .pa-note{font-size:15.5px}
 html.handy .pa-tasten button, html.handy .pa-wp .pa-wk{min-height:42px}
 html.handy .pa-tasten .bt{width:100%}
+.titel h1 .pa-zweitname{display:block;font-size:.5em;font-weight:600;margin-top:.25em}
 
 /* Grundregel aller Werkzeuge: hidden gilt immer, auch wenn eine Klasse display:flex/grid setzt */
 [hidden]{display:none!important}
@@ -2790,7 +2791,7 @@ const PA_TASTEN = `<div class="pa-tasten"><span class="bt">Tasten:</span>
       <button class="knopf hell" data-t="sin(">sin</button><button class="knopf hell" data-t="cos(">cos</button><button class="knopf hell" data-t=")">)</button></div>`;
 const PA_ARTEN = `<button class="knopf hell" data-art="exp">Polynom · e</button><button class="knopf hell" data-art="trig">Polynom · sin, cos</button>
       <button class="knopf hell" data-art="ln">mit ln</button><button class="knopf hell" data-art="zwei">zweimal</button>
-      <button class="knopf hell" data-art="kreis">Kreis</button><button class="knopf hell" data-art="gemischt">gemischt</button>`;
+      <button class="knopf hell" data-art="kreis">zyklisch</button><button class="knopf hell" data-art="gemischt">gemischt</button>`;
 
 const folien = [
 
@@ -2799,7 +2800,7 @@ const folien = [
   <div class="links">
     <div class="balken"></div>
     <div class="eyebrow">Integralrechnung</div>
-    <h1>Partielle Integration</h1>
+    <h1>Produktintegration <span class="pa-zweitname">(partielle Integration)</span></h1>
     <p class="unter">Die Produktregel, rückwärts gelesen: ein Produkt integrieren, indem man einen Faktor ableitet und den anderen integriert.</p>
     <div class="meta"><span>Mathematik</span><span>Analysis</span></div>
   </div>
@@ -2840,7 +2841,7 @@ const folien = [
       <div class="wz-panel pa-wp" data-seite="A"><h3><button class="knopf hell pa-wk" data-wk="A"></button></h3><div class="pa-wi" data-r="pA"></div></div>
       <div class="wz-panel pa-wp" data-seite="B"><h3><button class="knopf hell pa-wk" data-wk="B"></button></h3><div class="pa-wi" data-r="pB"></div></div>
     </div>
-    <p class="pa-faust">${M('<b>Faustregel:</b> $u$ ist der Faktor, der beim Ableiten einfacher wird ($x$, $x^{2}$, $\\ln x$). $v\'$ ist der Faktor, dessen Stammfunktion du kennst ($e^{x}$, $\\sin x$, $\\cos x$, Potenzen von $x$).')}</p>
+    <p class="pa-faust">${M('<b>Faustregel:</b> $u$ ist der Faktor, der beim Ableiten einfacher wird ($x$, $x^{2}$, $\\ln x$). $v\'$ ist der Faktor, dessen Stammfunktion du kennst ($e^{x}$, $\\sin x$, $\\cos x$).')}</p>
   </div>
 `},
 
@@ -2909,19 +2910,20 @@ folien.forEach((f,i)=>{
 });
 
 /* =====================================================================
-   Partielle Integration: ∫ u·v′ dx = u·v − ∫ u′·v dx.
-   Kein CAS: Funktionen sind Summen von Gliedern  q · xⁿ · e^(ax+b) · sinˢ(cx+d) · cosᶜ(cx+d) · ln(x)  mit Brüchen q, a, b, c, d
+   Produktintegration (partielle Integration): ∫ u·v′ dx = u·v − ∫ u′·v dx.
+   Kein CAS: Funktionen sind Summen von Gliedern  q · xⁿ · (ax+b)ᵏ · e^(ax+b) · sinˢ(cx+d) · cosᶜ(cx+d) · ln(x)  mit Brüchen q, a, b, c, d
    (bruch.js). Damit geht alles exakt, was die Bauarten brauchen: ableiten, Grundintegrale, multiplizieren, an Grenzen auswerten.
-   Bauarten:  P  Polynom · e^(ax+b) | sin(ax+b) | cos(ax+b)   (u = Polynom; Grad 2, 3: mehrmals)
+   Bauarten:  P  Polynom · e^(ax+b) | sin(ax+b) | cos(ax+b) | (ax+b)ᵏ   (u = Polynom; Grad 2, 3: mehrmals)
+                 (ax+b)ᵏ mit b ≠ 0, k ≥ 2 bleibt als Potenz stehen, solange es eine Bauart ergibt – sonst ausmultipliziert wie bisher
               L  Polynom · ln(x)  (u = ln x; auch ∫ ln x dx = ∫ 1 · ln x dx)
-              K  Kreis: e^(ax+b) · sin(cx+d) | cos(cx+d), sin(ax+b) · cos(ax+b)  (nach I auflösen)
+              K  zyklisch: e^(ax+b) · sin(cx+d) | cos(cx+d), sin(ax+b) · cos(ax+b)  (nach I auflösen)
    Alles andere: klare Meldung statt falscher Rechnung. integral.js (IN) bleibt unverändert und rechnet nur mit, wo es trägt
-   (Grenzen lesen, Breite schätzen, „braucht keine partielle Integration“).
+   (Grenzen lesen, Breite schätzen, „braucht keine Produktintegration“).
    ===================================================================== */
 const PA = (() => {
   const Q0 = Q(0), Q1 = Q(1);
   const FEHL = t => Object.assign(new Error(t), { pa: true });
-  const BAUARTEN = 'Unterstützt: Polynom · e^(ax+b), Polynom · sin(ax+b) oder cos(ax+b), Polynom · ln(x), e^(ax) · sin(bx) oder cos(bx), sin(ax) · cos(ax).';
+  const BAUARTEN = 'Unterstützt: Polynom · e^(ax+b), Polynom · sin(ax+b) oder cos(ax+b), Polynom · (ax+b)^n, Polynom · ln(x), e^(ax) · sin(bx) oder cos(bx), sin(ax) · cos(ax).';
   const qAbs = q => Q(Math.abs(q.z), q.n), qEins = q => q.z === 1 && q.n === 1;
   const qHoch = (q, n) => { let r = Q1; for (let i = 0; i < Math.abs(n); i++) r = qMul(r, q); return n < 0 ? qDiv(Q1, r) : r; };
 
@@ -2929,10 +2931,10 @@ const PA = (() => {
   const lin = (a, b = Q0) => ({ a, b });
   const linGleich = (L, K) => (!L && !K) || (!!L && !!K && qGleich(L.a, K.a) && qGleich(L.b, K.b));
   const linKey = L => L ? `${qText(L.a)},${qText(L.b)}` : '';
-  const T = (q, n = 0, o = {}) => ({ q, n, e: null, t: null, sn: 0, cn: 0, ln: 0, ...o });
-  const kopfKey = t => `${t.ln}|${linKey(t.e)}|${linKey(t.t)}|${t.sn}|${t.cn}`;
+  const T = (q, n = 0, o = {}) => ({ q, n, li: null, lk: 0, e: null, t: null, sn: 0, cn: 0, ln: 0, ...o });     // li, lk: Faktor (ax+b)^lk
+  const kopfKey = t => `${t.ln}|${linKey(t.e)}|${linKey(t.t)}|${t.sn}|${t.cn}|${linKey(t.li)}|${t.lk}`;
   const key = t => t.n + '|' + kopfKey(t);
-  const sauber = t => (t.sn || t.cn ? t : { ...t, t: null });
+  const sauber = t => { if (!t.sn && !t.cn) t = { ...t, t: null }; return t.lk ? t : { ...t, li: null, lk: 0 }; };
   function norm(liste){ const m = new Map();
     for (const t0 of liste){ const t = sauber(t0), k = key(t), a = m.get(k); if (a) a.q = qAdd(a.q, t.q); else m.set(k, { ...t }); }
     return [...m.values()].filter(t => !qNull(t.q)); }
@@ -2943,10 +2945,12 @@ const PA = (() => {
     if (a.t && b.t && !linGleich(a.t, b.t)) throw FEHL('Zwei Winkelfunktionen mit verschiedenen Argumenten rechnet dieses Werkzeug nicht.');
     let e = a.e && b.e ? lin(qAdd(a.e.a, b.e.a), qAdd(a.e.b, b.e.b)) : a.e || b.e;
     if (e && qNull(e.a) && qNull(e.b)) e = null;
-    return { q: qMul(a.q, b.q), n: a.n + b.n, e, t: a.t || b.t, sn: a.sn + b.sn, cn: a.cn + b.cn, ln: a.ln + b.ln }; }
+    if (a.li && b.li && !linGleich(a.li, b.li)) throw FEHL('Zwei Potenzen (ax + b)^n mit verschiedenen Klammern rechnet dieses Werkzeug nicht.');
+    return { q: qMul(a.q, b.q), n: a.n + b.n, li: a.li || b.li, lk: (a.lk || 0) + (b.lk || 0), e, t: a.t || b.t, sn: a.sn + b.sn, cn: a.cn + b.cn, ln: a.ln + b.ln }; }
   const mal = (f, g) => norm(f.flatMap(a => g.map(b => malT(a, b))));
   function wertT(t, x){
     let w = qWert(t.q) * (t.n ? Math.pow(x, t.n) : 1);
+    if (t.lk) w *= Math.pow(qWert(t.li.a) * x + qWert(t.li.b), t.lk);
     if (t.e) w *= Math.exp(qWert(t.e.a) * x + qWert(t.e.b));
     if (t.t) { const a = qWert(t.t.a) * x + qWert(t.t.b); w *= Math.sin(a) ** t.sn * Math.cos(a) ** t.cn; }
     if (t.ln) w *= x > 0 ? Math.log(x) ** t.ln : NaN;
@@ -2955,15 +2959,17 @@ const PA = (() => {
   /* Ableitung eines Glieds: Produktregel über seine Faktoren (Liste, nicht zusammengefasst) */
   function ablT(t){ const o = [];
     if (t.n) o.push({ ...t, q: qMul(t.q, Q(t.n)), n: t.n - 1 });
+    if (t.lk) o.push({ ...t, q: qMul(t.q, qMul(Q(t.lk), t.li.a)), lk: t.lk - 1 });
     if (t.e && !qNull(t.e.a)) o.push({ ...t, q: qMul(t.q, t.e.a) });
     if (t.sn) o.push({ ...t, q: qMul(t.q, qMul(Q(t.sn), t.t.a)), sn: t.sn - 1, cn: t.cn + 1 });
     if (t.cn) o.push({ ...t, q: qMul(t.q, qMul(Q(-t.cn), t.t.a)), cn: t.cn - 1, sn: t.sn + 1 });
     if (t.ln) o.push({ ...t, q: qMul(t.q, Q(t.ln)), ln: t.ln - 1, n: t.n - 1 });
     return o.map(sauber); }
   const abl = f => norm(f.flatMap(ablT));
-  /* Grundintegrale: xⁿ, e^(ax+b), sin(ax+b), cos(ax+b) – sonst null. OHNE: Fehlerbild „Faktor 1/a vergessen“ */
+  /* Grundintegrale: xⁿ, (ax+b)ᵏ, e^(ax+b), sin(ax+b), cos(ax+b) – sonst null. OHNE: Fehlerbild „Faktor 1/a vergessen“ */
   let OHNE = false;
   function stammT(t){
+    if (t.lk) return t.n || t.e || t.t || t.ln || t.lk < 0 ? null : { ...t, q: qDiv(t.q, qMul(Q(t.lk + 1), OHNE ? Q1 : t.li.a)), lk: t.lk + 1 };
     if (!t.e && !t.t && !t.ln) return t.n === -1 ? T(t.q, 0, { ln: 1 }) : T(qDiv(t.q, Q(t.n + 1)), t.n + 1);
     if (t.n || t.ln) return null;
     if (t.e && !t.t) return qNull(t.e.a) ? null : { ...t, q: OHNE ? t.q : qDiv(t.q, t.e.a) };
@@ -2978,6 +2984,7 @@ const PA = (() => {
     const t0 = f[0], k0 = kopfKey(t0);
     if (!f.every(t => kopfKey(t) === k0)) return null;
     if (t0.e && qNull(t0.e.a)) return null;
+    if (t0.lk) return !t0.e && !t0.t && !t0.ln && f.every(t => t.n >= 0) ? 'P' : null;
     if (t0.ln === 1 && !t0.e && !t0.t) return f.every(t => t.n !== -1) ? 'L' : null;
     if (t0.ln || f.some(t => t.n < 0)) return null;
     const trig1 = !!t0.t && t0.sn + t0.cn === 1;
@@ -2991,7 +2998,7 @@ const PA = (() => {
     return { u: [T(t0.q, 0, { t: t0.t, sn: 1 })], dv: [T(Q1, 0, { t: t0.t, cn: 1 })] }; }
   function schritt(u, dv){ const du = abl(u), v = stammBasis(dv);
     return v ? { u, dv, du, v, uv: mal(u, v), rest: mal(du, v) } : { u, dv, du, v: null }; }
-  const NICHT = () => FEHL('Das ist keine der Bauarten, die dieses Werkzeug mit partieller Integration rechnet. ' + BAUARTEN);
+  const NICHT = () => FEHL('Das ist keine der Bauarten, die dieses Werkzeug mit Produktintegration rechnet. ' + BAUARTEN);
   function integriere(f, tiefe = 0){
     const art = bauart(f);
     if (art === 'null') return { art: 'basis', f, F: [] };
@@ -3002,7 +3009,7 @@ const PA = (() => {
     const R = integriere(s.rest, tiefe + 1);
     return { art, f, ...s, R, F: sub(s.uv, R.F) }; }
   const prop = (g, f) => g.length === 1 && f.length === 1 && key(g[0]) === key(f[0]) ? qDiv(g[0].q, f[0].q) : null;
-  /* Kreis: I = uv₁ − ∫rest₁. Entweder rest₁ = c·f (sin·cos) – oder noch ein Schritt, dann rest₂ = c·f. Immer: I = G + k·I. */
+  /* zyklisch: I = uv₁ − ∫rest₁. Entweder rest₁ = c·f (sin·cos) – oder noch ein Schritt, dann rest₂ = c·f. Immer: I = G + k·I. */
   function kreis(f, s1){
     let c = prop(s1.rest, f);
     if (c) { const k = qNeg(c), nen = qSub(Q1, k); return { art: 'K', f, s1, s2: null, G: s1.uv, k, nen, F: skal(s1.uv, qDiv(Q1, nen)) }; }
@@ -3037,7 +3044,8 @@ const PA = (() => {
         return mal(ausBaum(b.a), [T(qDiv(Q1, n[0].q), -n[0].n)]); }
       case '^': { if (ohneKl(b.a).t === 'e') return eHoch(ausBaum(b.b));
         const k = nurZahl(ausBaum(b.b)); if (!k || k.n !== 1 || Math.abs(k.z) > 6) throw FEHL('Als Hochzahl geht hier nur eine ganze Zahl bis 6 – oder e^(ax+b).');
-        const g = ausBaum(b.a);
+        const g = ausBaum(b.a), L = POT && k.z >= 2 ? linAus(g) : null;
+        if (L && !qNull(L.a) && !qNull(L.b)) return [T(Q1, 0, { li: L, lk: k.z })];
         if (k.z < 0) { if (g.length !== 1 || g[0].e || g[0].t || g[0].ln) throw FEHL('Eine negative Hochzahl geht hier nur bei einer Potenz von x.'); return [T(qHoch(g[0].q, k.z), g[0].n * k.z)]; }
         let r = [T(Q1)]; for (let i = 0; i < k.z; i++) r = mal(r, g); return r; }
       case 'fn': { const a = ausBaum(b.a);
@@ -3049,11 +3057,14 @@ const PA = (() => {
     }
     throw FEHL('Diesen Term rechnet das Werkzeug nicht. ' + BAUARTEN); }
   /* Aufgabe aus einem Termbaum: { f, rec } – wirft (pa) mit klarer Meldung, wenn es keine unterstützte Bauart ist */
+  let POT = false;                                                // (ax+b)^k stehen lassen?
   function aufgabe(baum){
-    const f = ausBaum(baum);
+    let f = null;
+    POT = true; try { const g = ausBaum(baum); if (g.some(t => t.lk) && bauart(g) === 'P') f = g; } catch (e) { if (!e.pa) throw e; } finally { POT = false; }
+    if (!f) f = ausBaum(baum);
     if (!f.length) throw FEHL('Das ist die Nullfunktion.');
     const art = bauart(f);
-    if (art === 'basis') throw FEHL('Hier braucht es keine partielle Integration: Das geht direkt mit Potenz-, Summen- und Kettenregel (Werkzeug „Integralrechner“).');
+    if (art === 'basis') throw FEHL('Hier braucht es keine Produktintegration: Das geht direkt mit Potenz-, Summen- und Kettenregel.');
     if (art === 'P' && Math.max(...f.map(t => t.n)) > 3) throw FEHL('Das Polynom darf hier höchstens Grad 3 haben – sonst wird der Weg sehr lang.');
     return { f, rec: integriere(f) }; }
 
@@ -3066,6 +3077,7 @@ const PA = (() => {
     if (!qNull(L.b)) s += (L.b.z < 0 ? ' - ' : ' + ') + qTex(qAbs(L.b));
     return s; }
   function kopfTeile(t, X){ const o = [];
+    if (t.lk) o.push(`(${linTex(t.li, X)})^{${t.lk}}`);
     if (t.e) o.push(`e^{${linTex(t.e, X)}}`);
     const trig = (name, k) => { if (!k) return; const l = linTex(t.t, X); o.push(`\\${name}${k > 1 ? `^{${k}}` : ''}${!X && l === 'x' && k === 1 ? ' x' : kl(l)}`); };
     if (t.t) { trig('sin', t.sn); trig('cos', t.cn); }
@@ -3100,7 +3112,7 @@ const PA = (() => {
   /* eintippbarer Text (term.js liest ihn): jedes Glied einzeln, Vorfaktor in Klammern */
   const qT = q => (q.n === 1 ? (q.z < 0 ? `(${q.z})` : String(q.z)) : `(${q.z}/${q.n})`);
   const linT = L => `${qT(L.a)}*x${qNull(L.b) ? '' : '+' + qT(L.b)}`;
-  const termT = t => [qT(t.q), t.n ? `x^(${t.n})` : '', t.e ? `e^(${linT(t.e)})` : '', t.sn ? `sin(${linT(t.t)})^${t.sn}` : '', t.cn ? `cos(${linT(t.t)})^${t.cn}` : '', t.ln ? `ln(x)^${t.ln}` : ''].filter(Boolean).join('*');
+  const termT = t => [qT(t.q), t.n ? `x^(${t.n})` : '', t.lk ? `(${linT(t.li)})^(${t.lk})` : '', t.e ? `e^(${linT(t.e)})` : '', t.sn ? `sin(${linT(t.t)})^${t.sn}` : '', t.cn ? `cos(${linT(t.t)})^${t.cn}` : '', t.ln ? `ln(x)^${t.ln}` : ''].filter(Boolean).join('*');
   const txt = f => (f.length ? flach(f).map(termT).join('+') : '0');
 
   /* ---------- Rechenzeilen: aligned, eine Umformung je Zeile; zu Breites bricht an den Teilen um ---------- */
@@ -3212,6 +3224,7 @@ const PA = (() => {
           if (Math.abs(b - x) < 1e-9) return [{ q: v < 0 ? qNeg(q) : q, m: Mo({ w }) }]; } }
     return [{ q: Q1, m: Mo({ at: [{ tex: `\\${name}${kl(rsTex(a))}`, txt: `${name}(${rsTxt(a)})`, w: Math[name](qWert(a.r) + qWert(a.s) * Math.PI) }] }) }]; }
   function lcTerm(t, g){ let l = lcMal(lcQ(t.q), lcPot(g, t.n));
+    if (t.lk){ const a = linAn(t.li, g); if (!qNull(a.s)) throw FEHL('Grenzen mit $\\pi$ passen hier nicht zu $(ax + b)^n$.'); l = lcMal(l, lcQ(qHoch(a.r, t.lk))); }
     if (t.e){ const a = linAn(t.e, g); if (!(qNull(a.r) && qNull(a.s))) l = lcMal(l, [{ q: Q1, m: Mo({ er: a.r, ep: a.s }) }]); }
     if (t.t){ const a = linAn(t.t, g); for (let i = 0; i < t.sn; i++) l = lcMal(l, lcTrig('sin', a)); for (let i = 0; i < t.cn; i++) l = lcMal(l, lcTrig('cos', a)); }
     if (t.ln){ let L;
@@ -3242,9 +3255,9 @@ const PA = (() => {
     const o = [], push = (G, m) => { if (G && G.length) o.push([G, m]); };
     const versuch = fn => { try { return fn(); } catch (e) { if (e.pa) return null; throw e; } }, stamm = g => versuch(() => integriere(g).F);
     const s = rec.art === 'K' ? rec.s1 : rec, { u, dv, du, v, uv } = s, Us = stammBasis(u);
-    const fz = dv[0].e || dv[0].t, a = fz ? fz.a : Q1, ketteM = M(`Kettenfaktor: Zu $v' = ${gTex(dv)}$ gehört $v = ${gTex(v)}$ – der Faktor $${qTex(qDiv(Q1, a))}$ (eins durch die innere Ableitung) fehlt.`);
+    const fz = dv[0].e || dv[0].t || dv[0].li, a = fz ? fz.a : Q1, ketteM = M(`Kettenfaktor: Zu $v' = ${gTex(dv)}$ gehört $v = ${gTex(v)}$ – der Faktor $${qTex(qDiv(Q1, a))}$ (eins durch die innere Ableitung) fehlt.`);
     if (rec.art === 'K'){
-      push(rec.G, M(`Der Kreis schließt sich: Rechts steht wieder das gesuchte Integral $I$. Bring es nach links und teile durch $${qTex(rec.nen)}$.`));
+      push(rec.G, M(`Zyklisch: Rechts steht wieder das gesuchte Integral $I$. Bring es nach links und teile durch $${qTex(rec.nen)}$.`));
       if (rec.s2) push(skal(add(s.uv, skal(rec.s2.uv, Q(-rec.sg))), qDiv(Q1, rec.nen)), M('Vorzeichen im zweiten Durchgang: Auch dort steht ein Minus vor dem Restintegral, und $(\\cos x)\' = -\\sin x$.'));
       push(uv, M(`Das ist nur $u \\cdot v$. Es fehlt noch $-\\int u' \\cdot v\\,dx$.`));
     } else {
@@ -3260,7 +3273,7 @@ const PA = (() => {
     if (!qEins(a)){
       push(skal(rec.F, a), ketteM);
       OHNE = true; try { push(versuch(() => integriere(rec.f).F), ketteM); } finally { OHNE = false; } }
-    if (Us){ push(mal(Us, v), M('Ein Produkt wird <b>nicht</b> Faktor für Faktor integriert – genau dafür gibt es die partielle Integration.'));
+    if (Us){ push(mal(Us, v), M('Ein Produkt wird <b>nicht</b> Faktor für Faktor integriert – genau dafür gibt es die Produktintegration.'));
       if (rec.art !== 'K') push(mal(Us, dv), M(`Rollen vertauscht: Hier wurde $${gTex(u)}$ integriert und $${gTex(dv)}$ stehen gelassen. Leite $u = ${gTex(u)}$ ab und integriere $v' = ${gTex(dv)}$.`)); }
     return o; }
 
@@ -3384,7 +3397,7 @@ const PA_IDEE = (() => {
   R('zeile').onclick = () => { S.offen = Math.min(ZEILEN.length, S.offen + 1); herleitung(); };
   R('allez').onclick = () => { S.offen = ZEILEN.length; herleitung(); };
   RE.knopf(R('allez'), () => { const z = zahlen(), b = bTex(), eins = qGleich(S.b, Q(1));
-    return { titel: 'Partielle Integration: die Idee', datei: 'partielle_integration_idee.tex', abschnitte: [
+    return { titel: 'Produktintegration: die Idee', datei: 'produktintegration_idee.tex', abschnitte: [
       { titel: 'Herleitung', absaetze: ['Die Produktregel, auf beiden Seiten integriert und umgestellt:', ...['(u \\cdot v)\' = u\' \\cdot v + u \\cdot v\'', 'u \\cdot v = \\int u\' \\cdot v\\,dx + \\int u \\cdot v\'\\,dx', '\\int u \\cdot v\'\\,dx = u \\cdot v - \\int u\' \\cdot v\\,dx'].map(t => `$$${t}$$`)] },
       { titel: 'Beispiel', absaetze: [`$\\int_{0}^{${b}} x \\cdot e^{x}\\,dx$ mit $u = x$, $v' = e^{x}$, also $u' = 1$, $v = e^{x}$.`,
         `Rechteck: $\\Big[u \\cdot v\\Big]_{0}^{${b}} = ${b} \\cdot e^{${b}} - 0 \\cdot e^{0} \\approx ${zTex(z.recht, 4)}$`,
@@ -3412,7 +3425,7 @@ const PA_WAHL = (() => {
     if (!s.v) return { s, gut: false, urteil: M(`Hier geht es nicht weiter: Eine Stammfunktion von $v' = ${PA.gTex(dv)}$ kennst du nicht.`), tex: null };
     const sr = PA.schwere(s.rest), gut = sr < s0;
     const tex = PA.ketteTex(PA.I(`${PA.huelle(S.A)} \\cdot ${PA.huelle(S.B)}`), [[PA.prodUV(s.u, s.v), '- ' + PA.I(PA.prodUV(s.du, s.v))], [PA.gTex(s.uv), PA.vzInt(s.rest)]]);
-    const urteil = gut ? (sr === 0 ? 'Das neue Integral ist <b>leichter</b>: Es lässt sich direkt integrieren.' : M('Das neue Integral ist <b>leichter</b>: Die Hochzahl von $x$ ist gesunken. Dort noch einmal partiell integrieren.'))
+    const urteil = gut ? (sr === 0 ? 'Das neue Integral ist <b>leichter</b>: Es lässt sich direkt integrieren.' : M('Das neue Integral ist <b>leichter</b>: Die Hochzahl von $x$ ist gesunken. Dort noch einmal mit Produktintegration rechnen.'))
       : M('Das neue Integral ist <b>schwerer</b> als der Anfang: Die Hochzahl von $x$ ist gestiegen.');
     return { s, gut, urteil, tex }; }
   function setze(nr, tausch){
@@ -3438,7 +3451,7 @@ const PA_WAHL = (() => {
   function neu(){ let nr; do nr = WZ.rnd(0, PAARE.length - 1); while (nr === S.nr); setze(nr, Math.random() < 0.5); }
   root.querySelectorAll('[data-wk]').forEach(k => { k.onclick = () => waehle(k.dataset.wk); });
   R('neu').onclick = neu;
-  RE.knopf(R('neu'), () => ({ titel: 'Wer ist u, wer ist v′?', datei: 'partielle_integration_wahl.tex', abschnitte: [
+  RE.knopf(R('neu'), () => ({ titel: 'Wer ist u, wer ist v′?', datei: 'produktintegration_wahl.tex', abschnitte: [
     { titel: 'Aufgabe', absaetze: [`Welcher Faktor wird abgeleitet? $${PA.I(`${PA.huelle(S.A)} \\cdot ${PA.huelle(S.B)}`)}$`] },
     ...['A', 'B'].map(x => { const p = S.seiten[x], abs = html => { const d = document.createElement('div'); d.innerHTML = html; return { html, tex: RE.ausHtml(d) }; };
       return { titel: x === 'A' ? 'Erste Möglichkeit' : 'Zweite Möglichkeit', absaetze: [abs(PA.tafel(p.s)), ...(p.tex ? [abs(PA.zeig(p.tex))] : []), abs(`<p>${p.urteil}</p>`)] }; }),
@@ -3458,7 +3471,8 @@ function PA_labor(root, bestimmt){
   const feldKlasse = 'wz-eingabe' + (bestimmt ? ' pa-wert' : '');
   const liesF = t => T_lies(String(t).replace(/^\s*F\s*\(\s*x\s*\)\s*=\s*/i, '').replace(/\+\s*[Cc]\s*$/, ''));
   function baue(A){                                              // alles rechnen, bevor etwas angezeigt wird – wirft bei nicht Unterstütztem
-    const baum = T_lies(A.t), auf = PA.aufgabe(baum), best = bestimmt ? PA.bestimmt(auf.rec, A.a, A.b) : null;
+    const baum = T_lies(A.t), auf = PA.aufgabe(baum);
+    let best = null; if (bestimmt) try { best = PA.bestimmt(auf.rec, A.a, A.b); } catch (e) { if (e.pa) e.grenzen = true; throw e; }   // Fehler an den Grenzen: nicht „braucht keine Produktintegration“
     const fn = x => PA.wert(auf.f, x), Fn = x => PA.wert(auf.rec.F, x);
     const roh = PA.fehlerbilder(auf.rec).map(([G, m]) => ({ G, m, g: x => PA.wert(PA.abl(G), x), t: PA.txt(G) }));
     const fehler = [];                                             // was mit der Lösung oder einem früheren Fehlerbild zusammenfällt, entfällt
@@ -3470,7 +3484,7 @@ function PA_labor(root, bestimmt){
     const ft = T_tex(A.baum);
     R('term').innerHTML = bestimmt ? F(`\\int_{${PA.gTexL(A.a)}}^{${PA.gTexL(A.b)}} ${T_istSumme(A.baum) ? `\\left(${ft}\\right)` : ft}\\,dx`) : F(`f(x) = ${ft}`);
     R('antwort').value = ''; R('antwort').className = feldKlasse;
-    WZ.rueck(R('rueck'), '', bestimmt ? 'Erst die Stammfunktion, dann die Grenzen einsetzen. Genauer Wert (auch als Term mit e, ln, π) oder auf zwei Nachkommastellen.'
+    WZ.rueck(R('rueck'), '', bestimmt ? 'Erst eine Stammfunktion, dann die Grenzen einsetzen. Genauer Wert (auch als Term mit e, ln, π) oder auf zwei Nachkommastellen.'
       : M('Wähle $u$ und $v\'$, dann einsetzen. Tippe eine Stammfunktion ein – geprüft wird durch Ableiten.'));
     root.querySelectorAll('[data-art]').forEach(k => k.classList.toggle('an', !eigen && k.dataset.art === S.art));
     root.dataset.term = A.t; root.dataset.bauart = A.rec.art;
@@ -3516,13 +3530,13 @@ function PA_labor(root, bestimmt){
     let A;
     try { A = baue({ t: e.value, a: ga, b: gb }); }
     catch (err) { if (!err.pa) throw err;
-      let leicht = false; if (!/keine partielle/.test(err.message)) { try { IN.stamm(baum); leicht = true; } catch (x) { if (!IN.schulFehler(x)) leicht = false; } }
-      return rot(e, M(leicht ? 'Hier braucht es keine partielle Integration: Das geht direkt mit Potenz-, Summen- und Kettenregel (Werkzeug „Integralrechner“).' : err.message)); }
+      let leicht = false; if (!err.grenzen && !/keine Produktintegration/.test(err.message)) { try { IN.stamm(baum); leicht = true; } catch (x) { if (!IN.schulFehler(x)) leicht = false; } }
+      return rot(e, M(leicht ? 'Hier braucht es keine Produktintegration: Das geht direkt mit Potenz-, Summen- und Kettenregel.' : err.message)); }
     S.art = 'eigen'; zeige(A, true);
   }
   function zeichneBild(){
     const feld = R('flaeche');
-    if (!S.bild){ feld.innerHTML = `<p class="wz-leer">${bestimmt ? 'Graph und orientierte Fläche zwischen a und b' : 'f und die Stammfunktion F'}: „Bild zeigen“.</p>`; R('bild').textContent = 'Bild zeigen'; return; }
+    if (!S.bild){ feld.innerHTML = `<p class="wz-leer">${bestimmt ? 'Graph und orientierte Fläche zwischen a und b' : 'f und eine Stammfunktion F'}: „Bild zeigen“.</p>`; R('bild').textContent = 'Bild zeigen'; return; }
     R('bild').textContent = 'Bild ausblenden';
     const A = S.A, nurPlus = A.f.some(t => t.ln || t.n < 0);
     if (!bestimmt) return PA_bild(feld, { kurven: [{ f: A.fn, kl: 'g-k1' }, { f: A.Fn, kl: 'g-k2' }], x0: nurPlus ? -0.5 : -4, x1: nurPlus ? 5 : 4,
@@ -3555,7 +3569,7 @@ PA_BEST.setze({ t: 'x*e^x', a: { q: Q(0), pi: false }, b: { q: Q(1), pi: false }
 EH.melde(() => EH.mit(EH.terme(),
   { zeilen: [...EH.zeilen(T_lies, [['x^{2}\\ln x', ['x^2*ln(x)', 'x^2 ln(x)']], ['e^{x}\\sin x', ['e^x*sin(x)', 'e^(x)sin(x)']], ['(x-1)\\,e^{x}', ['(x-1)*e^x', '(x-1)e^x']]]),
              ...EH.zeilen(s => PA.gWert(PA.grenze(s)), [['\\dfrac{\\pi}{2}', ['pi/2', 'π/2']], ['e', ['e']], ['e^{2}', ['e^2']]])],
-    hinweise: ['Die Stammfunktion ohne `+ C` eintippen (mit geht auch). Grenzen dürfen `pi` enthalten (`pi/2`) oder `e` sein.'] },
+    hinweise: ['Eine Stammfunktion ohne `+ C` eintippen (mit geht auch). Grenzen dürfen `pi` enthalten (`pi/2`) oder `e` sein.'] },
   EH.zahlTerm(s => WZ.liesZahl(s, { term: true }).v),
   { zeilen: EH.zeilen(s => WZ.liesZahl(s, { term: true }).v, [['\\dfrac{e^{2}+1}{4}', ['(e^2+1)/4']], ['2\\ln 2 - \\dfrac{3}{4}', ['2ln(2)-3/4']]]), hinweise: [] }));
 /* =====================================================================
