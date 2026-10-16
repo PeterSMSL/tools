@@ -880,6 +880,8 @@ table.wt th math{font-size:14px;text-transform:none}
 .labspalte .knopfleiste .knopf.hell{font-size:15px;padding:7px 13px}
 html.handy .labspalte .knopfleiste .knopf.hell{font-size:15.5px;padding:8px 14px}
 svg .achsname{font-weight:400}
+/* Hinweis bei sin(x) und cos(x), wenn alle Punkte eingetragen sind */
+.ag-hinweis{margin:8px 0;padding:8px 12px;border-radius:10px;background:var(--m-ok-h);color:var(--tinte);font-size:16px;line-height:1.5}
 
 /* Grundregel aller Werkzeuge: hidden gilt immer, auch wenn eine Klasse display:flex/grid setzt */
 [hidden]{display:none!important}
@@ -1795,7 +1797,8 @@ const WZ = {
   reglerEingabe(feld, setze, optionen = {}){
     const regler = feld.closest('.wz-regler'), meldung = WZ.reglerMeldung(regler);
     const los = () => {
-      try { const z = WZ.liesZahl(feld.value, typeof optionen === 'function' ? optionen() : optionen);   // Optionen auch als Funktion (Einheit wechselt) if (!z.q && !Number.isFinite(z.v)) throw new Error('Bitte eine Zahl.');
+      try { const z = WZ.liesZahl(feld.value, typeof optionen === 'function' ? optionen() : optionen);   // Optionen auch als Funktion (Einheit wechselt)
+        if (!z.q && !Number.isFinite(z.v)) throw new Error('Bitte eine Zahl.');
         const fehl = setze(z); if (fehl) throw new Error(fehl);
         feld.classList.remove('falsch'); meldung.textContent = '';
         regler.parentElement.querySelectorAll('.wz-reglerwert.falsch').forEach(f => f.classList.remove('falsch')); }
@@ -2100,11 +2103,27 @@ function kurvenPfad(f, sicht, W, H){
   }
   return d;
 }
-function gitterSVG(sicht, W, H, mitZahlen=true){
+/* Vielfaches von π als Text: k·π/n → „π/2“, „−3π/2“, „2π“ */
+function piText(k, n){
+  const ggt = (a, b) => b ? ggt(b, a % b) : Math.abs(a), t = ggt(k, n); k /= t; n /= t;
+  return (k < 0 ? '−' : '') + (Math.abs(k) === 1 ? '' : Math.abs(k)) + 'π' + (n === 1 ? '' : '/' + n);
+}
+/* bogen: x-Achse in Vielfachen von π (Sinus und Kosinus) – Gitter und Beschriftung bei π/2, π, 3π/2 …, feiner oder gröber je nach Ausschnitt */
+function gitterSVG(sicht, W, H, mitZahlen=true, bogen=false){
   const {xmin, xmax, ymin, ymax} = sicht, s = schoenerSchritt(xmax-xmin, Math.max(5, Math.round(W/72)));   // schmaler Plot (Handy): weniger Striche
   const px = x => (x-xmin)/(xmax-xmin)*W, py = y => H - (y-ymin)/(ymax-ymin)*H;
-  let g = '<g class="gitter">', z = '';
-  for(let x = Math.ceil(xmin/s)*s; x <= xmax; x += s){ const X = px(x).toFixed(1); g += `<line x1="${X}" y1="0" x2="${X}" y2="${H}"/>`;
+  let g = '<g class="gitter">', z = '', randBelegt = false;      // randBelegt: eine π-Beschriftung steht am rechten Rand, der Achsenname weicht nach oben aus
+  if(bogen){
+    const proEinheit = W/(xmax-xmin), eng = W < 500 ? 70 : 90;       // Mindestabstand zweier Beschriftungen in px
+    let j = 0; while(Math.PI/2 * 2**j * proEinheit < eng) j++; while(j > -6 && Math.PI/2 * 2**(j-1) * proEinheit >= eng) j--;
+    const u = Math.PI/2 * 2**j, fein = u*proEinheit >= 100 ? 2 : 1;   // weit auseinander: eine Gitterlinie dazwischen
+    for(let k = Math.ceil(xmin/(u/fein)); k*u/fein <= xmax; k++){ const X = px(k*u/fein).toFixed(1); g += `<line x1="${X}" y1="0" x2="${X}" y2="${H}"/>`;
+      if(mitZahlen && k !== 0 && k % fein === 0){ const Y = Math.min(H-6, Math.max(14, py(0)+16)), m = k/fein, t = j >= 1 ? piText(m * 2**(j-1), 1) : piText(m, 2**(1-j)), halb = t.length*4.5;
+        if(+X + halb > W - 3 || +X - halb < 3) continue;
+        if(+X + halb > W - 30) randBelegt = true;
+        z += `<text class="tick tick-pi" x="${X}" y="${Y}" text-anchor="middle">${t}</text>`; } }
+  }
+  else for(let x = Math.ceil(xmin/s)*s; x <= xmax; x += s){ const X = px(x).toFixed(1); g += `<line x1="${X}" y1="0" x2="${X}" y2="${H}"/>`;
     if(mitZahlen && Math.abs(x) > s/2 && px(x) < W - 26 && px(x) > 16){ const Y = Math.min(H-6, Math.max(14, py(0)+16)); z +=`<text class="tick" x="${X}" y="${Y}" text-anchor="middle">${zahlText(x,3)}</text>`; } }
   for(let y = Math.ceil(ymin/s)*s; y <= ymax; y += s){ const Y = py(y).toFixed(1); g += `<line x1="0" y1="${Y}" x2="${W}" y2="${Y}"/>`;
     if(mitZahlen && Math.abs(y) > s/2 && py(y) > 26){ const X = Math.min(W-6, Math.max(26, px(0)-7)); z += `<text class="tick" x="${X}" y="${(+Y+4).toFixed(1)}" text-anchor="end">${zahlText(y,3)}</text>`; } }
@@ -2112,7 +2131,7 @@ function gitterSVG(sicht, W, H, mitZahlen=true){
   // Achsen mit Pfeilspitze und Namen (Dreiecke als Pfad, keine marker – wie technik/mathe/graph.js)
   if(ymin<0 && ymax>0){ const Y = py(0);
     g += `<line class="achse" x1="0" y1="${Y.toFixed(1)}" x2="${W-2}" y2="${Y.toFixed(1)}"/><path class="pfeil" d="M${W} ${Y.toFixed(1)}l-11 -5v10z"/>`
-      +  `<text class="achsname" x="${W-8}" y="${(Y < H-24 ? Y+20 : Y-10).toFixed(1)}" text-anchor="end">x</text>`; }
+      +  `<text class="achsname" x="${W-8}" y="${(Y < H-24 && !randBelegt ? Y+20 : Y-10).toFixed(1)}" text-anchor="end">x</text>`; }
   if(xmin<0 && xmax>0){ const X = px(0);
     g += `<line class="achse" x1="${X.toFixed(1)}" y1="2" x2="${X.toFixed(1)}" y2="${H}"/><path class="pfeil" d="M${X.toFixed(1)} 0l-5 11h10z"/>`
       +  `<text class="achsname" x="${(X > 22 ? X-9 : X+9).toFixed(1)}" y="16" text-anchor="${X > 22 ? 'end' : 'start'}">y</text>`; }
@@ -2183,6 +2202,7 @@ const folien = [
         <button class="knopf hell" id="lNeu">Neu</button>
       </div>
       <div class="laborstatus" id="lStatus"></div>
+      <div class="ag-hinweis" id="lHinweis" hidden></div>
       <table class="wt" id="lTabelle"></table>
     </div>
   </div>
@@ -2215,6 +2235,7 @@ const BEISPIELE = [
   ['x^2', 'f(x) = x²'],
   ['x^4/4 - x^2', 'f(x) = x⁴/4 − x²'],
   ['sin(x)', 'f(x) = sin(x)'],
+  ['cos(x)', 'f(x) = cos(x)'],
   ['e^x', 'f(x) = eˣ'],
   ['|x|', 'f(x) = |x|'],
   ['1/x', 'f(x) = 1/x'],
@@ -2290,7 +2311,9 @@ const labor = (function(){
   function zeichne(){
     const s = S.sicht, px = x => (x-s.xmin)/(s.xmax-s.xmin)*W, py = y => H - (y-s.ymin)/(s.ymax-s.ymin)*H;
     const ok = v => isFinite(v) && Math.abs(v) < 1e6;
-    let svg = gitterSVG(s, W, H);
+    /* reiner Sinus oder Kosinus: x-Achse in Vielfachen von π, und am Ende ein Hinweis auf den Ableitungskreis */
+    const winkel = S.baum.t === 'fn' && S.baum.a.t === 'x' && (S.baum.f === 'sin' || S.baum.f === 'cos') ? S.baum.f : '';
+    let svg = gitterSVG(s, W, H, true, !!winkel);
     // frühere Δx, blass
     if(S.zeigeFrueher) S.frueher.forEach(fr=>{
       const pk = fr.iv.filter(p=>ok(p.m));
@@ -2346,6 +2369,11 @@ const labor = (function(){
       + zeige.map((p,k)=>{ const nr = weg + k + 1, istAkt = nr === S.schritt && S.punkte < S.schritt;
           return `<tr class="${istAkt?'aktuell':''}"><td>[${zahlText(p.a,3)}; ${zahlText(p.b,3)}]</td><td>${zahlText(p.mitte,3)}</td><td>${zahlText(p.fa,3)}</td><td>${zahlText(p.fb,3)}</td><td>${zahlText(p.m,3)}</td></tr>`; }).join('')
       + (zeilen.length ? '' : `<tr class="leer"><td colspan="5">Noch leer. Tippt auf „Nächstes Intervall“.</td></tr>`);
+    /* Sinus und Kosinus: Sind alle Punkte eingetragen, sagt ein Hinweis, welchen Graphen sie nachzeichnen (Ableitungskreis) */
+    const fertig = !!winkel && n > 0 && S.punkte === n;
+    B('lHinweis').hidden = !fertig;
+    B('lHinweis').innerHTML = !fertig ? '' : M(winkel === 'sin' ? "Die Punkte zeichnen den Graphen von $\\cos(x)$ nach: $(\\sin(x))' = \\cos(x)$."
+      : "Die Punkte zeichnen den Graphen von $-\\sin(x)$ nach: $(\\cos(x))' = -\\sin(x)$.");
     B('lNaechstes').textContent = S.punkte < S.schritt ? 'Punkt eintragen' : 'Nächstes Intervall';
     B('lNaechstes').disabled = S.punkte === n && S.schritt === n;
     B('lAlle').disabled = S.punkte === n;
@@ -2354,7 +2382,7 @@ const labor = (function(){
     B('lAbleitung').innerHTML = F("f'") + (S.zeigeAbl ? ' ausblenden' : ' zeigen');
     B('lFrueher').classList.toggle('an', S.zeigeFrueher);
     const at = document.getElementById('lAblText'); if(at) at.style.visibility = S.zeigeAbl ? 'visible' : 'hidden';
-    B('labor').dataset.h = S.h; B('labor').dataset.punkte = S.punkte; B('labor').dataset.schritt = S.schritt;
+    B('labor').dataset.h = S.h; B('labor').dataset.punkte = S.punkte; B('labor').dataset.schritt = S.schritt; B('labor').dataset.achse = winkel ? 'pi' : 'zahl';
   }
 
   // Ziehen zum Verschieben (Maus und Finger)
@@ -2479,7 +2507,9 @@ stage.addEventListener('touchend', e=>{ if(wischX === null) return; const dx = e
 document.getElementById('uebBtn').onclick = ()=> ueb.classList.toggle('an');
 document.getElementById('vor').onclick = vor;
 document.getElementById('zurueck').onclick = zurueck;
-stage.addEventListener('click', e=>{ if(!e.target.closest('a, button, input, select, .interaktiv')) vor(); });
+/* Klick auf die Folie blättert – nicht aber ein Klick auf Bedienbares. Geprüft wird der Weg des Ereignisses (composedPath):
+   Zeichnet ein Werkzeug das angeklickte Element beim Klick neu, hängt e.target nicht mehr im Dokument, und closest() fände .interaktiv nicht. */
+stage.addEventListener('click', e=>{ if(!e.composedPath().some(el=>el.matches && el.matches('a, button, input, select, .interaktiv'))) vor(); });
 skalieren();
 zeige(parseInt(location.hash.slice(1)) - 1 || 0);
 </script>
