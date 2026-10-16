@@ -3071,16 +3071,16 @@ const SB = (() => {
       const z1 = potP(C1, r1, BZ), z2 = potG(C1, r1, BZ);
       s.push(['Integrieren', karte(GRUND.pot) + F(`\\begin{aligned} & ${kopf} \\\\ &= ${hin(`${cF}\\frac{1}{${rT} + 1}\\,z^{${rT} + 1}`)} \\\\ &= ${hin(z1)}${z2 !== z1 ? ` \\\\ &= ${hin(z2)}` : ''} \\end{aligned}`)]);
     } else s.push(['Integrieren', (konstant ? '' : karte(GRUND[A.typ])) + F(`\\begin{aligned} & ${kopf} \\\\ &= ${hin(GT(A, c, BZ))} \\end{aligned}`)]);
-    if (!zg) s.push(['Rücksubstituieren', F(`\\begin{aligned} z &= ${I(P.hTex)} \\\\ F(x) &= ${P.FTex}${best ? '' : ' + C'} \\end{aligned}`)]);
+    if (!zg) s.push(['Rücksubstituieren', F(`\\begin{aligned} z &= ${I(P.hTex)} \\\\ \\int ${fI}\\,dx &= ${P.FTex} + C \\end{aligned}`)]);
     if (!best){
-      s.push(['Probe', F(`\\begin{aligned} F'(x) &= ${konstant ? (eins(c) ? '' : qGleich(c, Q(-1)) ? '-' : qTex(c) + ' \\cdot ') : gT(A, c, P.BH) + ' \\cdot '}${I(klTex(P.dhTex))} \\\\ &= ${P.fTex} \\end{aligned}`)]);
+      s.push(['Probe', F(`\\begin{aligned} \\Big(${P.FTex}\\Big)' &= ${konstant ? (eins(c) ? '' : qGleich(c, Q(-1)) ? '-' : qTex(c) + ' \\cdot ') : gT(A, c, P.BH) + ' \\cdot '}${I(klTex(P.dhTex))} \\\\ &= ${P.fTex} \\end{aligned}`)]);
       return s;
     }
     const diff = (u, v) => `${u} - ${klam(v)}`;
     const ein = (zb, za) => diff(GT(A, c, basis(zb)), GT(A, c, basis(za)));
     if (zg) s.push(['Grenzen einsetzen', F(`\\displaystyle {} = ${ein(P.zb.tex, P.za.tex)}`)]);
     else { const r = ein(P.zb.roh, P.za.roh), e = ein(P.zb.tex, P.za.tex);
-      s.push(['Grenzen einsetzen', F(`\\begin{aligned} & \\int${gx} ${fI}\\,dx \\\\ &= \\Big[\\,F(x)\\,\\Big]${gx} \\\\ &= ${r}${e !== r ? ` \\\\ &= ${e}` : ''} \\end{aligned}`)]); }
+      s.push(['Grenzen einsetzen', F(`\\begin{aligned} & \\int${gx} ${fI}\\,dx \\\\ &= \\Big[\\,${P.FTex}\\,\\Big]${gx} \\\\ &= ${r}${e !== r ? ` \\\\ &= ${e}` : ''} \\end{aligned}`)]); }
     const dez = zTex(P.wert, 4), genau = P.rat ? qTex(P.rat) : P.exTex;
     const nach = P.rat ? (P.rat.n === 1 ? '' : 10000 % P.rat.n === 0 ? ` \\\\ &= ${dez}` : ` \\\\ &\\approx ${dez}`) : ` \\\\ &\\approx ${dez}`;   // abbrechende Dezimalzahl: „=“
     s.push(['Ausrechnen', F(`\\begin{aligned} \\int${gx} ${fI}\\,dx ${genau ? `&= ${genau}${nach}` : `&\\approx ${dez}`} \\end{aligned}`)]);
@@ -3162,7 +3162,7 @@ function suFolie(art){
     <div class="wz-aufgabe">
       <span class="wz-was">${best ? 'Berechne:' : 'Finde eine Stammfunktion:'}</span>
       <span class="wz-term" data-r="term"></span>
-      <span class="wz-gleich">${F(best ? '=' : 'F(x) =')}</span>
+      <span class="wz-gleich">${F('=')}</span>
       <input class="wz-eingabe${best ? ' su-wert-ein' : ''}" data-r="antwort" spellcheck="false" autocomplete="off" placeholder="${best ? 'z. B. 3/2 oder (e^4-1)/2' : 'z. B. 1/2*e^(x^2)'}" aria-label="${best ? 'Wert des Integrals' : 'Stammfunktion'}">
       <div class="knopfleiste"><button class="knopf o" data-r="pruefen">Prüfen</button></div>
     </div>
@@ -3171,7 +3171,7 @@ function suFolie(art){
       <button class="knopf hell" data-art="eln">eˣ, ln x</button><button class="knopf hell" data-art="trig">sin, cos</button>
       <button class="knopf hell" data-art="quot">g′ durch g</button><button class="knopf hell" data-art="gemischt">gemischt</button></div>
     <div class="su-eigenzeile"><span class="bt">Eigenes:</span>
-      <span class="su-eigenpaar">${F('f(x) =')}<input class="wz-eingabe su-eigen" data-r="eigen" spellcheck="false" autocomplete="off" placeholder="z. B. x*e^(x^2)" aria-label="eigener Integrand"></span>
+      <span class="su-eigenpaar">${F('\\int')}<input class="wz-eingabe su-eigen" data-r="eigen" spellcheck="false" autocomplete="off" placeholder="z. B. x*e^(x^2)" aria-label="eigener Integrand">${F('dx')}</span>
       <span class="su-eigenpaar">${F('z =')}<input class="wz-eingabe su-eigen su-z" data-r="eigenz" spellcheck="false" autocomplete="off" placeholder="z. B. x^2" aria-label="innere Funktion z"></span>
       ${best ? `<span class="su-eigenpaar">${F('a =')}<input class="wz-eingabe su-grenze" data-r="ga" spellcheck="false" autocomplete="off" placeholder="0" aria-label="untere Grenze a"></span>
       <span class="su-eigenpaar">${F('b =')}<input class="wz-eingabe su-grenze" data-r="gb" spellcheck="false" autocomplete="off" placeholder="1" aria-label="obere Grenze b"></span>` : ''}
@@ -3473,7 +3473,7 @@ function suLabor(root, best){
   function setze(P, m, eigen){
     S.P = P; S.m = m; S.bild = false; S.f = x => T_wert(P.f, x);
     const fI = T_istSumme(P.f) ? `\\left(${P.fTex}\\right)` : P.fTex;
-    R('term').innerHTML = F(best ? `\\int_{${P.a.tex}}^{${P.b.tex}} ${fI}\\,dx` : `f(x) = ${P.fTex}`);
+    R('term').innerHTML = F(best ? `\\int_{${P.a.tex}}^{${P.b.tex}} ${fI}\\,dx` : `\\int ${fI}\\,dx`);
     R('antwort').value = '';
     aus('', best ? 'Substituieren, Grenzen umrechnen oder zurück zu x. Genauer Wert (auch als Bruch oder Term) oder auf zwei Nachkommastellen.' : 'Welche innere Funktion steckt im Integranden? Tippe eine Stammfunktion ein – geprüft wird durch Ableiten.');
     root.querySelectorAll('[data-art]').forEach(k => k.classList.toggle('an', !eigen && k.dataset.art === S.art));
@@ -3526,7 +3526,7 @@ function suLabor(root, best){
   function pruefeG(G, text = ''){
     const P = S.P, f = S.f, r = abl(G, f);
     if (r.luecke && !r.falsch && (r.ok || (P.A.typ === 'kehr' && r.n >= 2))) return aus('fast', P.A.typ === 'kehr' ? M('Fast: Deine Funktion ist nur dort definiert, wo $z > 0$ ist. Mit Betrag gilt sie überall: $\\int \\frac{1}{z}\\,dz = \\ln|z|$ – tippe <b>ln(abs(…))</b>.') : 'Fast: Deine Funktion ist nicht überall definiert, wo f definiert ist.');
-    if (r.ok) return aus('ok', M(`Richtig! Die Ableitung deiner Funktion ist $f(x)$ – an allen Prüfstellen nachgerechnet.${/\+\s*C\s*$/i.test(text) ? '' : ' Jede Konstante $+\\,C$ dazu wäre ebenso richtig.'}`));
+    if (r.ok) return aus('ok', M(`Richtig! Die Ableitung deiner Funktion ist der Integrand – an allen Prüfstellen nachgerechnet.${/\+\s*C\s*$/i.test(text) ? '' : ' Jede Konstante $+\\,C$ dazu wäre ebenso richtig.'}`));
     const lam = vielfach(G, f);
     if (lam !== null) return aus('nein', faktorMeldung(lam));
     const konstant = g => { const d = SB_STELLEN.map(x => G(x) - g(x)).filter(Number.isFinite); return d.length >= 4 && d.every(v => Math.abs(v - d[0]) < 1e-7 * Math.max(1, Math.abs(d[0]))); };
@@ -3557,7 +3557,7 @@ function suLabor(root, best){
     if (best){
       let z; try { z = WZ.liesZahl(feld.value, { term: true }); } catch (e) { return aus('nein', e.message); }
       const P = S.P, e = WZ.zahlPruefen(z, P.wert, { min: 2, fehler: fehlerWerte() });
-      if (e.art === 'ok') return aus('ok', M(`Richtig! ${P.exTex ? `$\\int_{${P.a.tex}}^{${P.b.tex}} f(x)\\,dx = ${P.rat ? qTex(P.rat) : P.exTex}$` : ''}${e.gerundet ? ' – gerundet.' : ''}`));
+      if (e.art === 'ok') return aus('ok', M(`Richtig! ${P.exTex ? `$\\int_{${P.a.tex}}^{${P.b.tex}} ${T_istSumme(P.f) ? `\\left(${P.fTex}\\right)` : P.fTex}\\,dx = ${P.rat ? qTex(P.rat) : P.exTex}$` : ''}${e.gerundet ? ' – gerundet.' : ''}`));
       return aus(e.art, e.text || 'Nicht richtig. Deck den Lösungsweg Schritt für Schritt auf.');
     }
     const text = feld.value.trim().replace(/^F\s*\(\s*x\s*\)\s*=\s*/i, ''), ohneC = text.replace(/\s*\+\s*[cC]\s*$/, '');
@@ -3578,10 +3578,10 @@ function suLabor(root, best){
   /* ---------- Bild ---------- */
   function zeichneBild(neuBauen){
     const feld = R('flaeche'), P = S.P;
-    if (!S.bild){ feld.innerHTML = `<p class="wz-leer">${best ? 'Die Fläche über x und die Fläche über z: „Bild zeigen“.' : 'f und eine Stammfunktion F: „Bild zeigen“.'}</p>`; R('bild').textContent = 'Bild zeigen'; return; }
+    if (!S.bild){ feld.innerHTML = `<p class="wz-leer">${best ? 'Die Fläche über x und die Fläche über z: „Bild zeigen“.' : 'Integrand und eine Stammfunktion: „Bild zeigen“.'}</p>`; R('bild').textContent = 'Bild zeigen'; return; }
     R('bild').textContent = 'Bild ausblenden';
     if (!best){
-      if (neuBauen || !feld.querySelector('.su-feld')) feld.innerHTML = '<div class="su-feld"></div><div class="su-legende"><span class="k1">— f</span><span class="k2">— F (mit C = 0)</span></div>';
+      if (neuBauen || !feld.querySelector('.su-feld')) feld.innerHTML = '<div class="su-feld"></div><div class="su-legende"><span class="k1">— Integrand</span><span class="k2">— Stammfunktion (mit C = 0)</span></div>';
       const z = () => SB_graph(feld.querySelector('.su-feld'), { kurven: [{ f: S.f, kl: 'g-k1' }, { f: x => T_wert(P.Fx, x), kl: 'g-k2' }], x0: -4, x1: 4, name: 'x', H: 280 }, z);
       return z();
     }
