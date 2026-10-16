@@ -1019,6 +1019,7 @@ html.handy .re-titelzeile{font-size:18px}
      RE.ausWeg(root, schritte) Dokument aus Aufgabe (.wz-aufgabe oder [data-aufgabe]) und Lösungsweg – benutzt von WZ.weg
      RE.ausBereichen({ titel, aufgabe, teile: [[titel, element], …] })   Dokument aus angezeigten Bereichen (eigener Rechenweg)
      RE.knopf(nachbar, () => dok)   Knopf „Rechnung“ hinter nachbar einsetzen (einmal; öffnet RE.zeige(dok))
+     RE.svgLuecken()           was eine Zeichnung (SVG → TikZ) nicht übersetzen konnte, seit der letzten Abfrage – für die Prüfung
    Ein Dokument:  { titel, formel?, art?, datei?, abschnitte: [{ titel, absaetze: [...] }] }
    Ein Absatz: 'Text mit $…$, $$…$$, **fett**' (eine Quelle für Anzeige und Datei) – oder { html, tex } (Anzeige wie im
    Werkzeug, Datei aus ausHtml)
@@ -1069,7 +1070,8 @@ const RE = (() => {
     };
     const ausElement = n => {
       const tag = n.tagName.toLowerCase();
-      if (n.hidden || ['input', 'button', 'select', 'svg', 'script', 'style', 'canvas'].includes(tag) || (n.classList && n.classList.contains('re-nicht'))) return;
+      if (n.hidden || ['input', 'button', 'select', 'script', 'style', 'canvas'].includes(tag) || (n.classList && n.classList.contains('re-nicht'))) return;
+      if (tag === 'svg'){ aus += n.hasAttribute('data-re-tex') ? n.getAttribute('data-re-tex') : svgTex(n); return; }   // Zeichnung → TikZ (oder fertiges LaTeX)
       // \( \) und \[ \] statt $: zwei Formeln direkt nebeneinander ergäben sonst „$$“ (abgesetzte Formel)
       if (tag === 'math'){ const t = mathe(ohneClass(n.getAttribute('data-tex') || n.textContent)); aus += n.getAttribute('display') === 'block' ? `\\[${t}\\]` : `\\(${t}\\)`; return; }
       if (tag === 'strong' || tag === 'b'){ aus += '**'; n.childNodes.forEach(lauf); aus += '**'; return; }
@@ -1078,7 +1080,145 @@ const RE = (() => {
       if (['div', 'p', 'li', 'section'].includes(tag)) aus += ' ';
     };
     lauf(el);
-    return aus.replace(/\*\*\s*\*\*/g, '').replace(/\s+/g, ' ').trim();
+    return aus.replace(/\*\*\s*\*\*/g, '').replace(/\s+/g, ' ').trim().replace(/\u0004/g, '\n');
+  }
+  /* ---------- Zeichnung (SVG) → TikZ ---------- */
+  /* Gemessen wird im Dokument: eine Kopie in einem unsichtbaren Wirt, Farben aus der hellen Fassung (Papier ist weiß, auch wenn
+     die Seite dunkel steht). Koordinaten exakt über die Matrizen des Browsers (Verschiebungen, viewBox), Größe wie am Bildschirm:
+     Breite aus width bzw. viewBox, 1 px = 1/96 Zoll, höchstens 16 cm. Kann es ein Element nicht übersetzen, merkt es sich das
+     (RE.svgLuecken() – die Prüfung meldet es). Ein Attribut data-re-tex an der Zeichnung ersetzt sie durch fertiges LaTeX. */
+  let luecken = [];
+  const zahl = v => { const t = (Math.round(v * 1000) / 1000).toFixed(3).replace(/\.?0+$/, ''); return t === '-0' ? '0' : t; };
+  const GROESSEN = [[6, '\\tiny'], [8, '\\scriptsize'], [9, '\\footnotesize'], [10, '\\small'], [10.95, '\\normalsize'], [12, '\\large'], [14.4, '\\Large']];
+  function svgTex(svg){
+    const wirt = document.createElement('div');
+    wirt.style.cssText = 'position:fixed;left:-30000px;top:0;width:624px;pointer-events:none';
+    const k = svg.cloneNode(true); wirt.appendChild(k); document.body.appendChild(wirt);
+    const root = document.documentElement, modus = root.getAttribute('data-modus');   // calcUlution-Fassung: data-modus hell/dunkel (Spiegel)
+    root.setAttribute('data-modus', 'hell');
+    try { return zeichnung(k); }
+    catch (e) { luecken.push('Fehler: ' + e.message); return ''; }
+    finally { if (modus === null) root.removeAttribute('data-modus'); else root.setAttribute('data-modus', modus); wirt.remove(); }
+  }
+  function zeichnung(svg){
+    const vb = svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.width ? svg.viewBox.baseVal : null, box = svg.getBoundingClientRect();
+    const vx = vb ? vb.x : 0, vy = vb ? vb.y : 0, vw = vb ? vb.width : box.width, vh = vb ? vb.height : box.height;
+    const breitePx = parseFloat(svg.getAttribute('width')) || (vb ? vb.width : box.width);
+    if (!vw || !vh || !breitePx) return '';
+    const s = Math.min(breitePx * 2.54 / 96, 16) / vw;               // cm je Einheit der Zeichnung
+    const W = vw * s, H = vh * s, ptJe = s / (2.54 / 72.27);             // pt je Einheit
+    const innen = svg.getScreenCTM().inverse();
+    const P = (M, x, y) => { const p = new DOMPoint(x, y).matrixTransform(M); return `(${zahl((p.x - vx) * s)},${zahl((vh - (p.y - vy)) * s)})`; };
+    /* Dichte Polygonzüge ausdünnen (Douglas-Peucker, Abweichung < 0,003 cm ≈ 0,09 pt – unsichtbar): Kurven aus Tausenden Punkten
+       sprengen sonst den Speicher von pdflatex. teile: '(x,y)' | '-- (x,y)' | anderes (Bogen, cycle) – nur Läufe gerader Stücke. */
+    const duenn = teile => {
+      const xy = t => t.match(/\(([-\d.]+),([-\d.]+)\)$/).slice(1).map(Number), aus = [];
+      const dp = q => { const halt = new Uint8Array(q.length), st = [[0, q.length - 1]]; halt[0] = halt[q.length - 1] = 1;
+        while (st.length){ const [a, b] = st.pop(), [x1, y1] = q[a], [x2, y2] = q[b], dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy); let m = -1, dm = 0.003;
+          for (let i = a + 1; i < b; i++){ const d = L ? Math.abs(dy * (q[i][0] - x1) - dx * (q[i][1] - y1)) / L : Math.hypot(q[i][0] - x1, q[i][1] - y1); if (d > dm){ dm = d; m = i; } }
+          if (m >= 0){ halt[m] = 1; st.push([a, m], [m, b]); } }
+        return halt; };
+      for (let i = 0; i < teile.length;){
+        if (!/^(-- )?\(/.test(teile[i])) { aus.push(teile[i++]); continue; }
+        let j = i + 1; while (j < teile.length && /^-- \(/.test(teile[j])) j++;
+        const lauf = teile.slice(i, j); if (lauf.length > 3){ const h = dp(lauf.map(xy)); lauf.forEach((u, k) => { if (h[k]) aus.push(u); }); } else aus.push(...lauf);
+        i = j;
+      }
+      return aus;
+    };
+    const farbe = c => { const m = /rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)/.exec(c || ''); if (!m || m[4] === '0') return null;
+      return { tex: `{rgb,255:red,${Math.round(+m[1])};green,${Math.round(+m[2])};blue,${Math.round(+m[3])}}`, a: m[4] === undefined ? 1 : +m[4] }; };
+    const deckung = el => { let o = 1; for (let e = el; e && e !== svg.parentNode; e = e.parentNode) o *= +getComputedStyle(e).opacity; return o; };
+    const sichtbar = el => { const cs = getComputedStyle(el); return cs.display !== 'none' && cs.visibility !== 'hidden'; };
+    const stil = (el, M) => {
+      const cs = getComputedStyle(el), o = [], d = deckung(el), sk = Math.sqrt(Math.abs(M.a * M.d - M.b * M.c));
+      const st = cs.stroke !== 'none' && farbe(cs.stroke), fi = cs.fill !== 'none' && farbe(cs.fill);
+      if (st){ o.push(`draw=${st.tex}`, `line width=${zahl(parseFloat(cs.strokeWidth) * sk * ptJe)}pt`);
+        const op = st.a * (+cs.strokeOpacity) * d; if (op < 0.99) o.push(`draw opacity=${zahl(op)}`);
+        if (cs.strokeDasharray && cs.strokeDasharray !== 'none'){ const t = cs.strokeDasharray.split(/[\s,]+/).map(parseFloat).filter(x => x > 0);
+          if (t.length){ const L = t.length % 2 ? [...t, ...t] : t; o.push('dash pattern=' + L.map((x, i) => `${i % 2 ? 'off' : 'on'} ${zahl(x * sk * ptJe)}pt`).join(' ')); } }
+        if (cs.strokeLinecap === 'round') o.push('line cap=round'); if (cs.strokeLinejoin === 'round') o.push('line join=round'); }
+      if (fi){ o.push(`fill=${fi.tex}`); const op = fi.a * (+cs.fillOpacity) * d; if (op < 0.99) o.push(`fill opacity=${zahl(op)}`); }
+      if (cs.markerStart !== 'none' || cs.markerEnd !== 'none' || cs.markerMid !== 'none') luecken.push(el.tagName + ' mit marker');
+      return o;
+    };
+    /* Pfad: M L H V Z C S Q T, groß und klein (absolut/relativ); Bögen (A) kann es nicht */
+    const pfad = (d, M) => {
+      const t = d.match(/[a-zA-Z]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/g) || [], aus = [];
+      let i = 0, cmd = '', x = 0, y = 0, sx = 0, sy = 0, kx = 0, ky = 0;
+      const n = () => parseFloat(t[i++]);
+      while (i < t.length){
+        if (/[a-zA-Z]/.test(t[i])) cmd = t[i++];
+        const rel = cmd === cmd.toLowerCase(), C = cmd.toUpperCase(), ox = rel ? x : 0, oy = rel ? y : 0;
+        if (C === 'Z'){ aus.push('-- cycle'); x = sx; y = sy; continue; }
+        if (C === 'M'){ x = ox + n(); y = oy + n(); sx = x; sy = y; aus.push(P(M, x, y)); cmd = rel ? 'l' : 'L'; }
+        else if (C === 'L'){ x = ox + n(); y = oy + n(); aus.push('-- ' + P(M, x, y)); }
+        else if (C === 'H'){ x = ox + n(); aus.push('-- ' + P(M, x, y)); }
+        else if (C === 'V'){ y = oy + n(); aus.push('-- ' + P(M, x, y)); }
+        else if (C === 'C' || C === 'S'){ let x1, y1; if (C === 'C'){ x1 = ox + n(); y1 = oy + n(); } else { x1 = 2 * x - kx; y1 = 2 * y - ky; }
+          const x2 = ox + n(), y2 = oy + n(); x = ox + n(); y = oy + n(); kx = x2; ky = y2;
+          aus.push(`.. controls ${P(M, x1, y1)} and ${P(M, x2, y2)} .. ${P(M, x, y)}`); continue; }
+        else if (C === 'Q' || C === 'T'){ let qx, qy; if (C === 'Q'){ qx = ox + n(); qy = oy + n(); } else { qx = 2 * x - kx; qy = 2 * y - ky; }
+          const ex = ox + n(), ey = oy + n();
+          aus.push(`.. controls ${P(M, x + 2 / 3 * (qx - x), y + 2 / 3 * (qy - y))} and ${P(M, ex + 2 / 3 * (qx - ex), ey + 2 / 3 * (qy - ey))} .. ${P(M, ex, ey)}`);
+          x = ex; y = ey; kx = qx; ky = qy; continue; }
+        else { luecken.push(`path mit Befehl ${cmd}`); return null; }
+        kx = x; ky = y;
+      }
+      return duenn(aus).join(' ');
+    };
+    const zeilen = [];
+    const ausschnitt = el => {                                         // clip-path: url(#id) an el oder einem Vorfahren – nur ein Rechteck
+      for (let e = el; e && e !== svg; e = e.parentNode){ const c = getComputedStyle(e).clipPath, m = /url\("?#([^")]+)"?\)/.exec(c || '');
+        if (!m) continue;
+        const r = svg.querySelector(`clipPath[id="${m[1]}"] rect`); if (!r) { luecken.push('clip-path ohne Rechteck'); return ''; }
+        const M = innen.multiply(e.getScreenCTM()), X = r.x.baseVal.value, Y = r.y.baseVal.value, B = r.width.baseVal.value, Hh = r.height.baseVal.value;
+        return `\\clip ${P(M, X, Y)} -- ${P(M, X + B, Y)} -- ${P(M, X + B, Y + Hh)} -- ${P(M, X, Y + Hh)} -- cycle;`; }
+      return '';
+    };
+    const zeichne = (el, weg, o) => { if (!o.length) return; const c = ausschnitt(el), z = `\\path[${o.join(',')}] ${weg};`; zeilen.push(c ? `\\begin{scope}${c}${z}\\end{scope}` : z); };
+    const lauf = el => {
+      for (const e of el.children){
+        const tag = e.tagName.toLowerCase();
+        if (['defs', 'clippath', 'title', 'desc', 'marker', 'style', 'lineargradient', 'radialgradient', 'pattern', 'mask', 'symbol'].includes(tag)) continue;
+        if (!sichtbar(e) || e.classList.contains('re-nicht')) continue;
+        if (tag === 'g' || tag === 'a'){ lauf(e); continue; }
+        const M = innen.multiply(e.getScreenCTM()), A = n => e[n].baseVal.value;
+        if (tag === 'line') zeichne(e, `${P(M, A('x1'), A('y1'))} -- ${P(M, A('x2'), A('y2'))}`, stil(e, M));
+        else if (tag === 'polyline' || tag === 'polygon'){ const p = duenn([...e.points].map((q, i) => (i ? '-- ' : '') + P(M, q.x, q.y))); if (p.length) zeichne(e, p.join(' ') + (tag === 'polygon' ? ' -- cycle' : ''), stil(e, M)); }
+        else if (tag === 'path'){ const w = pfad(e.getAttribute('d') || '', M); if (w) zeichne(e, w, stil(e, M)); }
+        else if (tag === 'rect'){ const X = A('x'), Y = A('y'), B = A('width'), Hh = A('height'); if (B && Hh) zeichne(e, `${P(M, X, Y)} -- ${P(M, X + B, Y)} -- ${P(M, X + B, Y + Hh)} -- ${P(M, X, Y + Hh)} -- cycle`, stil(e, M)); }
+        else if (tag === 'circle' || tag === 'ellipse'){ const sk = Math.sqrt(Math.abs(M.a * M.d - M.b * M.c)) * s, rx = tag === 'circle' ? A('r') : A('rx'), ry = tag === 'circle' ? A('r') : A('ry');
+          if (rx > 0 && ry > 0) zeichne(e, `${P(M, A('cx'), A('cy'))} ellipse[x radius=${zahl(rx * sk)}, y radius=${zahl(ry * sk)}]`, stil(e, M)); }
+        else if (tag === 'text'){
+          const inhalt = [...e.childNodes].map(c => c.nodeType === 3 ? text(c.textContent) : c.nodeType === 1 && c.tagName.toLowerCase() === 'tspan'
+            ? (/super/.test(c.getAttribute('baseline-shift') || '') ? `\\textsuperscript{${text(c.textContent)}}` : /sub/.test(c.getAttribute('baseline-shift') || '') ? `\\textsubscript{${text(c.textContent)}}` : text(c.textContent)) : '').join('').replace(/\s+/g, ' ').trim();
+          if (!inhalt) continue;
+          // Lage wie am Bildschirm: x/y der Schrift (Grundlinie) mit text-anchor; ohne x/y oder mit mittiger Grundlinie: Mitte des Kastens
+          const cs = getComputedStyle(e), r = e.getBoundingClientRect(), mitteB = /central|middle/.test(cs.dominantBaseline || '');
+          const hatXY = e.x.baseVal.length && e.y.baseVal.length && !mitteB, seite = { start: 'west', middle: '', end: 'east' }[cs.textAnchor] ?? '';
+          const m = hatXY ? new DOMPoint(e.x.baseVal[0].value, e.y.baseVal[0].value).matrixTransform(innen.multiply(e.getScreenCTM()))
+            : new DOMPoint(r.left + r.width / 2, r.top + r.height / 2).matrixTransform(innen);
+          const anker = hatXY ? (seite ? 'base ' + seite : 'base') : mitteB ? (seite || 'center') : 'center';
+          const pt = parseFloat(cs.fontSize) * Math.sqrt(Math.abs(M.a * M.d - M.b * M.c)) * ptJe;
+          const gr = GROESSEN.reduce((a, b) => Math.abs(b[0] - pt) < Math.abs(a[0] - pt) ? b : a)[1];
+          const fi = farbe(cs.fill), o = ['inner sep=0pt', `anchor=${anker}`, `font=${gr}${+cs.fontWeight >= 600 ? '\\bfseries' : ''}`];
+          if (fi) o.push(`text=${fi.tex}`);
+          const rand = /^stroke/.test(cs.paintOrder || '') && cs.stroke !== 'none' && farbe(cs.stroke);   // Schrift mit Rand in Papierfarbe (paint-order: stroke) → hinterlegt
+          if (rand) o.splice(0, 1, 'inner sep=1pt', `fill=${rand.tex}`);
+          const c = ausschnitt(e), z = `\\node[${o.join(',')}] at (${zahl((m.x - vx) * s)},${zahl((vh - (m.y - vy)) * s)}) {${inhalt}};`;
+          zeilen.push(c ? `\\begin{scope}${c}${z}\\end{scope}` : z);
+        }
+        else luecken.push(`Element ${tag}`);
+      }
+    };
+    lauf(svg);
+    if (!zeilen.length) return '';
+    // je Befehl eine Zeile (\u0004 übersteht das Zusammenziehen der Leerräume in ausHtml): pdflatex liest höchstens 200 000 Zeichen je Zeile
+    const bild = `\\useasboundingbox (0,0) rectangle (${zahl(W)},${zahl(H)});\u0004${zeilen.join('\u0004')}\u0004`;
+    // klein (Strichliste im Satz): in der Zeile; sonst als eigener Block, mittig
+    return H < 1.2 ? `\\tikz[baseline={([yshift=-0.6ex]current bounding box.center)}]{${bild}}`
+      : ` \\par{\\centering\\begin{tikzpicture}${bild}\\end{tikzpicture}\\par} `;
   }
   /* ---------- Dokument ---------- */
   const texFertig = t => t.replace(/\*\*(.+?)\*\*/g, '\\textbf{$1}').replace(/ε/g, '\\ensuremath{\\varepsilon}');   // { tex } aus ausHtml: schon maskiert
@@ -1131,8 +1271,9 @@ const RE = (() => {
     return `<div class="re-druckkopf"><span>${esc(name)}</span><span class="re-dk-mitte">${esc(MITTE)}</span>${logo ? `<img src="${esc(logo)}" alt="">` : '<span></span>'}</div>`;
   }
   function alsTex(dok){
+    const tikz = dok.abschnitte.some(a => a.absaetze.some(x => typeof x !== 'string' && /\\begin\{tikzpicture\}|\\tikz\[/.test(x.tex)));   // nur mit Zeichnung
     return ['\\documentclass[a4paper,11pt]{article}', '\\usepackage[utf8]{inputenc}', '\\usepackage[T1]{fontenc}', '\\usepackage[ngerman]{babel}',
-      '\\usepackage{amsmath,amssymb}', '\\usepackage{cancel}', '\\usepackage[a4paper,margin=2.2cm,top=1.4cm,bottom=2cm,headheight=29pt,headsep=10pt,includehead]{geometry}',   // Kopf: Logo 0,75 cm + 3 pt
+      '\\usepackage{amsmath,amssymb}', '\\usepackage{cancel}', ...(tikz ? ['\\usepackage{tikz}'] : []), '\\usepackage[a4paper,margin=2.2cm,top=1.4cm,bottom=2cm,headheight=29pt,headsep=10pt,includehead]{geometry}',   // Kopf: Logo 0,75 cm + 3 pt
       kopfTex(), '\\setlength{\\parindent}{0pt}', '\\setlength{\\parskip}{6pt}', '\\begin{document}', '',
       dok.art ? `{\\small ${absatzTex(dok.art)}}` : '',
       ...dok.abschnitte.flatMap(a => [`\\subsection*{${text(a.titel)}}`, ...a.absaetze.flatMap(x => [typeof x === 'string' ? absatzTex(x) : texFertig(x.tex), ''])]), '\\end{document}', ''].join('\n');   // Leerzeile: jeder Absatz ein eigener TeX-Absatz
@@ -1161,11 +1302,23 @@ const RE = (() => {
       ${dok.art ? `<p class="re-art${dok.vermutung ? ' vermutung' : ''}">${absatzHtml(dok.art)}</p>` : ''}
       <div class="re-inhalt">${alsHtml(dok)}</div>
     </td></tr></tbody></table></div>`;
+    eigeneIds(fenster.querySelector('.re-inhalt'));
     fenster.classList.add('an');
     fenster.querySelector('.re-zu').onclick = schliesse;
     fenster.querySelector('[data-re="tex"]').onclick = herunterladen;
     fenster.querySelector('[data-re="druck"]').onclick = drucken;
     fenster.querySelector('.re-zu').focus(); fenster.scrollTop = 0;
+  }
+  /* Kopien von Zeichnungen tragen dieselben ids wie das Original auf der Folie: url(#…) träfe sonst das Original (verborgen →
+     Kurve weg, z. B. clip-path der Skizzen). Im Fenster bekommt jede id einen eigenen Namen, die Verweise ziehen mit. */
+  function eigeneIds(el){
+    const ids = [...el.querySelectorAll('[id]')]; if (!ids.length) return;
+    const neu = new Map(ids.map((e, i) => [e.id, `re${i}-${e.id}`]));
+    ids.forEach(e => { e.id = neu.get(e.id); });
+    const zieh = v => v.replace(/url\(\s*["']?#([^"')\s]+)["']?\s*\)/g, (m, id) => neu.has(id) ? `url(#${neu.get(id)})` : m);
+    el.querySelectorAll('*').forEach(x => { for (const at of [...x.attributes]){
+      if (at.value.includes('url(')) x.setAttribute(at.name, zieh(at.value));
+      else if (/href$/.test(at.name) && at.value.startsWith('#') && neu.has(at.value.slice(1))) x.setAttribute(at.name, '#' + neu.get(at.value.slice(1))); } });
   }
   const offen = () => !!fenster && fenster.classList.contains('an');
   function schliesse(){ fenster.classList.remove('an'); if (ausloeser && ausloeser.focus) ausloeser.focus(); }
@@ -1212,7 +1365,8 @@ const RE = (() => {
       return { html: `<strong>${i + 1}. ${was}</strong> ${html}`, tex: `**${i + 1}. ${ausHtml(w)}** ${ausHtml(d)}` }; }) });
     return { titel: h2 ? h2.textContent.trim() : 'Rechnung', abschnitte, datei: 'rechnung.tex' };
   }
-  return { zeige, bereit, alsTex, alsHtml, ausHtml, ausWeg, ausBereichen, knopf, kopfTex, offen, schliesse, aktuell: () => aktuell, text };
+  const svgLuecken = () => { const l = luecken; luecken = []; return l; };   // was eine Zeichnung nicht übersetzen konnte (seit der letzten Abfrage)
+  return { zeige, bereit, alsTex, alsHtml, ausHtml, ausWeg, ausBereichen, knopf, kopfTex, offen, schliesse, aktuell: () => aktuell, text, svgLuecken };
 })();
 </script><!-- /RECHNUNG -->
 <script data-eingabehilfe="technik/hilfe/eingabehilfe.js">
@@ -1923,7 +2077,8 @@ const WZ = {
   reglerEingabe(feld, setze, optionen = {}){
     const regler = feld.closest('.wz-regler'), meldung = WZ.reglerMeldung(regler);
     const los = () => {
-      try { const z = WZ.liesZahl(feld.value, typeof optionen === 'function' ? optionen() : optionen);   // Optionen auch als Funktion (Einheit wechselt) if (!z.q && !Number.isFinite(z.v)) throw new Error('Bitte eine Zahl.');
+      try { const z = WZ.liesZahl(feld.value, typeof optionen === 'function' ? optionen() : optionen);   // Optionen auch als Funktion (Einheit wechselt)
+        if (!z.q && !Number.isFinite(z.v)) throw new Error('Bitte eine Zahl.');
         const fehl = setze(z); if (fehl) throw new Error(fehl);
         feld.classList.remove('falsch'); meldung.textContent = '';
         regler.parentElement.querySelectorAll('.wz-reglerwert.falsch').forEach(f => f.classList.remove('falsch')); }
@@ -2900,7 +3055,9 @@ stage.addEventListener('touchend', e=>{ if(wischX === null) return; const dx = e
 document.getElementById('uebBtn').onclick = ()=> ueb.classList.toggle('an');
 document.getElementById('vor').onclick = vor;
 document.getElementById('zurueck').onclick = zurueck;
-stage.addEventListener('click', e=>{ if(!e.target.closest('a, button, input, select, .interaktiv')) vor(); });
+/* Klick auf die Folie blättert – nicht aber ein Klick auf Bedienbares. Geprüft wird der Weg des Ereignisses (composedPath):
+   Zeichnet ein Werkzeug das angeklickte Element beim Klick neu, hängt e.target nicht mehr im Dokument, und closest() fände .interaktiv nicht. */
+stage.addEventListener('click', e=>{ if(!e.composedPath().some(el=>el.matches && el.matches('a, button, input, select, .interaktiv'))) vor(); });
 skalieren();
 zeige(parseInt(location.hash.slice(1)) - 1 || 0);
 </script>
