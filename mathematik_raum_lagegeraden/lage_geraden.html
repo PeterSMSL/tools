@@ -475,6 +475,11 @@ html.handy .g-zoom .knopf.rund{width:42px;height:42px}
 .vk input{width:52px;font-size:17px;text-align:center;padding:1px 2px;margin:1px 0;font-family:var(--m-schrift);border:1.5px solid var(--m-grau);border-radius:5px;background:#fff}
 .vk input.falsch{border-color:var(--m-falsch);background:var(--m-falsch-h)}
 html.handy .vk input{width:52px;height:40px;font-size:17px}
+.vk-punkt{display:inline-flex;align-items:center;gap:3px;vertical-align:middle;font-family:var(--m-schrift);font-size:22px}
+.vk-punkt .kl{font-size:28px;line-height:1} .vk-punkt .st{color:var(--grau);padding:0 1px}
+.vk-punkt input{width:62px;font-size:16px;text-align:center;padding:3px 2px;font-family:var(--m-schrift);border:1.5px solid var(--m-grau);border-radius:5px;background:#fff}
+.vk-punkt input.falsch{border-color:var(--m-falsch);background:var(--m-falsch-h)}
+html.handy .vk-punkt input{width:58px;min-height:40px}
 
 /* ==== technik/mathe/raum3d.css ==== */
 /* RAUM3D — Aussehen des 3D-Koordinatensystems (Farben aus farben.css). Quelle: technik/mathe/raum3d.css */
@@ -923,11 +928,6 @@ html.handy .lg-lage .knopf{font-size:15px}
 .lg-menue-kopf{font-size:14px;font-weight:700;color:var(--grau);padding:0 4px 2px}
 .r3-leiste .lg-menue .knopf{border-radius:999px;margin-left:0;text-align:left}
 html.handy .lg-menue .knopf{min-height:40px}
-.lg-pkt{display:inline-flex;align-items:center;gap:3px;font-family:var(--m-schrift);font-size:22px}
-.lg-pkt .kl{font-size:28px;line-height:1} .lg-pkt .st{color:var(--grau);padding:0 1px}
-.lg-pkt input{width:62px;font-size:16px;text-align:center;padding:3px 2px;font-family:var(--m-schrift);border:1.5px solid var(--m-grau);border-radius:5px}
-.lg-pkt input.falsch{border-color:var(--m-falsch);background:var(--m-falsch-h)}
-html.handy .lg-pkt input{width:58px;min-height:40px}
 
 /* Grundregel aller Werkzeuge: hidden gilt immer, auch wenn eine Klasse display:flex/grid setzt */
 [hidden]{display:none!important}
@@ -1655,6 +1655,8 @@ function qLies(text){
      VK.laenge(a) → { c, r, q }      Betrag exakt (q = a·a)
      VK.spalte(name, werte, klasse)  Spalte aus drei Eingabefeldern (<span class="vk" data-v="name">), Werte vorbelegt –
                                     Stil in werkzeug.css (.vk); lesen mit VK.liesFelder(root.querySelectorAll('[data-v="name"] input'))
+     VK.punkt(name, werte, klasse)   Punkt als Zeile name( □ | □ | □ ) (<span class="vk-punkt" data-v="name">, braucht formel.js) –
+                                    Punkte als Zeile, Vektoren als Spalte (Standard 26.10.); lesen wie bei VK.spalte
    Matrizen bleiben vorerst in ihren Werkzeugen (nur zwei brauchen sie).
    ===================================================================== */
 const VK = {
@@ -1680,6 +1682,7 @@ const VK = {
   },
   laenge(a){ const q = VK.skalar(a, a); return { ...VK.wurzel(q), q }; },
   spalte: (name, werte = ['', '', ''], klasse = '') => `<span class="vk${klasse ? ' ' + klasse : ''}" data-v="${name}">${werte.map((x, i) => `<input data-k="${i}" value="${typeof x === 'object' ? qText(x) : x}" spellcheck="false" autocomplete="off" aria-label="${name} ${'xyz'[i] || i + 1}">`).join('')}</span>`,
+  punkt: (name, werte = ['', '', ''], klasse = '') => `<span class="vk-punkt${klasse ? ' ' + klasse : ''}" data-v="${name}">${F(name)}<span class="kl">(</span>${werte.map((x, i) => `${i ? '<span class="st">|</span>' : ''}<input data-k="${i}" value="${typeof x === 'object' ? qText(x) : x}" spellcheck="false" autocomplete="off" aria-label="${name} ${'xyz'[i] || i + 1}">`).join('')}<span class="kl">)</span></span>`,
   liesFelder(felder, opt = {}){
     let meld = '';
     const q = [...felder].map(f => {
@@ -1997,6 +2000,10 @@ var temml=function(){"use strict";class e{constructor(t,r){let n,s=" "+t;const o
      zTex(v, st)     Dezimalzahl mit Komma: 2{,}5   (st = höchstens so viele Nachkommastellen)
      zfTex(v, st, o) Anzeige-Zahl: Tausenderpunkte, feste Stellen (Geld), Zehnerpotenz bei sehr groß/klein
      vTex([..])      Spaltenvektor  \begin{pmatrix}…\end{pmatrix}  (Einträge: Zahlen, Brüche oder LaTeX)
+     punktTex(n, k)  Punkt als Zeile S(x | y | z) (Einträge: Zahlen, Brüche oder LaTeX) – Vektoren dagegen als Spalte (vTex).
+                     Ganz: S({1} \mid {-3} \mid {2}); mit Bruch mitwachsend S\!\left({\frac{1}{2}} \;\middle|\; …\right).
+                     {…} hält „−3“ nach dem Strich als Vorzeichen. Standard seit 26.10. (Prüfblatt: Punkte und Vektoren im Raum)
+     summandTex(f, tex)  „+ f · tex“ mit Vorzeichen davor, Faktor ±1 weggelassen: `${vTex(P)} ${summandTex(t, vTex(u))}` → (…) − 2 · (…)
      pTex(k, v)      Polynom aus Koeffizienten (Index = Hochzahl; Zahlen oder Brüche): \frac{1}{2}x^{2} - 2x + 3
      klTex(tex)      Klammer um tex: normale ( ), nur um Brüche mitwachsend \left( … \right) – wie man es in LaTeX setzt
      M(text)         Text mit Mathe wie in LaTeX: $…$ im Text, $$…$$ abgesetzt. M('Steigung $m = \\frac{2}{3}$')
@@ -2032,6 +2039,14 @@ function zfTex(v, st = 2, o = {}){
   return r;
 }
 function vTex(a){ return `\\begin{pmatrix}${a.map(x => typeof x === 'object' ? qTex(x) : x).join('\\\\')}\\end{pmatrix}\\,`; }      // \, : wie in LaTeX etwas Luft vor dem folgenden + oder =
+function summandTex(f, tex){  // „+ f · tex“ mit dem Vorzeichen davor, Faktor 1 und −1 weggelassen: + v, − v, − 2 \cdot v (f ein Bruch)
+  const b = qTex({ z: Math.abs(f.z), n: f.n }), vz = f.z < 0 ? '-' : '+';
+  return b === '1' ? `${vz} ${tex}` : `${vz} ${b} \\cdot ${tex}`;
+}
+function punktTex(n, a){      // \left( nur bei Brüchen: um ganze Zahlen setzt der Browser sonst Luft in die Klammer
+  const t = a.map(x => typeof x === 'object' ? qTex(x) : String(x)), k = t.map(x => `{${x}}`);
+  return t.some(x => /\\[dt]?frac/.test(x)) ? `${n}\\!\\left(${k.join(' \\;\\middle|\\; ')}\\right)` : `${n}(${k.join(' \\mid ')})`;
+}
 function pTex(k, v = 'x'){
   const Z = c => typeof c === 'object' ? c : { z: c, n: 1 }, s = [];
   for (let i = k.length - 1; i >= 0; i--){
@@ -2088,7 +2103,7 @@ const folien = [
       <div>
         <div class="wz-panel"><h3>Geraden</h3><div data-r="geraden" data-aufgabe></div>
           <div class="lg-lage"><button class="knopf hell" data-lage="identisch">identisch</button><button class="knopf hell" data-lage="parallel">parallel</button><button class="knopf hell" data-lage="schneidend">schneidend</button><button class="knopf hell" data-lage="windschief">windschief</button></div>
-          <div class="lg-gl" data-r="szeile" hidden>Schnittpunkt <span class="lg-pkt" data-r="s">${F('S')}<span class="kl">(</span><input data-k="0" aria-label="x"><span class="st">|</span><input data-k="1" aria-label="y"><span class="st">|</span><input data-k="2" aria-label="z"><span class="kl">)</span></span><button class="knopf o" data-r="pruefen">Prüfen</button></div>
+          <div class="lg-gl" data-r="szeile" hidden>Schnittpunkt <span data-r="s">${VK.punkt('S')}</span> <button class="knopf o" data-r="pruefen">Prüfen</button></div>
           <div class="wz-rueck" data-r="rueck"></div></div>
         <div class="wz-panel" style="margin-top:10px"><h3>Entscheidungsweg <span class="rechts"><button class="knopf hell" data-r="schritt">Nächster Schritt</button><button class="knopf hell" data-r="alle">Alle</button></span></h3><div class="wz-weg" data-r="weg"></div></div>
       </div>
@@ -2145,17 +2160,6 @@ const LAGE = (() => {
     const links = qSub(qMul(s, u[kz]), qMul(t, v[kz])), passt = qGleich(links, d[kz]);
     return { lage: passt ? 'schneidend' : 'windschief', k: null, d, s, t, i, j, kz, links, Spkt: passt ? add(P, mal(s, u)) : null };
   }
-
-  /* Punkt im Raum als Zeile S(x | y | z) – Striche und Klammern wachsen mit Brüchen; Vektoren stehen als Spalte (vTex) */
-  const punktTex = (n, p) => {   // {…}: „−3“ nach dem Strich bleibt Vorzeichen; mitwachsende Klammern nur bei Brüchen (sonst Luft in der Klammer)
-    const k = p.map(x => `{${qTex(x)}}`);
-    return p.every(x => x.n === 1) ? `${n}(${k.join(' \\mid ')})` : `${n}\\!\\left(${k.join(' \\;\\middle|\\; ')}\\right)`;
-  };
-  /* „+ f · v“ mit Vorzeichen davor, Faktor 1 und −1 weggelassen: + v, − v, − 2 · v */
-  const malV = (f, v) => {
-    const b = Q(Math.abs(f.z), f.n), vz = f.z < 0 ? '-' : '+';
-    return qGleich(b, Q(1)) ? `${vz} ${vTex(v)}` : `${vz} ${qTex(b)} \\cdot ${vTex(v)}`;
-  };
 
   /* ---------- Aufgaben ---------- */
   const rv = (lo, hi) => [WZ.rnd(lo, hi), WZ.rnd(lo, hi), WZ.rnd(lo, hi)];
@@ -2226,7 +2230,7 @@ const LAGE = (() => {
       s.push([`Probe in ${['I', 'II', 'III'][k]}`, `${F('s')} und ${F('t')} in ${F(ZL[k])} einsetzen:`
         + FB(`\\begin{array}{rrcl} \\text{links:} & ${qTex(P[k])} + ${kl(A.s)} \\cdot ${kl(u[k])} & = & ${qTex(L)} \\\\ \\text{rechts:} & ${qTex(Q_[k])} + ${kl(A.t)} \\cdot ${kl(v[k])} & = & ${qTex(Rr)} \\end{array}`)
         + (A.Spkt ? `Beide Seiten gleich – die dritte Gleichung stimmt.` : `${F(`${qTex(L)} \\neq ${qTex(Rr)}`)}: <b>Widerspruch</b> – die dritte Gleichung stimmt nicht.`)]);
-      s.push(['Ergebnis', A.Spkt ? `Die Geraden <b>schneiden</b> sich. ${F('s')} in ${F('g')} eingesetzt:${FB(`\\begin{aligned} \\vec{s} &= ${vTex(P)} ${malV(A.s, u)} \\\\ &= ${vTex(A.Spkt)} \\end{aligned}`)}`
+      s.push(['Ergebnis', A.Spkt ? `Die Geraden <b>schneiden</b> sich. ${F('s')} in ${F('g')} eingesetzt:${FB(`\\begin{aligned} \\vec{s} &= ${vTex(P)} ${summandTex(A.s, vTex(u))} \\\\ &= ${vTex(A.Spkt)} \\end{aligned}`)}`
         + `Schnittpunkt ${F(punktTex('S', A.Spkt))}.` : 'Kein gemeinsamer Punkt und nicht parallel: <b>windschief</b>.', true]);
     }
     weg.setze(s);
