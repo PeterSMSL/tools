@@ -904,6 +904,10 @@ svg .pa-grenzlinie{stroke:var(--m-erg);stroke-width:1.6;stroke-dasharray:5 4}
 svg .pa-gname{font-size:14px;font-weight:800;fill:var(--m-erg);font-style:italic}
 [data-stamm] .wz-gleich, [data-best] .wz-gleich{margin-left:18px}
 
+/* ---------- Regel oben rechts auf jeder Folie ---------- */
+.slide .titelzeile{position:relative}
+.pa-regel{position:absolute;right:0;bottom:6px;background:var(--blau-pastell);border:1px solid var(--blau-linie);border-radius:12px;padding:6px 14px;font-size:19px;color:var(--tinte)}
+
 /* ---------- Die Idee ---------- */
 .pa-idee{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,1fr);gap:18px;align-items:start}
 .pa-spalte{display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -936,6 +940,7 @@ svg .pa-t-punkt{fill:var(--m-erg);paint-order:stroke;stroke:#fff;stroke-width:3p
 .titelkarte{padding:14px 22px;font-size:21px;color:var(--tinte)}
 
 /* ---------- Handy ---------- */
+html.handy .pa-regel{position:static;display:inline-block;margin-top:8px;font-size:16px;max-width:100%;overflow-x:auto}
 html.handy .pa-idee{grid-template-columns:minmax(0,1fr)}
 html.handy .pa-eigen{width:0;flex:1 1 160px;min-width:0}
 html.handy .pa-eigenzeile .pa-paar:first-of-type{flex:1 1 100%}
@@ -3083,6 +3088,9 @@ folien.forEach((f,i)=>{
    Alles andere: klare Meldung statt falscher Rechnung. integral.js (IN) bleibt unverändert und rechnet nur mit, wo es trägt
    (Grenzen lesen, Breite schätzen, „braucht keine Produktintegration“).
    ===================================================================== */
+/* Die Regel oben rechts auf jeder Folie (Peter 29.10.: „sonst müssen die Kinder immer zurück“) */
+document.querySelectorAll('.slide:not(.titel) .titelzeile').forEach(z => z.insertAdjacentHTML('beforeend', `<div class="pa-regel">${F(PA_FORMEL)}</div>`));
+
 const PA = (() => {
   const Q0 = Q(0), Q1 = Q(1);
   const FEHL = t => Object.assign(new Error(t), { pa: true });
@@ -3316,23 +3324,41 @@ const PA = (() => {
     if (mitC) Rs[Rs.length - 1] += ' + C';
     s.push([tiefe ? 'Zwischenergebnis' : 'Zusammensetzen', kette(If, Rs), !tiefe]);
   }
-  const mitI = (q, vz = 1) => { const p = vz < 0 ? qNeg(q) : q, a = qAbs(p); return `${p.z < 0 ? '-' : '+'} ${qEins(a) ? '' : qTex(a)}I`; };
+  /* Zyklisch ohne Magie (Peter 29.10.: „zu viel magic“): I bekommt einen Namen und eine Farbe, jeder Schritt sagt, warum,
+     und vor dem Auflösen steht die Gleichung kurz als I = A ± k·I – wie x = 5 − x. */
+  const IK = kTex('pa-f-ges', 'I');
+  const mitI = (q, vz = 1, farbe = true) => { const p = vz < 0 ? qNeg(q) : q, a = qAbs(p); return `${p.z < 0 ? '-' : '+'} ${qEins(a) ? '' : qTex(a)}${farbe ? IK : 'I'}`; };
+  const notiz = t => `<p class="pa-note">${M(t)}</p>`;
   function kreisSchritte(rec, s, mitC){
     const If = I(huelle(rec.f)), s1 = rec.s1, s2 = rec.s2;
-    s.push(['Ansatz', zeig(`I = ${If}`)]);
+    s.push(['Dem Integral einen Namen geben', zeig(`${IK} = ${If}`)
+      + notiz('$I$ ist eine Unbekannte wie $x$ in einer Gleichung. Gesucht ist eine Gleichung, in der $I$ vorkommt.')]);
     s.push(['Wahl: u, v′', tafel(s1) + KARTE]);
-    const z1 = [prodUV(s1.u, s1.v), '- ' + I(prodUV(s1.du, s1.v))], nenT = qTex(rec.nen), opI = mitI(rec.k, -1);
+    const z1 = [prodUV(s1.u, s1.v), '- ' + I(prodUV(s1.du, s1.v))], nenT = qTex(rec.nen), opI = mitI(rec.k, -1, false);
     const op = t => (WZ.handy() ? ` \\\\ &\\quad \\mid\\; ${t}` : ` &&\\mid\\; ${t}`), br = platz() - 6;
     const ende = `${nenT}I &= ${zeile(stk(rec.G), br)}${op(': ' + nenT)} \\\\ I &= ${zeile([...stk(rec.F, true), ...(mitC ? ['+ C'] : [])], br)}`;
+    const xBsp = mitI(rec.k, 1, false).replace('I', 'x');
+    const kurz = () => zeig(`\\begin{aligned} ${IK} &= A ${mitI(rec.k)} \\\\ A &= ${zeile(stk(rec.G), br)} \\end{aligned}`)
+      + notiz(`Eine Gleichung mit $I$ auf beiden Seiten, wie $x = 5 ${xBsp}$. Also: $I$ auf die linke Seite bringen, dann durch $${nenT}$ teilen. `
+        + 'Das geht nur, weil $I$ rechts nicht genau als $+\\,I$ steht – sonst fiele $I$ auf beiden Seiten weg.');
+    const aufloesen = () => s.push(['Nach I auflösen', zeig(`\\begin{aligned} I &= ${zeile([...stk(rec.G), mitI(rec.k, 1, false)], br)}${op(opI)} \\\\ ${ende} \\end{aligned}`), true]);
     if (!s2){
-      s.push(['Einsetzen', kette('I', [z1, [gTex(s1.uv), vzInt(s1.rest)], [gTex(s1.uv), mitI(rec.k)]])]);
-      s.push(['Nach I auflösen', zeig(`\\begin{aligned} I &= ${zeile([...stk(rec.G), mitI(rec.k)], br)}${op(opI)} \\\\ ${ende} \\end{aligned}`), true]);
+      s.push(['Einsetzen', kette(IK, [z1, [gTex(s1.uv), vzInt(s1.rest)], [gTex(s1.uv), mitI(rec.k)]])
+        + notiz('Das gesuchte Integral $I$ ist schon wieder da. Warum? Abgeleitet wird $u$ zu genau dem Faktor, der vorher $v\'$ war, '
+          + 'und integriert wird $v\'$ zu genau dem Faktor, der vorher $u$ war. Das neue Integral besteht also aus denselben Faktoren.')]);
+      s.push(['Gleichung für I', kurz()]);
+      aufloesen();
       return; }
-    s.push(['Einsetzen', kette('I', [z1, [gTex(s1.uv), `${rec.sg > 0 ? '+' : '-'} ${I(huelle(rec.r1))}`]])]);
-    s.push(['Noch einmal: u, v′', tafel(s2)]);
+    const sorte = g => (flach(g).some(x => x.e) ? 'die e-Funktion' : 'die Winkelfunktion');
+    s.push(['Einsetzen', kette(IK, [z1, [gTex(s1.uv), `${rec.sg > 0 ? '+' : '-'} ${I(huelle(rec.r1))}`]])
+      + notiz('Das neue Integral ist nicht leichter, aber auch nicht schwerer. Also noch einmal dasselbe.')]);
+    s.push(['Noch einmal: u, v′', tafel(s2)
+      + notiz(`Wieder ${sorte(s1.u)} als $u$, wie beim ersten Mal. Mit der anderen Wahl würde man den ersten Schritt nur rückgängig machen und am Ende $I = I$ erhalten.`)]);
     s.push(['Einsetzen', kette(I(huelle(rec.r1)), [[prodUV(s2.u, s2.v), '- ' + I(prodUV(s2.du, s2.v))], [gTex(s2.uv), vzInt(s2.rest)], [gTex(s2.uv), mitI(rec.c2, -1)]])
-      + '<p class="pa-note">Das gesuchte Integral ist wieder da.</p>']);
-    s.push(['Nach I auflösen', zeig(`\\begin{aligned} I &= ${zeile([gTex(s1.uv), `${rec.sg > 0 ? '+' : '-'} \\left(${gTex(s2.uv)} ${mitI(rec.c2, -1)}\\right)`], br)} \\\\ I &= ${zeile([...stk(rec.G), mitI(rec.k)], br)}${op(opI)} \\\\ ${ende} \\end{aligned}`), true]);
+      + notiz('Das gesuchte Integral $I$ ist wieder da. Warum? Die e-Funktion bleibt beim Ableiten und Integrieren eine e-Funktion. '
+        + 'Die Winkelfunktion ist nach zwei Runden wieder sie selbst, aber mit Minus: $\\sin \\to \\cos \\to -\\sin$.')]);
+    s.push(['Gleichung für I', zeig(`\\begin{aligned} ${IK} &= ${zeile([gTex(s1.uv), `${rec.sg > 0 ? '+' : '-'} \\left(${gTex(s2.uv)} ${mitI(rec.c2, -1)}\\right)`], br)} \\\\ ${IK} &= ${zeile([...stk(rec.G), mitI(rec.k)], br)} \\end{aligned}`) + kurz()]);
+    aufloesen();
   }
   /* Lösungsweg: o.best = Ergebnis von bestimmt() oder null; o.eigenTex = LaTeX der eigenen Eingabe (dann erst sortieren) */
   function weg(rec, o = {}){
@@ -3632,10 +3658,14 @@ function PA_labor(root, bestimmt){
     const fehler = [];                                             // was mit der Lösung oder einem früheren Fehlerbild zusammenfällt, entfällt
     roh.forEach(e => { if (!PA_wertGleich(e.g, fn) && !fehler.some(v => PA_wertGleich(e.g, v.g))) fehler.push(e); });
     return { ...A, baum, f: auf.f, rec: auf.rec, best, fn, Fn, fehler }; }
-  const wegListe = () => PA.weg(S.A.rec, { best: S.A.best, eigenTex: S.A.eigen ? T_tex(S.A.baum) : null });
+  /* Eingabe ohne * („sin(x)e^x“): Malpunkt setzen, sonst liest man sin(x·eˣ). Nur „2x“ (Zahl davor) bleibt ohne Punkt. */
+  const malpunkt = b => (!b || typeof b !== 'object' ? b : Array.isArray(b) ? b.map(malpunkt) : Object.fromEntries(Object.entries(b).map(([k, w]) =>
+    [k, k === 'still' ? w && b.a.t === 'z' : malpunkt(w)])));
+  const texE = b => T_tex(malpunkt(b));
+  const wegListe = () => PA.weg(S.A.rec, { best: S.A.best, eigenTex: S.A.eigen ? texE(S.A.baum) : null });
   function zeige(A, eigen){
     S.A = { ...A, eigen }; S.bild = false;
-    const ft = T_tex(A.baum);
+    const ft = texE(A.baum);
     R('term').innerHTML = bestimmt ? F(`\\int_{${PA.gTexL(A.a)}}^{${PA.gTexL(A.b)}} ${T_istSumme(A.baum) ? `\\left(${ft}\\right)` : ft}\\,dx`) : F(`f(x) = ${ft}`);
     R('antwort').value = ''; R('antwort').className = feldKlasse;
     WZ.rueck(R('rueck'), '', bestimmt ? 'Erst eine Stammfunktion, dann die Grenzen einsetzen. Genauer Wert (auch als Term mit e, ln, π) oder auf zwei Nachkommastellen.'
