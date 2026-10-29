@@ -475,6 +475,11 @@ html.handy .g-zoom .knopf.rund{width:42px;height:42px}
 .vk input{width:52px;font-size:17px;text-align:center;padding:1px 2px;margin:1px 0;font-family:var(--m-schrift);border:1.5px solid var(--m-grau);border-radius:5px;background:#fff}
 .vk input.falsch{border-color:var(--m-falsch);background:var(--m-falsch-h)}
 html.handy .vk input{width:52px;height:40px;font-size:17px}
+.vk-punkt{display:inline-flex;align-items:center;gap:3px;vertical-align:middle;font-family:var(--m-schrift);font-size:22px}
+.vk-punkt .kl{font-size:28px;line-height:1} .vk-punkt .st{color:var(--grau);padding:0 1px}
+.vk-punkt input{width:62px;font-size:16px;text-align:center;padding:3px 2px;font-family:var(--m-schrift);border:1.5px solid var(--m-grau);border-radius:5px;background:#fff}
+.vk-punkt input.falsch{border-color:var(--m-falsch);background:var(--m-falsch-h)}
+html.handy .vk-punkt input{width:58px;min-height:40px}
 
 /* ==== technik/mathe/formel.css ==== */
 /* =====================================================================
@@ -911,11 +916,6 @@ svg .pa-t-leicht{fill:var(--m-3);paint-order:stroke;stroke:#fff;stroke-width:3px
 svg .pa-t-ges{fill:var(--m-erg);paint-order:stroke;stroke:#fff;stroke-width:3px}
 svg .pa-t-punkt{fill:var(--m-erg);paint-order:stroke;stroke:#fff;stroke-width:3px}
 .pa-f-ges{color:var(--m-erg)} .pa-f-leicht{color:var(--m-3)} .pa-f-recht{color:var(--m-2-t)}
-.pa-werte{display:flex;flex-direction:column;gap:3px;font-size:15.5px}
-.pa-wz{display:flex;flex-wrap:wrap;align-items:center;gap:2px 7px}
-.pa-wn{font-weight:700;color:var(--grau);font-size:14px;min-width:112px}
-.pa-fl.recht{background:none;border:2px dashed var(--m-2)} .pa-fl.leicht{background:var(--m-3-h);border:1px solid var(--m-3)} .pa-fl.ges{background:var(--m-erg-h);border:1px solid var(--m-erg)}
-.pa-lage{font-size:15.5px;line-height:1.42;margin:0;color:var(--tinte)}
 .pa-herleitung{display:flex;flex-direction:column;gap:4px}
 .pa-hz{display:flex;align-items:center;gap:10px;border-radius:10px;padding:3px 8px;background:var(--papier);border:1px solid var(--linie);font-size:17px}
 .pa-hz:last-child:not([hidden]){background:var(--m-erg-h);border-color:var(--m-erg-l)}
@@ -947,8 +947,7 @@ html.handy .wz-term{max-width:100%;overflow-x:auto;overflow-y:hidden}
 html.handy .wz-w > span:last-child{flex:1 1 100%}
 html.handy .pa-hz{flex-wrap:wrap;row-gap:0}
 html.handy .pa-hw{min-width:0;font-size:14px;flex:1 1 100%}
-html.handy .pa-wn{min-width:0;flex:1 1 calc(100% - 30px)}
-html.handy .pa-lage, html.handy .pa-karte p, html.handy .pa-faust, html.handy .pa-note{font-size:15.5px}
+html.handy .pa-karte p, html.handy .pa-faust, html.handy .pa-note{font-size:15.5px}
 html.handy .pa-tasten button, html.handy .pa-wp .pa-wk{min-height:42px}
 html.handy .pa-tasten .bt{width:100%}
 .titel h1 .pa-zweitname{display:block;font-size:.5em;font-weight:600;margin-top:.25em}
@@ -2174,6 +2173,10 @@ var temml=function(){"use strict";class e{constructor(t,r){let n,s=" "+t;const o
      zTex(v, st)     Dezimalzahl mit Komma: 2{,}5   (st = höchstens so viele Nachkommastellen)
      zfTex(v, st, o) Anzeige-Zahl: Tausenderpunkte, feste Stellen (Geld), Zehnerpotenz bei sehr groß/klein
      vTex([..])      Spaltenvektor  \begin{pmatrix}…\end{pmatrix}  (Einträge: Zahlen, Brüche oder LaTeX)
+     punktTex(n, k)  Punkt als Zeile S(x | y | z) (Einträge: Zahlen, Brüche oder LaTeX) – Vektoren dagegen als Spalte (vTex).
+                     Ganz: S({1} \mid {-3} \mid {2}); mit Bruch mitwachsend S\!\left({\frac{1}{2}} \;\middle|\; …\right).
+                     {…} hält „−3“ nach dem Strich als Vorzeichen. Standard seit 26.10. (Prüfblatt: Punkte und Vektoren im Raum)
+     summandTex(f, tex)  „+ f · tex“ mit Vorzeichen davor, Faktor ±1 weggelassen: `${vTex(P)} ${summandTex(t, vTex(u))}` → (…) − 2 · (…)
      pTex(k, v)      Polynom aus Koeffizienten (Index = Hochzahl; Zahlen oder Brüche): \frac{1}{2}x^{2} - 2x + 3
      klTex(tex)      Klammer um tex: normale ( ), nur um Brüche mitwachsend \left( … \right) – wie man es in LaTeX setzt
      M(text)         Text mit Mathe wie in LaTeX: $…$ im Text, $$…$$ abgesetzt. M('Steigung $m = \\frac{2}{3}$')
@@ -2209,6 +2212,14 @@ function zfTex(v, st = 2, o = {}){
   return r;
 }
 function vTex(a){ return `\\begin{pmatrix}${a.map(x => typeof x === 'object' ? qTex(x) : x).join('\\\\')}\\end{pmatrix}\\,`; }      // \, : wie in LaTeX etwas Luft vor dem folgenden + oder =
+function summandTex(f, tex){  // „+ f · tex“ mit dem Vorzeichen davor, Faktor 1 und −1 weggelassen: + v, − v, − 2 \cdot v (f ein Bruch)
+  const b = qTex({ z: Math.abs(f.z), n: f.n }), vz = f.z < 0 ? '-' : '+';
+  return b === '1' ? `${vz} ${tex}` : `${vz} ${b} \\cdot ${tex}`;
+}
+function punktTex(n, a){      // \left( nur bei Brüchen: um ganze Zahlen setzt der Browser sonst Luft in die Klammer
+  const t = a.map(x => typeof x === 'object' ? qTex(x) : String(x)), k = t.map(x => `{${x}}`);
+  return t.some(x => /\\[dt]?frac/.test(x)) ? `${n}\\!\\left(${k.join(' \\;\\middle|\\; ')}\\right)` : `${n}(${k.join(' \\mid ')})`;
+}
 function pTex(k, v = 'x'){
   const Z = c => typeof c === 'object' ? c : { z: c, n: 1 }, s = [];
   for (let i = k.length - 1; i >= 0; i--){
@@ -2969,10 +2980,8 @@ const folien = [
     <div class="pa-spalte">
       <div class="pa-feld" data-r="bild"></div>
       <div class="wz-regler"><span class="bt">${M('$x$ läuft von $0$ bis $b =$')}</span><input type="range" data-r="b" min="0.5" max="2" step="0.1" value="1" aria-label="obere Grenze b"><input class="wz-eingabe wz-reglerwert" data-r="bw" spellcheck="false" autocomplete="off" aria-label="obere Grenze b eintippen"></div>
-      <div class="pa-werte" data-r="werte"></div>
     </div>
     <div class="pa-spalte">
-      <p class="pa-lage">${M('<b>Beispiel:</b> $\\int_{0}^{b} x \\cdot e^{x}\\,dx$ mit $u = x$, $v\' = e^{x}$, also $u\' = 1$, $v = e^{x}$. Läuft $x$ von $0$ bis $b$, wandert die Ecke $(u \\mid v)$ des Rechtecks auf der Kurve: Sein oberer Rand überstreicht die Fläche links der Kurve, sein rechter Rand die Fläche unter der Kurve.')}</p>
       <div class="wz-panel"><h3>Herleitung <span class="rechts"><button class="knopf hell" data-r="zeile">Nächste Zeile</button><button class="knopf hell" data-r="allez">Alle</button></span></h3>
         <div class="pa-herleitung" data-r="herleitung"></div></div>
       <div class="pa-karte">
@@ -3498,7 +3507,7 @@ function PA_bild(feld, o, zeichne){
 }
 
 /* ---------------------------------------------------------------------
-   Folie „Die Idee“: festes Beispiel ∫₀ᵇ x·eˣ dx, u = x, v = eˣ. Im u-v-Bild ist das Rechteck [u·v] die Summe aus der
+   Folie „Die Idee“: Kurve zu ∫₀ᵇ x·eˣ dx, u = x, v = eˣ (Beispiel wird nicht genannt). Im u-v-Bild ist das Rechteck [u·v] die Summe aus der
    Fläche unter der Kurve (∫ u′·v dx = eᵇ − 1) und der Fläche links der Kurve (∫ u·v′ dx) – nachgerechnet in der Probe.
    --------------------------------------------------------------------- */
 const PA_IDEE = (() => {
@@ -3513,15 +3522,10 @@ const PA_IDEE = (() => {
     ['mit Grenzen', `${ges("\\int_{a}^{b} u \\cdot v'\\,dx")} = ${rec('\\big[u \\cdot v\\big]_{a}^{b}')} - ${lei("\\int_{a}^{b} u' \\cdot v\\,dx")}`],
   ];
   const dezimal = () => 100 % S.b.n === 0;
-  const bTex = () => (dezimal() ? zTex(qWert(S.b), 2) : qTex(S.b));
   const bText = () => (dezimal() ? String(qWert(S.b)).replace('.', ',') : qText(S.b));
   const zahlen = () => { const b = qWert(S.b), eb = Math.exp(b); return { b, eb, recht: b * eb, unter: eb - 1, links: b * eb - eb + 1 }; };
-  function werte(){
-    const z = zahlen(), b = bTex(), eins = qGleich(S.b, Q(1)), n4 = v => zTex(v, 4);
-    const zeile = (kl, name, teile, w) => `<div class="pa-wz" data-w="${w}"><i class="pa-fl ${kl}"></i><span class="pa-wn">${name}</span>${teile.map(t => F(t)).join(' ')}</div>`;
-    R('werte').innerHTML = zeile('recht', 'Rechteck', [`\\Big[u \\cdot v\\Big]_{0}^{${b}}`, `= ${b} \\cdot e^{${b}} - 0 \\cdot e^{0}`, `\\approx ${n4(z.recht)}`], n4(z.recht))
-      + zeile('leicht', 'unter der Kurve', [`\\int_{0}^{${b}} u' \\cdot v\\,dx`, `= \\int_{0}^{${b}} 1 \\cdot e^{x}\\,dx`, `= e^{${b}} - 1`, `\\approx ${n4(z.unter)}`], n4(z.unter))
-      + zeile('ges', 'links der Kurve', [`\\int_{0}^{${b}} u \\cdot v'\\,dx`, `= \\int_{0}^{${b}} x \\cdot e^{x}\\,dx`, `= ${b} \\cdot e^{${b}} - (e^{${b}} - 1)`, eins ? '= 1' : `\\approx ${n4(z.links)}`], eins ? '1' : n4(z.links));
+  function werte(){      // nicht angezeigt (Peter 29.10.: nur Bild und Herleitung), für die Probe
+    const z = zahlen();
     root.dataset.b = String(z.b); root.dataset.recht = String(z.recht); root.dataset.unter = String(z.unter); root.dataset.links = String(z.links);
   }
   function bild(){
@@ -3550,14 +3554,10 @@ const PA_IDEE = (() => {
   WZ.reglerEingabe(R('bw'), ({ q, v }) => (!q ? 'Für b bitte eine Zahl oder einen Bruch.' : v < 0.5 || v > 2 ? 'Für b bitte einen Wert von 0,5 bis 2 – sonst passt das Rechteck nicht ins Bild.' : (S.b = q, zeichne(), null)));
   R('zeile').onclick = () => { S.offen = Math.min(ZEILEN.length, S.offen + 1); herleitung(); };
   R('allez').onclick = () => { S.offen = ZEILEN.length; herleitung(); };
-  RE.knopf(R('allez'), () => { const z = zahlen(), b = bTex(), eins = qGleich(S.b, Q(1));
-    return { titel: 'Produktintegration: die Idee', datei: 'produktintegration_idee.tex', abschnitte: [
-      { titel: 'Herleitung', absaetze: ['Die Produktregel, auf beiden Seiten integriert und umgestellt:', ...['(u \\cdot v)\' = u\' \\cdot v + u \\cdot v\'', 'u \\cdot v = \\int u\' \\cdot v\\,dx + \\int u \\cdot v\'\\,dx', '\\int u \\cdot v\'\\,dx = u \\cdot v - \\int u\' \\cdot v\\,dx'].map(t => `$$${t}$$`)] },
-      { titel: 'Beispiel', absaetze: [`$\\int_{0}^{${b}} x \\cdot e^{x}\\,dx$ mit $u = x$, $v' = e^{x}$, also $u' = 1$, $v = e^{x}$.`,
-        `Rechteck: $\\Big[u \\cdot v\\Big]_{0}^{${b}} = ${b} \\cdot e^{${b}} - 0 \\cdot e^{0} \\approx ${zTex(z.recht, 4)}$`,
-        `Fläche unter der Kurve: $\\int_{0}^{${b}} 1 \\cdot e^{x}\\,dx = e^{${b}} - 1 \\approx ${zTex(z.unter, 4)}$`,
-        `Fläche links der Kurve: $\\int_{0}^{${b}} x \\cdot e^{x}\\,dx = ${b} \\cdot e^{${b}} - (e^{${b}} - 1) ${eins ? '= 1' : `\\approx ${zTex(z.links, 4)}`}$`] },
-    ] }; });
+  RE.knopf(R('allez'), () => ({ titel: 'Produktintegration: die Idee', datei: 'produktintegration_idee.tex', abschnitte: [
+      { titel: 'Herleitung', absaetze: ['Die Produktregel, auf beiden Seiten integriert und umgestellt:', ...['(u \\cdot v)\' = u\' \\cdot v + u \\cdot v\'', 'u \\cdot v = \\int u\' \\cdot v\\,dx + \\int u \\cdot v\'\\,dx', '\\int u \\cdot v\'\\,dx = u \\cdot v - \\int u\' \\cdot v\\,dx',
+        '\\int_{a}^{b} u \\cdot v\'\\,dx = \\big[u \\cdot v\\big]_{a}^{b} - \\int_{a}^{b} u\' \\cdot v\\,dx'].map(t => `$$${t}$$`)] },
+    ] }));
   window.addEventListener('handy-wechsel', bild);
   WZ.beiBreite(R('bild').parentElement, bild);
   herleitung(); zeichne();
