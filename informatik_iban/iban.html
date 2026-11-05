@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Die IBAN entschlüsselt: Land, Prüfziffern, BLZ und Kontonummer, Buchstaben als Ziffern bis Z (ein System mit 36 Ziffern), die Prüfrechnung mit Rest bei 97, Fehlerjagd mit anderen Teilern und Division mit Rest als Brücke zu den Primzahlen.">
+<title>IBAN</title>
+<style>
+/* ==== HANDY-SCHICHT: technik/handy/handy.css ==== */
+/* =====================================================================
+   HANDY-SCHICHT für den Rahmen der Vorlagen (ds1 / Folgen) — plus eine Regel für alle Ansichten:
+   zu viel Inhalt scrollt statt abgeschnitten zu werden.
+   Greift nur, wenn handy.js <html class="handy"> setzt: Bildschirm zu klein für die
+   Bühne 1280 × 720 (Handy, Tablet hochkant). Beamer, Laptop und Druck bleiben unberührt.
+   Aus der Bühne wird eine scrollbare Seite pro Folie; Raster werden einspaltig,
+   Schrift mindestens 14 px, Knöpfe mindestens 40 px (Finger).
+   ===================================================================== */
+/* ---- Für ALLE Ansichten (auch Beamer): nie abschneiden. Passt der Inhalt einer Folie nicht,
+        scrollt der Inhaltsbereich; Kopf und Fuß bleiben stehen. ---- */
+#stage .slide .inhalt{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#C4DFF2 transparent;
+  margin-bottom:-10px}   /* bis an die Fußzeilenlinie: der freie Rand darüber gehört zum Inhalt (Folgen nutzt ihn) */
+@media print{#stage .slide .inhalt{overflow:visible}}            /* Druck: alles zeigen */
+
+html.handy, html.handy body{height:auto;overflow-x:hidden;overflow-y:auto}
+html.handy body{display:block;background:var(--papier)}
+html.handy #stage{width:100%;height:auto;transform:none!important}
+html.handy .slide{position:relative;inset:auto;display:none;min-height:100vh;border-radius:0;box-shadow:none;
+  padding:64px 14px 84px;transform:none;transition:none;overflow:visible}
+html.handy .slide.aktiv{display:flex}
+
+/* Kopf, Überschriften, Fuß */
+html.handy .kopf{height:48px;padding:0 12px;gap:10px}
+html.handy .kopf img{height:34px}
+html.handy .kopf .schule{font-size:14px;letter-spacing:.06em}
+html.handy .kopf .kurs{display:none}
+html.handy h1{font-size:34px}
+html.handy h2, html.handy .slide.kompakt h2{font-size:25px}
+html.handy .eyebrow{font-size:14px;letter-spacing:.12em}
+html.handy .titelzeile, html.handy .slide.kompakt .titelzeile{margin-bottom:14px}
+html.handy .inhalt, html.handy #stage .slide .inhalt{display:block;overflow:visible;margin-bottom:0}   /* Handy: die Seite scrollt, nicht die Folie */
+html.handy .fuss{position:static;margin-top:22px;font-size:14px;gap:10px}
+html.handy p, html.handy li{font-size:17px}
+html.handy .klein, html.handy .hinweis{font-size:15px}
+
+/* Titelfolie: untereinander */
+html.handy .slide.titel{display:none;grid-template-columns:1fr;padding:0}
+html.handy .slide.titel.aktiv{display:grid}
+html.handy .slide.titel .links{padding:40px 20px 24px}
+html.handy .slide.titel .rechts{padding:24px 0 90px;border-left:none;border-top:1px solid rgba(255,255,255,.16)}
+html.handy .slide.titel .unter{font-size:18px}
+html.handy .slide.titel .meta span{font-size:14px}
+html.handy .slide.titel .logokachel{border-radius:26px;padding:16px 18px}
+html.handy .slide.titel .logokachel img{width:110px}
+html.handy .slide.titel svg{max-width:100%;height:auto}
+
+/* Raster und Karten: einspaltig */
+html.handy .raster, html.handy .g2, html.handy .g3, html.handy .g4{grid-template-columns:1fr!important}
+html.handy .karte p, html.handy .karte li{font-size:16px}
+
+/* Finger: Knöpfe und Felder mindestens 40 px */
+html.handy .knopf{min-height:42px;min-width:42px;font-size:15.5px;padding:8px 14px}
+html.handy input, html.handy select{min-height:42px;font-size:16px}   /* 16 px: iOS zoomt sonst beim Tippen */
+html.handy #nav{right:10px;bottom:10px;padding:6px 8px;gap:6px}
+html.handy #nav button{width:42px;height:42px;font-size:18px}
+html.handy #zaehler{font-size:14px}
+html.handy svg{max-width:100%;height:auto}
+/* ==== /HANDY-SCHICHT ==== */
+:root{
+  --blau:#136EA9;
+  --blau-d:#0C4E79;
+  --blau-h:#3E93CE;
+  --blau-pastell:#E3F0F9;
+  --orange:#F3A92F;
+  --orange-d:#D98908;
+  --orange-pastell:#FDF0DA;
+  --tinte:#16232E;
+  --grau:#5B6A76;
+  --linie:#D8E2EA;
+  --papier:#FFFFFF;
+  --bg:#EAF1F6;
+  --rot:#C62828;
+  --gruen:#2E7D32;
+  --stage-w:1280px;
+  --stage-h:720px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--tinte);
+  font-family:"Sansation","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+
+#stage{
+  position:relative;
+  width:var(--stage-w);height:var(--stage-h);
+  transform-origin:center center;
+  flex:none;
+}
+.slide{
+  position:absolute;inset:0;
+  background:var(--papier);
+  border-radius:14px;
+  box-shadow:0 18px 50px rgba(12,78,121,.22), 0 2px 6px rgba(12,78,121,.12);
+  overflow:hidden;
+  padding:86px 62px 58px;
+  opacity:0;visibility:hidden;
+  transform:translateY(14px) scale(.995);
+  transition:opacity .32s ease, transform .32s ease, visibility .32s;
+  display:flex;flex-direction:column;
+}
+.slide.aktiv{opacity:1;visibility:visible;transform:none}
+
+.kopf{
+  position:absolute;top:0;left:0;right:0;height:58px;
+  background:linear-gradient(100deg,var(--blau-d) 0%,var(--blau) 55%,var(--blau-h) 100%);
+  display:flex;align-items:center;gap:14px;
+  padding:0 22px 0 18px;
+  color:#fff;
+  z-index:5;
+}
+.kopf::after{
+  content:"";position:absolute;left:0;right:0;bottom:-5px;height:5px;
+  background:linear-gradient(90deg,var(--orange) 0%,var(--orange) 34%,#F6C46E 34%,#F6C46E 100%);
+}
+.kopf img{height:40px;width:auto;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))}
+.kopf .schule{font-size:13px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;opacity:.95}
+.kopf .kurs{
+  margin-left:auto;font-size:12.5px;font-weight:600;letter-spacing:.06em;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);
+  padding:5px 12px;border-radius:999px;
+}
+
+h1{font-size:56px;line-height:1.06;font-weight:800;letter-spacing:-.02em}
+h2{font-size:40px;line-height:1.12;font-weight:800;letter-spacing:-.015em;color:var(--blau-d)}
+h3{font-size:20px;font-weight:750;color:var(--blau-d)}
+p,li{font-size:19px;line-height:1.5;color:var(--tinte)}
+.klein{font-size:16px;line-height:1.45;color:var(--grau)}
+.eyebrow{
+  font-size:13px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--orange-d);margin-bottom:10px;
+}
+.titelzeile{margin-bottom:26px;flex:none}
+.titelzeile h2::after{
+  content:"";display:block;width:64px;height:5px;border-radius:3px;
+  background:var(--orange);margin-top:12px;
+}
+.slide.kompakt .titelzeile{margin-bottom:14px}
+.slide.kompakt h2{font-size:32px}
+.slide.kompakt h2::after{margin-top:8px;height:4px;width:52px}
+.inhalt{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:safe center}
+strong{color:var(--blau-d)}
+em{font-style:normal;background:linear-gradient(transparent 62%, var(--orange-pastell) 62%);padding:0 2px}
+
+.raster{display:grid;gap:20px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+
+.karte{
+  background:var(--papier);
+  border:1px solid var(--linie);
+  border-radius:12px;
+  padding:20px 22px;
+  box-shadow:0 2px 0 rgba(19,110,169,.05);
+  display:flex;flex-direction:column;gap:8px;
+}
+.karte.blau{background:var(--blau-pastell);border-color:#C4DFF2}
+.karte.orange{background:var(--orange-pastell);border-color:#F3DCAF}
+.karte.voll{background:linear-gradient(150deg,var(--blau-d),var(--blau));border:none;color:#fff}
+.karte.voll h3,.karte.voll strong{color:#fff}
+.karte.voll p,.karte.voll li{color:rgba(255,255,255,.92)}
+.karte .icon{font-size:26px;line-height:1}
+.karte p,.karte li{font-size:17px;line-height:1.45}
+
+.nummer{
+  width:38px;height:38px;flex:none;border-radius:10px;
+  background:var(--orange);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:19px;
+}
+.nummer.b{background:var(--blau)}
+.zeile{display:flex;gap:16px;align-items:flex-start}
+
+ul.liste{list-style:none;display:flex;flex-direction:column;gap:11px}
+ul.liste li{position:relative;padding-left:30px}
+ul.liste li::before{
+  content:"";position:absolute;left:6px;top:.55em;
+  width:9px;height:9px;border-radius:3px;background:var(--orange);
+}
+ul.liste.blaupunkt li::before{background:var(--blau)}
+ul.liste.eng{gap:7px}
+ul.liste.eng li{font-size:16px}
+
+.chip{
+  display:inline-block;padding:6px 14px;border-radius:999px;
+  background:var(--blau-pastell);color:var(--blau-d);
+  font-size:16px;font-weight:650;border:1px solid #C4DFF2;
+}
+.chip.o{background:var(--orange-pastell);color:var(--orange-d);border-color:#F3DCAF}
+
+.zitat{
+  border-left:6px solid var(--orange);
+  padding:6px 0 6px 22px;
+  font-size:26px;line-height:1.35;font-weight:600;color:var(--blau-d);
+}
+.grossezahl{font-size:76px;font-weight:800;line-height:1;color:var(--orange);letter-spacing:-.03em}
+
+.fuss{
+  position:absolute;left:62px;right:62px;bottom:20px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:12.5px;color:var(--grau);
+  border-top:1px solid var(--linie);padding-top:9px;
+}
+
+/* ---------- Titel ---------- */
+.slide.titel{
+  padding:0;
+  background:
+    radial-gradient(1100px 520px at 78% 8%, rgba(243,169,47,.20), transparent 62%),
+    linear-gradient(140deg,#0A4470 0%, var(--blau-d) 40%, var(--blau) 100%);
+  color:#fff;
+  display:grid;grid-template-columns:1.35fr .65fr;
+}
+.slide.titel .links{padding:74px 56px 56px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:2}
+.slide.titel .rechts{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  background:rgba(255,255,255,.07);border-left:1px solid rgba(255,255,255,.16);
+  position:relative;z-index:2;
+}
+.slide.titel .logokachel{
+  background:#fff;border-radius:38px;padding:28px 30px;
+  box-shadow:0 20px 46px rgba(0,0,0,.30), 0 0 0 1px rgba(255,255,255,.5);
+  display:flex;align-items:center;justify-content:center;
+}
+.slide.titel .logokachel img{width:168px;display:block}
+.slide.titel h1{color:#fff}
+.slide.titel .eyebrow{color:var(--orange)}
+.slide.titel .unter{font-size:23px;color:rgba(255,255,255,.9);margin-top:18px;max-width:640px}
+.slide.titel .meta{margin-top:38px;display:flex;gap:12px;flex-wrap:wrap}
+.slide.titel .meta span{
+  background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.26);
+  padding:8px 16px;border-radius:999px;font-size:15.5px;font-weight:600;
+}
+.slide.titel .balken{height:6px;width:110px;background:var(--orange);border-radius:4px;margin-bottom:26px}
+.titelfaecher{position:relative;height:150px;width:250px;margin-top:6px}
+.titelfaecher .sk{position:absolute;left:83px;top:10px;transform-origin:50% 120%}
+
+.bitregen{
+  position:absolute;inset:0;overflow:hidden;z-index:1;pointer-events:none;
+  font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;
+  font-size:15px;line-height:1.75;letter-spacing:.34em;
+  color:rgba(255,255,255,.085);word-break:break-all;
+}
+.bitregen div{animation:bitfluss 26s linear infinite}
+@keyframes bitfluss{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+
+.slide.schluss{grid-template-columns:1fr}
+.slide.schluss .links{align-items:center;text-align:center;padding:60px 120px}
+.slide.schluss img{width:64px;margin-bottom:34px;background:rgba(255,255,255,.92);border-radius:50%;padding:9px;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.zitatgross{font-size:40px;line-height:1.28;font-weight:700;letter-spacing:-.015em;color:#fff;max-width:960px}
+.zitatgross .strich{display:block;width:56px;height:5px;background:var(--orange);border-radius:3px;margin:26px auto 20px}
+.quelle{font-size:18px;font-weight:600;color:var(--orange);letter-spacing:.06em}
+
+/* ---------- Interaktive Bühnen (allgemein) ---------- */
+.interaktiv{cursor:default}
+.knopfleiste{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.knopf{
+  font:inherit;font-size:16px;font-weight:700;
+  border:none;border-radius:999px;padding:9px 18px;cursor:pointer;
+  background:var(--blau);color:#fff;
+  box-shadow:0 2px 0 rgba(12,78,121,.25);
+  transition:background .15s, opacity .15s, transform .1s;
+}
+.knopf:hover{background:var(--blau-d)}
+.knopf:active{transform:translateY(1px)}
+.knopf.o{background:var(--orange);color:#3A2500}
+.knopf.o:hover{background:var(--orange-d)}
+.knopf.hell{background:var(--blau-pastell);color:var(--blau-d);box-shadow:none;border:1px solid #C4DFF2}
+.knopf.hell:hover{background:#D2E7F6}
+.knopf.hell.an{background:var(--tinte);color:#fff;border-color:var(--tinte)}
+.knopf:disabled{opacity:.35;cursor:not-allowed}
+.knopf.aus{display:none}
+.status{font-size:19px;font-weight:700;color:var(--blau-d);min-height:28px}
+.status .sub{font-weight:600;color:var(--grau);font-size:16px}
+
+/* Tabelle */
+table.tab{border-collapse:separate;border-spacing:0;width:100%;font-size:19px}
+table.tab th{background:var(--blau-d);color:#fff;text-align:left;padding:10px 16px;font-size:15px;letter-spacing:.06em;text-transform:uppercase}
+table.tab th:first-child{border-top-left-radius:10px}
+table.tab th:last-child{border-top-right-radius:10px}
+table.tab td{padding:9px 16px;border-bottom:1px solid var(--linie)}
+table.tab tr:nth-child(even) td{background:#F6FAFD}
+table.tab td.z{font-weight:800;color:var(--orange-d);font-size:22px}
+
+/* Schritte */
+.schritte{display:flex;flex-direction:column;gap:9px}
+.schritt{display:flex;gap:14px;align-items:center;background:var(--papier);border:1px solid var(--linie);border-radius:11px;padding:9px 14px}
+.schritt .nummer{width:34px;height:34px;font-size:17px}
+.schritt p{font-size:18px;line-height:1.35}
+.schritt.wichtig{background:var(--orange-pastell);border-color:#F3DCAF}
+
+.frag{opacity:0;transform:translateY(10px);transition:opacity .34s ease,transform .34s ease}
+.frag.an{opacity:1;transform:none}
+.frag.vl{transform:translateX(-22px)}
+.frag.vr{transform:translateX(22px)}
+.frag.vl.an,.frag.vr.an{transform:none}
+
+#fortschritt{
+  position:fixed;left:0;top:0;height:4px;background:var(--orange);
+  width:0;transition:width .3s ease;z-index:50;
+}
+#nav{
+  position:fixed;right:18px;bottom:14px;z-index:50;
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.85);backdrop-filter:blur(6px);
+  border:1px solid var(--linie);border-radius:999px;padding:5px 8px;
+  box-shadow:0 4px 14px rgba(12,78,121,.14);
+}
+#nav button{
+  border:none;background:var(--blau-pastell);color:var(--blau-d);
+  width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;font-weight:800;
+}
+#nav button:hover{background:var(--blau);color:#fff}
+#zaehler{font-size:13px;font-weight:700;color:var(--grau);padding:0 6px;min-width:52px;text-align:center}
+
+#uebersicht{
+  position:fixed;inset:0;background:rgba(10,68,112,.96);z-index:100;
+  display:none;padding:34px;overflow:auto;
+}
+#uebersicht.an{display:block}
+#uebersicht h4{color:#fff;font-size:18px;margin-bottom:18px;font-weight:700}
+#uebersicht .gitter{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+#uebersicht .mini{
+  background:#fff;border-radius:8px;padding:14px;cursor:pointer;
+  border:3px solid transparent;min-height:78px;
+}
+#uebersicht .mini:hover{border-color:var(--orange)}
+#uebersicht .mini .nr{font-size:11px;font-weight:800;color:var(--orange-d)}
+#uebersicht .mini .tt{font-size:14px;font-weight:700;color:var(--blau-d);margin-top:3px;line-height:1.25}
+
+@media print{
+  @page{size:A4 landscape;margin:0}
+  body{display:block;background:#fff;overflow:visible}
+  #stage{transform:none!important;width:100%;height:auto}
+  .slide{
+    position:relative;visibility:visible;opacity:1;transform:none;
+    width:1280px;height:720px;page-break-after:always;box-shadow:none;border-radius:0;
+  }
+  .frag{opacity:1!important;transform:none!important}
+  #nav,#fortschritt,#uebersicht{display:none!important}
+}
+
+/* ================= IBAN (diese Präsentation) ================= */
+sub{font-size:.62em;vertical-align:-.25em;line-height:0}
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace}
+.meldung{font-size:16px;font-weight:600;color:var(--grau)}
+.meldung:empty{display:none}
+.meldung.nein{color:var(--rot);background:#FBE6E4;border:1px solid var(--rot);border-radius:10px;padding:8px 14px}
+
+/* IBAN-Zeichen: Land, Prüfziffern, BLZ, Kontonummer */
+.ic{display:inline-block;font-family:ui-monospace,Consolas,monospace;font-weight:800;border-radius:6px;padding:0 .08em;min-width:.75em;text-align:center}
+.ic.lk{margin-right:.45em}
+.ic.land{color:var(--grau);background:#F1F4F7}
+.ic.pz{color:#fff;background:var(--orange)}
+.ic.blz{color:var(--blau-d);background:var(--blau-pastell)}
+.ic.kto{color:var(--orange-d);background:var(--orange-pastell)}
+.ic.mark{outline:3px solid var(--rot);outline-offset:1px;color:var(--rot)}
+.luft{display:inline-block;width:.8em}
+.ibangross{font-size:46px;text-align:center;line-height:1.5;white-space:nowrap}
+.ibangross.klein2{font-size:38px}
+
+/* Titel */
+.titeliban{font-size:21px;background:#fff;border-radius:12px;padding:10px 14px;box-shadow:0 0 22px rgba(243,169,47,.55);white-space:nowrap}
+.titelrest{font-size:20px;font-weight:800;color:rgba(255,255,255,.9);font-family:ui-monospace,Consolas,monospace}
+
+/* Aufbau */
+.aufbau .teil{align-items:flex-start}
+.aufbau .tk{font-size:26px;font-weight:800;border-radius:8px;padding:2px 10px}
+.aufbau .land .tk{color:var(--grau);background:#F1F4F7}
+.aufbau .pz .tk{color:#fff;background:var(--orange)}
+.aufbau .blz .tk{color:var(--blau-d);background:var(--blau-pastell)}
+.aufbau .kto .tk{color:var(--orange-d);background:var(--orange-pastell)}
+
+/* Tippfehler */
+.vergleich{display:flex;flex-direction:column;gap:6px}
+.vergleich .vl{font-size:14px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--grau);text-align:center}
+
+/* 36 Ziffern */
+.z36{display:grid;grid-template-columns:repeat(12,1fr);gap:7px}
+.zk{border-radius:10px;padding:3px 2px;display:flex;flex-direction:column;align-items:center;border:1px solid var(--linie)}
+.zk b{font-size:30px;line-height:1.1;font-family:ui-monospace,Consolas,monospace}
+.zk span{font-size:14px;font-weight:700;color:var(--grau)}
+.zk.d{background:#F1F4F7}
+.zk.d b{color:var(--grau)}
+.zk.h{background:var(--blau-pastell);border-color:#C4DFF2}
+.zk.h b{color:var(--blau-d)}
+.zk.n{background:var(--orange-pastell);border-color:#F3DCAF}
+.zk.n b{color:var(--orange-d)}
+.z36legende{display:flex;gap:18px;justify-content:center;margin-top:10px;font-size:15px;font-weight:700}
+.z36legende span{padding:3px 12px;border-radius:999px}
+.z36legende .d{background:#F1F4F7;color:var(--grau)}
+.z36legende .h{background:var(--blau-pastell);color:var(--blau-d)}
+.z36legende .n{background:var(--orange-pastell);color:var(--orange-d)}
+
+/* Eingaben */
+.eingabezeile{display:flex;flex-direction:column;gap:4px}
+.eingabezeile label{font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--grau)}
+.grossfeld{font:inherit;font-family:ui-monospace,Consolas,monospace;font-size:40px;font-weight:800;width:100%;min-width:0;border:2px solid var(--linie);border-radius:12px;padding:2px 12px;color:var(--blau-d);background:#fff}
+.grossfeld.mittel{font-size:28px}
+.grossfeld.breit{font-size:28px}
+.grossfeld:focus{outline:none;border-color:var(--blau)}
+.grossfeld.falsch{border-color:var(--rot);background:#FBE6E4}
+
+/* Basis 36 */
+table.b36{border-collapse:separate;border-spacing:6px}
+table.b36 th{font-size:14px;font-weight:800;color:var(--grau);text-align:right;padding-right:8px}
+table.b36 td{min-width:84px;height:40px;text-align:center;font-size:20px;font-weight:800;border-radius:9px;background:#F1F4F7;color:var(--blau-d);padding:0 8px}
+table.b36 td.sw{background:var(--blau-d);color:#fff;font-size:17px}
+table.b36 td.zf{background:var(--orange);color:#fff;font-size:28px}
+table.b36 td.ok{background:var(--orange-pastell);color:var(--orange-d);font-size:18px}
+.b36erg{background:linear-gradient(150deg,var(--blau-d),var(--blau));border-radius:14px;padding:10px 16px;color:#fff;font-size:20px;font-weight:700;overflow-wrap:anywhere}
+.b36erg b{color:var(--orange);font-size:28px}
+
+/* Prüfrechnung */
+.pruefweg{display:flex;flex-direction:column;gap:10px}
+.pw{display:grid;grid-template-columns:40px 300px 1fr;gap:14px;align-items:center;background:#fff;border:1px solid var(--linie);border-radius:14px;padding:8px 14px}
+.pw p{font-size:17px;font-weight:700;color:var(--blau-d)}
+.pw.wichtig{background:var(--orange-pastell);border-color:#F3DCAF}
+.pwz{font-size:26px;white-space:nowrap}
+.pwz.gross{font-size:21px;font-weight:700;color:var(--blau-d)}
+.pwz.gross b{color:var(--orange-d)}
+.pwz.gross2{font-size:22px;font-weight:700;color:var(--blau-d)}
+
+/* Rest mitnehmen */
+.stueckzahl{font-size:40px;font-weight:800;text-align:center;letter-spacing:.02em;margin-bottom:14px}
+.s1,.s3{color:var(--blau-d);background:var(--blau-pastell);border-radius:6px}
+.s2,.s4{color:var(--orange-d);background:var(--orange-pastell);border-radius:6px}
+table.resttab{border-collapse:separate;border-spacing:0 6px;margin:0 auto;font-size:26px;font-weight:700;color:var(--blau-d)}
+table.resttab td{padding:2px 12px}
+table.resttab td:first-child{text-align:right}
+table.resttab td.r{color:var(--orange-d);font-weight:800}
+table.resttab .mit{color:#fff;background:var(--grau);border-radius:6px;padding:0 4px;margin-right:2px}
+table.resttab tr.frag{opacity:0}
+table.resttab tr.frag.an{opacity:1}
+table.resttab.klein3{font-size:19px;margin:0;border-spacing:0 3px}
+table.resttab.klein3 td{padding:1px 8px}
+
+/* Prüfziffern bauen */
+.bauweg{display:flex;flex-direction:column;gap:8px}
+.bauweg .schritt{align-items:flex-start}
+.sinhalt{display:flex;flex-direction:column;gap:5px;min-width:0}
+.sinhalt .pwz{font-size:24px}
+
+/* Prüfer */
+.pruefkopf{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap}
+.prweg{display:flex;flex-direction:column;gap:8px}
+.prweg .pwz{font-size:30px}
+.landt{color:var(--grau)}
+.pzt{color:var(--orange-d)}
+.urteil{border-radius:16px;padding:16px;text-align:center;font-size:26px;font-weight:700;color:#fff}
+.urteil b{font-size:44px}
+.urteil.gut{background:var(--gruen)}
+.urteil.schlecht{background:var(--rot)}
+#prFehler strong{color:var(--rot)}
+
+/* Fehlerjagd */
+.jagdkopf{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap}
+.jgzerlegung{font-size:20px;color:var(--blau-d)}
+.jgzerlegung b{font-family:ui-monospace,Consolas,monospace;font-size:24px}
+.jagdtab{display:flex;flex-direction:column;gap:9px}
+.jz{display:grid;grid-template-columns:230px 1fr;gap:4px 12px;align-items:center;background:#fff;border:1px solid var(--linie);border-radius:12px;padding:8px 12px}
+.jt{font-size:16px;font-weight:800;color:var(--blau-d)}
+.jb{height:16px;background:#E6F3E7;border-radius:999px;overflow:hidden}
+.jb i{display:block;height:100%;background:var(--rot);border-radius:999px}
+.jw{grid-column:1 / -1;font-size:16px;font-weight:700}
+.jw.rot{color:var(--rot)}
+.jw.gruen{color:var(--gruen)}
+
+/* Division mit Rest */
+.formelband{display:flex;gap:24px;align-items:baseline;justify-content:center;background:linear-gradient(150deg,var(--blau-d),var(--blau));border-radius:18px;padding:16px;color:#fff}
+.formelband .mono{font-size:52px;font-weight:800}
+.formelband .klein{color:rgba(255,255,255,.85);font-size:22px}
+p.rz{font-size:19px;font-weight:700;color:var(--blau-d)}
+p.rz b{color:var(--orange-d)}
+
+/* Rest-Tafel */
+.rtfeld{display:grid;justify-content:center}
+.rtfeld i{border-radius:4px;background:#F1F4F7;border:1px solid #E4ECF2}
+.rtfeld i.voll{background:var(--blau);border-color:var(--blau-d)}
+.rtfeld i.rest{background:var(--orange);border-color:var(--orange-d)}
+.rterg{text-align:center}
+.rterg .gl{font-size:34px;font-weight:800;color:var(--blau-d)}
+.rterg .gl b{color:var(--orange-d)}
+.rterg .gl2{font-size:24px;font-weight:700;color:var(--grau)}
+
+/* Primzahlen */
+.pmgitter{display:grid;grid-template-columns:repeat(auto-fill,minmax(50px,1fr));gap:5px}
+.pm{border-radius:8px;background:#F1F4F7;border:1px solid #E4ECF2;display:flex;flex-direction:column;align-items:center;padding:1px 0}
+.pm b{font-size:16px;color:var(--blau-d)}
+.pm span{font-size:14px;font-weight:700;color:var(--grau)}
+.pm.null{background:var(--orange);border-color:var(--orange-d)}
+.pm.null b,.pm.null span{color:#fff}
+.pmgitter.dicht{grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:3px}
+.pmgitter.dicht .pm b{font-size:14px}
+.pmurteil{border-radius:14px;padding:10px 16px;font-size:21px;font-weight:700;text-align:center}
+.pmurteil.ja{background:linear-gradient(150deg,var(--blau-d),var(--blau));color:#fff}
+.pmurteil.ja strong{color:var(--orange)}
+.pmurteil.nein{background:var(--orange-pastell);color:var(--blau-d)}
+
+/* ---------- Handy ---------- */
+html.handy .titeliban{font-size:12px;white-space:normal}
+html.handy .ibangross{font-size:20px;white-space:normal}
+html.handy .ibangross.klein2{font-size:18px}
+html.handy .aufbau .tk{font-size:20px}
+html.handy .z36{grid-template-columns:repeat(6,1fr)}
+html.handy .z36legende{flex-wrap:wrap;gap:8px}
+html.handy .grossfeld{font-size:26px}
+html.handy .grossfeld.mittel,html.handy .grossfeld.breit{font-size:20px}
+html.handy table.b36 td{min-width:0;font-size:15px;padding:0 4px}
+html.handy table.b36 td.zf{font-size:20px}
+html.handy table.b36 td.sw,html.handy table.b36 td.ok{font-size:14px}
+html.handy .b36tab{overflow-x:auto}
+html.handy .pw{grid-template-columns:40px 1fr}
+html.handy .pwz{grid-column:1 / -1;font-size:15px;white-space:normal;overflow-wrap:anywhere}
+html.handy .pwz.gross,html.handy .pwz.gross2{font-size:15px}
+html.handy .stueckzahl{font-size:19px;overflow-wrap:anywhere}
+html.handy table.resttab{font-size:15px}
+html.handy table.resttab td{padding:2px 4px}
+html.handy table.resttab.klein3{font-size:14px}
+html.handy .sinhalt .pwz,html.handy .prweg .pwz{font-size:16px}
+html.handy .urteil{font-size:20px}
+html.handy .urteil b{font-size:30px}
+html.handy .jz{grid-template-columns:1fr}
+html.handy .formelband{flex-direction:column;align-items:center;gap:4px}
+html.handy .formelband .mono{font-size:32px}
+html.handy .rterg .gl{font-size:24px}
+html.handy .rterg .gl2{font-size:18px}
+html.handy .pmgitter,html.handy .pmgitter.dicht{grid-template-columns:repeat(auto-fill,minmax(44px,1fr))}
+html.handy .pmgitter.dicht .pm b,html.handy .pm b{font-size:14px}
+html.handy .titelrest{font-size:16px}
+.prweg .resttab,.sinhalt .resttab{align-self:flex-start}
+html.handy sub{font-size:14px}
+html.handy .titeliban .ic{font-size:14px}
+.schlusszeile{color:rgba(255,255,255,.85);font-size:19px;margin-top:26px;max-width:780px}
+
+</style>
+</head>
+<body>
+
+<div id="fortschritt"></div>
+<div id="stage"></div>
+
+<div id="nav">
+  <button id="uebBtn" title="Übersicht (O)">☰</button>
+  <button id="zurueck" title="Zurück (←)">‹</button>
+  <span id="zaehler">1 / 1</span>
+  <button id="vor" title="Weiter (→)">›</button>
+</div>
+
+<div id="uebersicht"><h4>Übersicht — Folie anklicken (ESC schließt)</h4><div class="gitter"></div></div>
+
+<script>
+const LOGO = "data:image/jpeg;base64,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";
+</script>
+
+<script>
+const KURS = "Informatik · Algorithmen";
+const REIHE = "IBAN";
+const Z36 = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const MUSTER = 'DE89370400440532013000';
+const BITS = (MUSTER + ' 1314 Rest 1 97 ').repeat(14);
+const sub = b => `<sub>${b}</sub>`;
+
+/* IBAN farbig: Land, Prüfziffern, BLZ, Kontonummer – in Viererblöcken */
+const TEILE = ['land','land','pz','pz', ...Array(8).fill('blz'), ...Array(10).fill('kto')];
+const ibanHTML = (iban, mark = new Set()) => [...iban].map((c,k)=>
+  `<span class="ic ${TEILE[k] || ''}${mark.has(k) ? ' mark' : ''}${k % 4 === 3 && k < iban.length-1 ? ' lk' : ''}">${c}</span>`).join('');
+
+const folien = [
+
+{titel:"Titel", klasse:"titel", roh:`
+  <div class="bitregen"><div>${BITS}${BITS}</div></div>
+  <div class="links">
+    <div class="balken"></div>
+    <div class="eyebrow">Zahlensysteme im Alltag</div>
+    <h1>IBAN</h1>
+    <p class="unter">Eine Kontonummer, die ihre eigenen Tippfehler bemerkt.</p>
+    <div class="meta">
+      <span>Informatik</span>
+      <span>Unterrichtsreihe Algorithmen</span>
+    </div>
+  </div>
+  <div class="rechts">
+    <div class="logokachel"><img src="${LOGO}" alt="Logo Montessori-Schule Landau"></div>
+    <div class="titeliban">${ibanHTML(MUSTER)}</div>
+    <div class="titelrest">… : 97 = … Rest 1</div>
+  </div>
+`},
+
+{titel:"Aufbau", eyebrow:"Die IBAN", h2:"22 Zeichen, vier Teile", roh:`
+  <div class="ibangross frag" data-schritt="1">${ibanHTML(MUSTER)}</div>
+  <div class="raster g4 aufbau" style="gap:16px;margin-top:26px">
+    <div class="karte teil land frag" data-schritt="2"><div class="tk mono">DE</div><h3>Land</h3><p class="klein">Zwei Buchstaben: DE für Deutschland, AT für Österreich, FR für Frankreich.</p></div>
+    <div class="karte teil pz frag" data-schritt="5"><div class="tk mono">89</div><h3>Prüfziffern</h3><p class="klein">Zwei Ziffern, die aus allen anderen <strong>berechnet</strong> werden. Um sie geht es heute.</p></div>
+    <div class="karte teil blz frag" data-schritt="3"><div class="tk mono">370 400 44</div><h3>Bankleitzahl</h3><p class="klein">Acht Ziffern: Welche Bank? Die BLZ gab es schon vor der IBAN.</p></div>
+    <div class="karte teil kto frag" data-schritt="4"><div class="tk mono">0532013000</div><h3>Kontonummer</h3><p class="klein">Zehn Ziffern: Welches Konto? Ist sie kürzer, wird sie <strong>vorn mit Nullen</strong> aufgefüllt.</p></div>
+  </div>
+  <p class="klein frag" data-schritt="6" style="margin-top:18px;text-align:center">Diese IBAN steht als Beispiel in vielen Anleitungen. Alle anderen IBANs hier sind ausgedacht.</p>
+`},
+
+{titel:"Tippfehler", eyebrow:"Das Problem", h2:"Eine Ziffer falsch, und das Geld landet woanders?", roh:`
+  <div class="vergleich">
+    <div class="frag"><p class="vl">richtig</p><div class="ibangross klein2">${ibanHTML(MUSTER)}</div></div>
+    <div class="frag"><p class="vl">vertippt</p><div class="ibangross klein2">${ibanHTML('DE89370400440532018000', new Set([18]))}</div></div>
+  </div>
+  <div class="raster g3" style="gap:18px;margin-top:26px">
+    <div class="karte blau frag"><h3>Ohne Prüfung</h3><p class="klein">Eine 3 statt einer 8 – und schon ist es eine andere Kontonummer. Die könnte es wirklich geben.</p></div>
+    <div class="karte blau frag"><h3>Die Idee</h3><p class="klein">Zwei Ziffern werden aus allen anderen <strong>ausgerechnet</strong>. Wer sich vertippt, bringt die Rechnung durcheinander.</p></div>
+    <div class="karte orange frag"><h3>Mit Prüfung</h3><p class="klein">Die Banking-App rechnet nach, noch bevor Geld fließt: <strong>„IBAN ungültig“</strong>.</p></div>
+  </div>
+`},
+
+{titel:"Bis Z", klasse:"kompakt", eyebrow:"Buchstaben als Ziffern", h2:"Nach F geht es weiter – bis Z", roh:`
+  <div class="z36 frag">
+    ${[...Z36].map((z,k)=>`<div class="zk ${k<10?'d':k<16?'h':'n'}"><b>${z}</b><span>${k}</span></div>`).join('')}
+  </div>
+  <div class="z36legende frag"><span class="d">0–9: kennt ihr</span><span class="h">A–F: aus der Hex-Stunde</span><span class="n">G–Z: neu</span></div>
+  <div class="raster g3" style="gap:18px;margin-top:16px">
+    <div class="karte blau frag"><h3>Weiterzählen</h3><p class="klein">Hex hörte bei F = 15 auf. Wir zählen einfach weiter: G = 16, H = 17, … <strong>Z = 35</strong>.</p></div>
+    <div class="karte orange frag"><h3>36 Ziffern</h3><p class="klein">0 bis 9 und A bis Z: Das sind 36 Ziffern. Wir haben uns gerade ein <strong>neues Zahlensystem</strong> gebaut – zur Basis 36.</p></div>
+    <div class="karte voll frag"><p class="klein">Für die IBAN heißt das: <strong>D = 13</strong> und <strong>E = 14</strong>. Genau wie bei hex.</p></div>
+  </div>
+`},
+
+{titel:"Basis 36", klasse:"kompakt", eyebrow:"Ein eigenes Zahlensystem", h2:"Jedes Wort ist eine Zahl", roh:`
+  <div class="interaktiv raster" id="basis36" style="grid-template-columns:1.35fr 1fr;gap:26px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="eingabezeile">
+        <label for="b36Feld">Wort oder Zahl (bis 6 Zeichen)</label>
+        <input id="b36Feld" class="grossfeld mono" value="MSL" autocomplete="off" spellcheck="false" maxlength="12">
+      </div>
+      <div class="knopfleiste">
+        ${['MSL','HI','ZZ','10','IBAN'].map(w=>`<button class="knopf hell b36bsp" data-w="${w}">${w}</button>`).join('')}
+      </div>
+      <div class="meldung" id="b36Meldung"></div>
+      <div class="b36tab" id="b36Tab"></div>
+      <div class="b36erg" id="b36Erg"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="karte blau"><h3>Stellenwerte</h3><p class="klein">Von rechts: 1, 36, 36 · 36 = 1296, … – so wie 1, 16, 256 bei hex und 1, 10, 100 bei uns.</p></div>
+      <div class="karte orange frag"><h3>Was ist ZZ?</h3><p class="klein">Die größte Zahl mit zwei Stellen: 35 · 36 + 35 = 1295. Eins mehr ist <strong class="mono">10</strong>${sub(36)} = 1296 – wie FF und 100 bei hex.</p></div>
+      <div class="karte voll frag"><h3>Die IBAN macht es sich leichter</h3><p class="klein">Sie rechnet nicht 13 · 36 + 14. Sie schreibt die Werte nur <strong>hintereinander</strong>: aus DE wird <strong class="mono">13 14</strong>.</p></div>
+    </div>
+  </div>
+`},
+
+{titel:"Die Prüfrechnung", eyebrow:"So prüft die Bank", h2:"Vier Schritte – am Ende muss Rest 1 stehen", roh:`
+  <div class="pruefweg">
+    <div class="pw frag"><div class="nummer b">1</div><p>Leerzeichen weg</p><div class="pwz">${ibanHTML(MUSTER)}</div></div>
+    <div class="pw frag"><div class="nummer b">2</div><p>Die ersten vier Zeichen nach hinten</p><div class="pwz">${ibanHTML(MUSTER).replace(/^(?:<span[^>]*>.<\/span>){4}/, '')}<span class="luft"></span>${[...'DE89'].map((c,k)=>`<span class="ic ${k<2?'land':'pz'}">${c}</span>`).join('')}</div></div>
+    <div class="pw frag"><div class="nummer b">3</div><p>Buchstaben ersetzen: D = 13, E = 14</p><div class="pwz">${ibanHTML(MUSTER).replace(/^(?:<span[^>]*>.<\/span>){4}/, '')}<span class="luft"></span><span class="ic land">13</span><span class="ic land">14</span><span class="ic pz">8</span><span class="ic pz">9</span></div></div>
+    <div class="pw wichtig frag"><div class="nummer">4</div><p>Diese Zahl durch 97 teilen</p><div class="pwz gross mono">370400440532013000131489 : 97 = 3818561242598072166304 <b>Rest 1</b></div></div>
+  </div>
+  <div class="raster g2" style="gap:18px;margin-top:20px">
+    <div class="karte blau frag"><h3>Rest 1: gültig</h3><p class="klein">Jeder andere Rest heißt: Hier stimmt etwas nicht. Die Bank führt die Überweisung nicht aus.</p></div>
+    <div class="karte orange frag"><h3>Aber: 24 Stellen!</h3><p class="klein">So eine Zahl passt in keinen Taschenrechner. Wie rechnet man das? Nächste Folie.</p></div>
+  </div>
+`},
+
+{titel:"Rest mitnehmen", eyebrow:"Zu groß für den Taschenrechner", h2:"Stückweise teilen und den Rest mitnehmen", roh:`
+  <div class="stueckzahl mono frag" data-schritt="1"><span class="s1">370400440</span><span class="s2">5320130</span><span class="s3">0013148</span><span class="s4">9</span></div>
+  <table class="resttab frag" data-schritt="2">
+    <tr class="frag" data-schritt="2"><td class="mono"><span class="s1">370400440</span></td><td>: 97 = 3818561</td><td class="r">Rest 23</td></tr>
+    <tr class="frag" data-schritt="3"><td class="mono"><b class="mit">23</b><span class="s2">5320130</span></td><td>: 97 = 2425980</td><td class="r">Rest 70</td></tr>
+    <tr class="frag" data-schritt="4"><td class="mono"><b class="mit">70</b><span class="s3">0013148</span></td><td>: 97 = 7216630</td><td class="r">Rest 38</td></tr>
+    <tr class="frag" data-schritt="5"><td class="mono"><b class="mit">38</b><span class="s4">9</span></td><td>: 97 = 4</td><td class="r">Rest 1 ✓</td></tr>
+  </table>
+  <div class="raster g2" style="gap:18px;margin-top:18px">
+    <div class="karte blau frag" data-schritt="6"><h3>Wie beim schriftlichen Teilen</h3><p class="klein">Was vorne nicht aufgeht, wandert als Rest nach rechts weiter. Der Rest ist höchstens 96 – also nie mehr als zwei Ziffern.</p></div>
+    <div class="karte orange frag" data-schritt="7"><h3>So rechnen auch Computer</h3><p class="klein">Mit 24 Stellen rechnet ein normales Programm ungenau. Stückweise bleibt jede Zahl klein – und das Ergebnis ist exakt.</p></div>
+  </div>
+`},
+
+{titel:"Prüfziffern berechnen", klasse:"kompakt", eyebrow:"Prüfziffern berechnen", h2:"Aus BLZ und Kontonummer wird eine IBAN", roh:`
+  <div class="interaktiv raster" id="bauer" style="grid-template-columns:330px 1fr;gap:24px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="eingabezeile"><label for="bauBLZ">Bankleitzahl (8 Ziffern)</label><input id="bauBLZ" class="grossfeld mono mittel" value="370 400 44" autocomplete="off" spellcheck="false" inputmode="numeric"></div>
+      <div class="eingabezeile"><label for="bauKto">Kontonummer (bis 10 Ziffern)</label><input id="bauKto" class="grossfeld mono mittel" value="532013000" autocomplete="off" spellcheck="false" inputmode="numeric"></div>
+      <button class="knopf o" id="bauZufall">Ausgedachtes Konto</button>
+      <div class="meldung" id="bauMeldung"></div>
+      <div class="karte blau" style="padding:10px 14px"><h3>Warum 98 − Rest?</h3><p class="klein" style="font-size:14.5px">Mit 00 bleibt der Rest r. Die Prüfziffern kommen genau dorthin, wo die 00 stand: r + (98 − r) = 98 = 97 + 1. Beim Prüfen bleibt also <strong>Rest 1</strong>.</p></div>
+    </div>
+    <div class="bauweg" id="bauWeg"></div>
+  </div>
+`},
+
+{titel:"IBAN prüfen", klasse:"kompakt", eyebrow:"IBAN prüfen", h2:"Gültig oder vertippt?", roh:`
+  <div class="interaktiv" id="pruefer" style="display:flex;flex-direction:column;gap:12px">
+    <div class="pruefkopf">
+      <div class="eingabezeile" style="flex:1"><label for="prFeld">IBAN (mit oder ohne Leerzeichen)</label><input id="prFeld" class="grossfeld mono breit" value="DE89 3704 0044 0532 0130 00" autocomplete="off" spellcheck="false"></div>
+      <div class="knopfleiste">
+        <button class="knopf o" id="prTipp">Tippfehler einbauen</button>
+        <button class="knopf o" id="prDreh">Zahlendreher einbauen</button>
+        <button class="knopf hell" id="prMuster">Beispiel-IBAN</button>
+      </div>
+    </div>
+    <div class="meldung" id="prMeldung"></div>
+    <div class="raster" style="grid-template-columns:1fr 330px;gap:20px;align-items:start">
+      <div class="prweg" id="prWeg"></div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="urteil" id="prUrteil"></div>
+        <div class="klein" id="prFehler"></div>
+      </div>
+    </div>
+  </div>
+`},
+
+{titel:"Warum 97?", klasse:"kompakt", eyebrow:"Warum gerade 97?", h2:"Fehlerjagd: Was rutscht durch?", roh:`
+  <div class="interaktiv raster" id="jagd" style="grid-template-columns:1.45fr 1fr;gap:26px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <p class="klein">Wir bauen in die Beispiel-IBAN jeden möglichen Fehler ein und rechnen jedes Mal die Prüfung. Bleibt der Rest trotzdem 1, merkt sie den Fehler nicht: Er <strong>rutscht durch</strong>.</p>
+      <div class="jagdkopf">
+        <div class="eingabezeile"><label for="jgFeld">Teilen durch</label><input id="jgFeld" class="grossfeld mono mittel" value="97" autocomplete="off" spellcheck="false" inputmode="numeric" style="width:120px"></div>
+        <div class="knopfleiste">${[10,96,11,97].map(t=>`<button class="knopf hell jgbsp" data-t="${t}">${t}</button>`).join('')}</div>
+      </div>
+      <div class="meldung" id="jgMeldung"></div>
+      <div class="jgzerlegung" id="jgZerl"></div>
+      <div class="jagdtab" id="jgTab"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="karte blau frag"><h3>Wann rutscht ein Fehler durch?</h3><p class="klein">Ändert sich die lange Zahl um ein Vielfaches des Teilers, bleibt der Rest gleich. Bei 10 zählt nur die letzte Ziffer: 1234 und 1294 lassen beide Rest 4.</p></div>
+      <div class="karte orange frag"><h3>97 ist eine Primzahl</h3><p class="klein">Ein Tippfehler ändert die Zahl um (neue − alte Ziffer) · 10 · 10 · … Darin steckt die 97 nie: <strong>Jeder</strong> Tippfehler und jeder Dreher fällt auf.</p></div>
+      <div class="karte voll frag"><h3>Ganz sicher? Fast.</h3><p class="klein">Zwei Tippfehler können sich aufheben: Aus <span class="mono" style="white-space:nowrap">3704 <strong>00</strong>44</span> wird <span class="mono" style="white-space:nowrap">3704 <strong>97</strong>44</span>, die Zahl wächst um genau 97 · 10 · 10 · …, der Rest bleibt 1. Das trifft etwa jeden hundertsten Doppelfehler.</p></div>
+    </div>
+  </div>
+`},
+
+{titel:"Division mit Rest", eyebrow:"Was alles verbindet", h2:"Division mit Rest war immer dabei", roh:`
+  <div class="formelband frag"><span class="mono">a = q · b + r</span><span class="klein">mit 0 ≤ r &lt; b</span></div>
+  <div class="raster g4" style="gap:16px;margin-top:22px">
+    <div class="karte blau frag"><h3>Binär</h3><p class="mono rz">45 : 2 = 22 <b>Rest 1</b></p><p class="klein">Der Rest ist das letzte Bit.</p></div>
+    <div class="karte blau frag"><h3>Hex</h3><p class="mono rz">45 : 16 = 2 <b>Rest 13</b></p><p class="klein">Rest 13 wird die Ziffer D: 45 = 2D${sub(16)}.</p></div>
+    <div class="karte blau frag"><h3>Uhr</h3><p class="mono rz">30 : 24 = 1 <b>Rest 6</b></p><p class="klein">30 Stunden nach Mitternacht ist es 6 Uhr.</p></div>
+    <div class="karte orange frag"><h3>IBAN</h3><p class="mono rz">… : 97 = … <b>Rest 1</b></p><p class="klein">Rest 1 heißt: gültig.</p></div>
+  </div>
+  <div class="karte voll frag" style="margin-top:20px"><p style="font-size:19px">Der Rest ist immer kleiner als der Teiler. Bei 16 gibt es 16 mögliche Reste (0 bis 15) – darum braucht hex <strong>16 Ziffern</strong>. Und bei 36? <strong>36 Ziffern</strong>, bis Z.</p></div>
+`},
+
+{titel:"Rest-Tafel", klasse:"kompakt", eyebrow:"Division mit Rest", h2:"In Reihen legen: Was bleibt übrig?", roh:`
+  <div class="interaktiv raster" id="resttafel" style="grid-template-columns:300px 1fr;gap:26px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="eingabezeile"><label for="rtA">Zahl a (0 bis 150)</label><input id="rtA" class="grossfeld mono mittel" value="45" autocomplete="off" spellcheck="false" inputmode="numeric"></div>
+      <div class="eingabezeile"><label for="rtB">Reihen zu b (2 bis 30)</label><input id="rtB" class="grossfeld mono mittel" value="16" autocomplete="off" spellcheck="false" inputmode="numeric"></div>
+      <div class="knopfleiste">${[[45,2],[45,16],[30,24],[91,7],[97,7]].map(([a,b])=>`<button class="knopf hell rtbsp" data-a="${a}" data-b="${b}">${a} : ${b}</button>`).join('')}</div>
+      <div class="meldung" id="rtMeldung"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;align-items:center">
+      <div class="rtfeld" id="rtFeld"></div>
+      <div class="rterg" id="rtErg"></div>
+    </div>
+  </div>
+`},
+
+{titel:"Primzahlen", klasse:"kompakt", eyebrow:"Ausblick", h2:"Zahlen, bei denen nichts aufgeht", roh:`
+  <div class="interaktiv" id="prim" style="display:flex;flex-direction:column;gap:12px">
+    <div class="pruefkopf">
+      <div class="eingabezeile"><label for="pmFeld">Zahl (2 bis 200)</label><input id="pmFeld" class="grossfeld mono mittel" value="97" autocomplete="off" spellcheck="false" inputmode="numeric" style="width:140px"></div>
+      <div class="knopfleiste">${[96,97,91,11,12].map(n=>`<button class="knopf hell pmbsp" data-n="${n}">${n}</button>`).join('')}</div>
+      <p class="klein" style="flex:1;min-width:260px">Die Zahl durch 2, 3, 4, … teilen. Jedes Kästchen zeigt den Teiler und darunter den Rest. <strong>Rest 0</strong> heißt: geht auf.</p>
+    </div>
+    <div class="meldung" id="pmMeldung"></div>
+    <div class="pmgitter" id="pmGitter"></div>
+    <div class="pmurteil" id="pmUrteil"></div>
+  </div>
+`},
+
+{titel:"Wer noch Lust hat", eyebrow:"Arbeitsblatt", h2:"Wer noch Lust hat: das IBAN-Arbeitsblatt", roh:`
+  <div class="raster g3" style="gap:16px">
+    <div class="karte blau frag"><div class="nummer b">1</div><h3>Aufbau</h3><p class="klein">Land, Prüfziffern, Bankleitzahl, Kontonummer: Was steckt in welcher IBAN?</p></div>
+    <div class="karte blau frag"><div class="nummer b">2</div><h3>36 Ziffern</h3><p class="klein">Buchstaben in Zahlen übersetzen – und Wörter im 36er-System ausrechnen.</p></div>
+    <div class="karte orange frag"><div class="nummer">3</div><h3>Teilen mit Rest</h3><p class="klein">Schokoküsse, Wochentage, Uhrzeiten – und große Zahlen durch 97.</p></div>
+    <div class="karte blau frag"><div class="nummer b">4</div><h3>Primzahlen</h3><p class="klein">Mit Rest durch 2, 3, 5 und 7 teilen: Welche Zahlen sind Primzahlen?</p></div>
+    <div class="karte orange frag"><div class="nummer">5</div><h3>IBAN prüfen</h3><p class="klein">Eine notierte IBAN stückweise prüfen – und den Fehler finden.</p></div>
+  </div>
+  <div class="karte voll frag" style="margin-top:20px">
+    <p style="font-size:18px">Taschenrechner erlaubt. Prüfen geht mit den Folien: <strong style="color:var(--orange)">Eigene IBAN in den Prüfer tippen</strong> und vergleichen.</p>
+  </div>
+`},
+
+{titel:"Abschluss", klasse:"titel schluss", roh:`
+  <div class="bitregen"><div>${BITS}${BITS}</div></div>
+  <div class="links">
+    <img src="${LOGO}" alt="">
+    <div class="zitatgross">
+      Vier Zeichen nach hinten, D = 13, E = 14,<br>durch 97 teilen: Rest 1 heißt gültig.
+      <span class="strich"></span>
+    </div>
+    <div class="quelle">MERKSATZ</div>
+    <div class="meta" style="justify-content:center;margin-top:30px">
+      <span>${KURS}</span>
+      <span>${REIHE}</span>
+    </div>
+  </div>
+`}
+
+];
+
+</script>
+
+<script>
+/* =====================================================================
+   Folien aufbauen und navigieren (Rahmen wie ds2)
+   ===================================================================== */
+const stage = document.getElementById('stage');
+
+folien.forEach((f,i)=>{
+  const el = document.createElement('section');
+  el.className = 'slide' + (f.klasse ? ' '+f.klasse : '');
+  let html = '';
+  if(!(f.klasse||'').split(' ').includes('titel')){
+    html += `<header class="kopf">
+        <img src="${LOGO}" alt="">
+        <span class="schule">Montessori-Schule Landau</span>
+        <span class="kurs">${KURS}</span>
+      </header>`;
+    if(f.h2){
+      html += `<div class="titelzeile">${f.eyebrow?`<div class="eyebrow">${f.eyebrow}</div>`:''}<h2>${f.h2}</h2></div>`;
+    }
+    html += `<div class="inhalt">${f.roh}</div>`;
+    html += `<div class="fuss"><span>${REIHE}</span><span>${i+1} / ${folien.length}</span></div>`;
+  } else {
+    html = f.roh;
+  }
+  el.innerHTML = html;
+  stage.appendChild(el);
+});
+
+const slides = [...document.querySelectorAll('.slide')];
+let i = 0, schritt = 0;
+
+function frags(n){
+  const alle = [...slides[n].querySelectorAll('.frag')];
+  return alle
+    .map((el,k)=>({el, ord: el.dataset.schritt ? parseFloat(el.dataset.schritt) : k+1, k}))
+    .sort((a,b)=> a.ord - b.ord || a.k - b.k)
+    .map(x=>x.el);
+}
+
+function zeige(n, alleFragmente=false){
+  i = Math.max(0, Math.min(slides.length-1, n));
+  slides.forEach((s,k)=>s.classList.toggle('aktiv', k===i));
+  const fr = frags(i);
+  schritt = alleFragmente ? fr.length : 0;
+  fr.forEach((f,k)=>f.classList.toggle('an', k<schritt));
+  document.getElementById('zaehler').textContent = (i+1)+' / '+slides.length;
+  document.getElementById('fortschritt').style.width = ((i+1)/slides.length*100)+'%';
+  location.hash = i+1;
+}
+function vor(){
+  const fr = frags(i);
+  if(schritt < fr.length){ fr[schritt].classList.add('an'); schritt++; return; }
+  if(i < slides.length-1) zeige(i+1);
+}
+function zurueck(){
+  if(schritt > 0){ schritt--; frags(i)[schritt].classList.remove('an'); return; }
+  if(i > 0) zeige(i-1, true);
+}
+
+function skalieren(){
+  const rand = 40;
+  const s = Math.min((innerWidth-rand)/1280, (innerHeight-rand)/720);
+  stage.style.transform = 'scale('+s+')';
+}
+addEventListener('resize', skalieren);
+
+const ueb = document.getElementById('uebersicht');
+const gitter = ueb.querySelector('.gitter');
+folien.forEach((f,k)=>{
+  const d = document.createElement('div');
+  d.className = 'mini';
+  d.innerHTML = `<div class="nr">FOLIE ${k+1}</div><div class="tt">${f.h2 || f.titel}</div>`;
+  d.onclick = ()=>{ ueb.classList.remove('an'); zeige(k); };
+  gitter.appendChild(d);
+});
+
+addEventListener('keydown', e=>{
+  if(e.target.closest && e.target.closest('input, select, textarea')) return;   // in Feldern tippen, nicht blättern
+  if(e.target.closest && e.target.closest('button') && (e.key===' '||e.key==='Enter')) return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='Enter'){ e.preventDefault(); vor(); }
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='Backspace'){ e.preventDefault(); zurueck(); }
+  else if(e.key==='Home'){ zeige(0); }
+  else if(e.key==='End'){ zeige(slides.length-1, true); }
+  else if(e.key==='o'||e.key==='O'){ ueb.classList.toggle('an'); }
+  else if(e.key==='Escape'){ ueb.classList.remove('an'); }
+  else if(e.key==='f'||e.key==='F'){ vollbild(); }
+});
+function vollbild(){
+  const el = document.documentElement;
+  if(document.fullscreenElement) document.exitFullscreen();
+  else if(el.requestFullscreen) el.requestFullscreen();
+  else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+}
+// Wischen auf Tablets: links = weiter, rechts = zurück (nicht in interaktiven Bereichen)
+let wischX = null, wischY = null;
+stage.addEventListener('touchstart', e=>{
+  if(e.target.closest('.interaktiv')){ wischX = null; return; }
+  wischX = e.touches[0].clientX; wischY = e.touches[0].clientY;
+}, {passive:true});
+stage.addEventListener('touchend', e=>{
+  if(wischX === null) return;
+  const dx = e.changedTouches[0].clientX - wischX, dy = e.changedTouches[0].clientY - wischY;
+  if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) (dx < 0 ? vor : zurueck)();
+  wischX = null;
+});
+document.getElementById('uebBtn').onclick = ()=> ueb.classList.toggle('an');
+document.getElementById('vor').onclick = vor;
+document.getElementById('zurueck').onclick = zurueck;
+stage.addEventListener('click', e=>{ if(!e.target.closest('a, button, input, .interaktiv')) vor(); });
+
+skalieren();
+zeige(parseInt(location.hash.slice(1)) - 1 || 0);
+
+/* =====================================================================
+   IBAN-Hilfen: streng lesen, nichts still verändern
+   ===================================================================== */
+const B = id => document.getElementById(id);
+/* Zahlen ab 10 000 mit Leerzeichen gruppiert (wie 65 535), darunter ohne */
+const tz = n => n < 10000 ? String(n) : n.toLocaleString('de-DE').replace(/\./g, '\u00a0');
+const gruppen = s => s.match(/.{1,4}/g).join(' ');
+const umstellen = iban => iban.slice(4) + iban.slice(0, 4);
+const ersetzen = s => [...s].map(c => /[A-Z]/.test(c) ? String(Z36.indexOf(c)) : c).join('');
+const zahlVon = iban => ersetzen(umstellen(iban));
+
+/* Rest bei 97 stückweise: erst 9 Ziffern, dann Rest + 7 Ziffern – jede Zahl bleibt unter einer Milliarde */
+function stueckweise(z){
+  const zeilen = []; let r = null, t = z;
+  while(t.length){
+    const neu = t.slice(0, r === null ? 9 : 7); t = t.slice(neu.length);
+    const vorn = r === null ? '' : String(r), v = Number(vorn + neu);
+    r = v % 97; zeilen.push({vorn, neu, q: Math.floor(v / 97), r});
+  }
+  return zeilen;
+}
+const restTab = zeilen => `<table class="resttab klein3">${zeilen.map((x,k)=>
+  `<tr><td class="mono">${x.vorn ? `<b class="mit">${x.vorn}</b>` : ''}<span class="s${k % 4 + 1}">${x.neu}</span></td><td>: 97 = ${x.q}</td><td class="r">Rest ${x.r}</td></tr>`).join('')}</table>`;
+
+/* Ziffernfolge mit erlaubten einzelnen Leerzeichen zwischen Blöcken; {wert} | {leer} | {fehler} */
+function liesZiffern(t, name, min, max){
+  const s = t.trim();
+  if(!s) return {leer:true};
+  if(!/^\d+( \d+)*$/.test(s)) return {fehler:`${name}: nur Ziffern 0 bis 9, Leerzeichen höchstens einzeln zwischen Blöcken.`};
+  const x = s.replace(/ /g, '');
+  if(x.length < min || x.length > max) return {fehler: min === max ? `${name}: genau ${min} Ziffern, hier sind es ${x.length}.` : `${name}: ${min} bis ${max} Ziffern, hier sind es ${x.length}.`};
+  return {wert:x};
+}
+/* ganze Zahl in [lo, hi] */
+function liesGanz(t, name, lo, hi){
+  const s = t.trim();
+  if(!s) return {leer:true};
+  if(!/^\d+$/.test(s)) return {fehler:`${name}: bitte eine ganze Zahl (nur Ziffern 0 bis 9).`};
+  const w = s.length > 6 ? Infinity : Number(s);
+  if(w < lo || w > hi) return {fehler:`${name}: von ${lo} bis ${hi}.`};
+  return {wert:w};
+}
+function liesIBAN(t){
+  const s = t.trim();
+  if(!s) return {leer:true};
+  if(!/^[A-Za-z0-9]+( [A-Za-z0-9]+)*$/.test(s)) return {fehler:'Nur Buchstaben und Ziffern, Leerzeichen höchstens einzeln zwischen den Blöcken.'};
+  const x = s.replace(/ /g, '').toUpperCase();
+  if(!/^[A-Z]{2}/.test(x)) return {fehler:'Eine IBAN beginnt mit zwei Buchstaben für das Land, zum Beispiel DE.'};
+  if(x.slice(0, 2) !== 'DE') return {fehler:`${x.slice(0, 2)} ist nicht Deutschland. Hier geht es um deutsche IBANs: DE und 20 Ziffern.`};
+  if(!/^DE\d+$/.test(x)) return {fehler:'Nach DE kommen bei einer deutschen IBAN nur Ziffern.'};
+  if(x.length !== 22) return {fehler:`Eine deutsche IBAN hat 22 Zeichen, hier sind es ${x.length}.`};
+  return {wert:x};
+}
+/* Feld rot + Meldung oder alles sauber; gibt true zurück, wenn gerechnet werden darf */
+function melde(feld, box, r){
+  feld.classList.toggle('falsch', !!r.fehler);
+  box.className = r.fehler ? 'meldung nein' : 'meldung';
+  box.textContent = r.fehler || '';
+  return !r.fehler && !r.leer;
+}
+
+/* =====================================================================
+   Basis 36: Wort → Zahl mit Stellenwerten
+   ===================================================================== */
+const BASIS36 = (function(){
+  const feld = B('b36Feld');
+  let wert = null;
+  function lies(t){
+    const s = t.trim();
+    if(!s) return {leer:true};
+    if(/[äöüßÄÖÜ]/.test(s)) return {fehler:'Ä, Ö, Ü und ß gibt es unter den 36 Ziffern nicht – schreib AE, OE, UE, SS.'};
+    if(!/^[A-Za-z0-9]+$/.test(s)) return {fehler:'Nur die 36 Ziffern 0 bis 9 und A bis Z, ohne Leerzeichen.'};
+    if(s.length > 6) return {fehler:'Höchstens 6 Zeichen.'};
+    return {wert:s.toUpperCase()};
+  }
+  function zeige(w){
+    const n = w.length;
+    const z = [...w].map((c,k)=>({c, v:Z36.indexOf(c), s:36 ** (n-1-k)}));
+    wert = z.reduce((a,x)=> a + x.v * x.s, 0);
+    B('b36Tab').innerHTML = `<table class="b36"><tr><th>Stellenwert</th>${z.map(x=>`<td class="sw">${tz(x.s)}</td>`).join('')}</tr>
+      <tr><th>Ziffer</th>${z.map(x=>`<td class="zf mono">${x.c}</td>`).join('')}</tr>
+      <tr><th>Wert</th>${z.map(x=>`<td>${x.v}</td>`).join('')}</tr>
+      <tr><th>zählt</th>${z.map(x=>`<td class="ok">${tz(x.v * x.s)}</td>`).join('')}</tr></table>`;
+    B('b36Erg').innerHTML = `<b class="mono">${w}</b>${sub(36)} = ${z.length > 1 ? z.map(x=>tz(x.v * x.s)).join(' + ') + ' = ' : ''}<b>${tz(wert)}</b>`;
+    B('basis36').dataset.wert = wert;
+  }
+  function eingabe(){ const r = lies(feld.value); if(melde(feld, B('b36Meldung'), r)) zeige(r.wert); }
+  feld.addEventListener('input', eingabe);
+  document.querySelectorAll('.b36bsp').forEach(k => k.onclick = ()=>{ feld.value = k.dataset.w; eingabe(); });
+  eingabe();
+  return { get wert(){ return wert; } };
+})();
+
+/* =====================================================================
+   Prüfziffern berechnen: BLZ + Kontonummer → IBAN
+   ===================================================================== */
+const BAUER = (function(){
+  const fb = B('bauBLZ'), fk = B('bauKto');
+  let iban = null;
+  function rechne(){
+    const rb = liesZiffern(fb.value, 'Bankleitzahl', 8, 8), rk = liesZiffern(fk.value, 'Kontonummer', 1, 10);
+    fb.classList.toggle('falsch', !!rb.fehler); fk.classList.toggle('falsch', !!rk.fehler);
+    const f = rb.fehler || rk.fehler;
+    B('bauMeldung').className = f ? 'meldung nein' : 'meldung'; B('bauMeldung').textContent = f || '';
+    if(f || rb.leer || rk.leer) return;
+    const kto = rk.wert.padStart(10, '0'), bban = rb.wert + kto;
+    const roh = 'DE00' + bban, zahl = zahlVon(roh), zeilen = stueckweise(zahl);
+    const r = zeilen.at(-1).r, pz = String(98 - r).padStart(2, '0');
+    iban = 'DE' + pz + bban;
+    const schritt = (n, titel, inhalt, wichtig) =>
+      `<div class="schritt${wichtig ? ' wichtig' : ''}"><div class="nummer${wichtig ? '' : ' b'}">${n}</div><div class="sinhalt"><p>${titel}</p>${inhalt}</div></div>`;
+    B('bauWeg').innerHTML =
+      schritt(1, `Kontonummer auf 10 Stellen${kto !== rk.wert ? ', vorn mit Nullen' : ''}, Prüfziffern erst einmal <strong>00</strong>:`,
+        `<div class="pwz">${ibanHTML(roh)}</div>`) +
+      schritt(2, 'DE00 nach hinten, D = 13 und E = 14:', `<div class="pwz mono gross2">${zahl.slice(0, 18)}<span class="luft"></span><span class="ic land">1314</span><span class="ic pz">00</span></div>`) +
+      schritt(3, 'Stückweise durch 97 teilen:', restTab(zeilen)) +
+      schritt(4, `Prüfziffern: 98 − ${r} = <strong>${98 - r}</strong>${98 - r < 10 ? `, zweistellig: <strong>${pz}</strong>` : ''}`,
+        `<div class="pwz">${ibanHTML(iban, new Set([2, 3]))}</div><p class="klein">Probe: Diese IBAN in den Prüfer tippen – es bleibt Rest 1.</p>`, true);
+    B('bauer').dataset.iban = iban;
+  }
+  [fb, fk].forEach(f => f.addEventListener('input', rechne));
+  B('bauZufall').onclick = ()=>{
+    const z = n => Array.from({length:n}, ()=> Math.floor(Math.random() * 10)).join('');
+    const blz = String(1 + Math.floor(Math.random() * 8)) + z(7);
+    fb.value = blz.slice(0, 3) + ' ' + blz.slice(3, 6) + ' ' + blz.slice(6);
+    fk.value = String(1 + Math.floor(Math.random() * 9)) + z(4 + Math.floor(Math.random() * 6));
+    rechne();
+  };
+  rechne();
+  return { get iban(){ return iban; } };
+})();
+
+/* =====================================================================
+   IBAN prüfen, mit eingebauten Fehlern
+   ===================================================================== */
+const PRUEFER = (function(){
+  const feld = B('prFeld');
+  let iban = null, rest = null, mark = new Set(), fehlerText = '';
+  function zeige(){
+    const zahl = zahlVon(iban), zeilen = stueckweise(zahl);
+    rest = zeilen.at(-1).r;
+    B('prWeg').innerHTML =
+      `<div class="pwz">${ibanHTML(iban, mark)}</div>` +
+      `<p class="klein">Nach hinten und ersetzen: <span class="mono">${zahl.slice(0, 18)} <b class="landt">1314</b> <b class="pzt">${iban.slice(2, 4)}</b></span></p>` +
+      restTab(zeilen);
+    const ok = rest === 1;
+    B('prUrteil').className = 'urteil ' + (ok ? 'gut' : 'schlecht');
+    B('prUrteil').innerHTML = ok ? `Rest 1<br><b>gültig</b>` : `Rest ${rest}<br><b>ungültig</b>`;
+    B('prFehler').innerHTML = fehlerText;
+    B('pruefer').dataset.rest = rest;
+  }
+  function eingabe(){
+    mark = new Set(); fehlerText = '';
+    const r = liesIBAN(feld.value);
+    if(melde(feld, B('prMeldung'), r)){ iban = r.wert; zeige(); }
+  }
+  function setze(neu, m, text){
+    feld.value = gruppen(neu); feld.classList.remove('falsch');
+    B('prMeldung').className = 'meldung'; B('prMeldung').textContent = '';
+    iban = neu; mark = m; fehlerText = text; zeige();
+  }
+  feld.addEventListener('input', eingabe);
+  B('prMuster').onclick = ()=> setze(MUSTER, new Set(), '');
+  B('prTipp').onclick = ()=>{
+    if(!iban) return;
+    const p = 2 + Math.floor(Math.random() * 20), alt = iban[p];
+    let d; do{ d = String(Math.floor(Math.random() * 10)); }while(d === alt);
+    setze(iban.slice(0, p) + d + iban.slice(p + 1), new Set([p]), `Eingebaut: Zeichen ${p + 1} war <strong>${alt}</strong>, jetzt <strong>${d}</strong>.`);
+  };
+  B('prDreh').onclick = ()=>{
+    if(!iban) return;
+    const moegl = []; for(let p = 2; p < 21; p++) if(iban[p] !== iban[p + 1]) moegl.push(p);
+    if(!moegl.length) return;
+    const p = moegl[Math.floor(Math.random() * moegl.length)];
+    setze(iban.slice(0, p) + iban[p + 1] + iban[p] + iban.slice(p + 2), new Set([p, p + 1]),
+      `Eingebaut: Zeichen ${p + 1} und ${p + 2} vertauscht (<strong>${iban[p]}${iban[p + 1]}</strong> → <strong>${iban[p + 1]}${iban[p]}</strong>).`);
+  };
+  eingabe();
+  return { get iban(){ return iban; }, get rest(){ return rest; } };
+})();
+
+/* =====================================================================
+   Fehlerjagd: alle Fehler an der Beispiel-IBAN gegen einen Teiler m
+   ===================================================================== */
+const JAGD = (function(){
+  const feld = B('jgFeld');
+  let ergebnis = null;
+  /* Stelle p der IBAN (2…21) → Stellenwert in der umgestellten Zahl */
+  const zahl = zahlVon(MUSTER), L = zahl.length;
+  const index = p => p >= 4 ? p - 4 : L - 2 + (p - 2);
+  const stellen = Array.from({length:20}, (_,k)=> k + 2);
+  const zif = p => Number(MUSTER[p]);
+  function zaehle(m){
+    const w = {}; for(const p of stellen){ let x = 1; for(let k = 0; k < L - 1 - index(p); k++) x = x * 10 % m; w[p] = x; }
+    const null_ = x => ((x % m) + m) % m === 0;
+    const e = {ein:[0,0], nach:[0,0], vert:[0,0], zwei:[0,0]};
+    for(const p of stellen) for(let d = 0; d < 10; d++) if(d !== zif(p)){ e.ein[1]++; if(null_((d - zif(p)) * w[p])) e.ein[0]++; }
+    for(const p of stellen) for(const q of stellen){
+      if(q <= p) continue;
+      if(zif(p) !== zif(q)){
+        const t = null_((zif(q) - zif(p)) * w[p] + (zif(p) - zif(q)) * w[q]);
+        e.vert[1]++; if(t) e.vert[0]++;
+        if(q === p + 1){ e.nach[1]++; if(t) e.nach[0]++; }
+      }
+      for(let a = 0; a < 10; a++) if(a !== zif(p)) for(let b = 0; b < 10; b++) if(b !== zif(q)){
+        e.zwei[1]++; if(null_((a - zif(p)) * w[p] + (b - zif(q)) * w[q])) e.zwei[0]++;
+      }
+    }
+    return e;
+  }
+  function zerlege(n){ const f = []; for(let t = 2; t * t <= n; t++) while(n % t === 0){ f.push(t); n /= t; } if(n > 1) f.push(n); return f; }
+  const prozent = (a, b) => (a / b * 100).toLocaleString('de-DE', {maximumFractionDigits:1});
+  function zeige(m){
+    ergebnis = zaehle(m);
+    const f = zerlege(m);
+    B('jgZerl').innerHTML = f.length === 1 ? `<b>${m}</b> ist eine <strong>Primzahl</strong>.` : `<b>${m}</b> = ${f.join(' · ')} – keine Primzahl.`;
+    const zeilen = [['ein','Ein Tippfehler'], ['nach','Zwei Nachbarn vertauscht'], ['vert','Zwei beliebige Ziffern vertauscht'], ['zwei','Zwei Tippfehler zugleich']];
+    B('jgTab').innerHTML = zeilen.map(([k, t])=>{ const [d, n] = ergebnis[k];
+      return `<div class="jz" data-k="${k}"><span class="jt">${t}</span><span class="jb"><i style="width:${d / n * 100}%"></i></span>
+        <span class="jw${d ? ' rot' : ' gruen'}">${d ? `${tz(d)} von ${tz(n)} rutschen durch (${prozent(d, n)} %)` : `alle ${tz(n)} bemerkt`}</span></div>`; }).join('');
+    B('jagd').dataset.m = m;
+  }
+  function eingabe(){ const r = liesGanz(feld.value, 'Teiler', 2, 99); if(melde(feld, B('jgMeldung'), r)) zeige(r.wert); }
+  feld.addEventListener('input', eingabe);
+  document.querySelectorAll('.jgbsp').forEach(k => k.onclick = ()=>{ feld.value = k.dataset.t; eingabe(); });
+  eingabe();
+  return { get ergebnis(){ return ergebnis; } };
+})();
+
+/* =====================================================================
+   Rest-Tafel: a Plätze in Reihen zu b
+   ===================================================================== */
+const RESTTAFEL = (function(){
+  const fa = B('rtA'), fb = B('rtB');
+  let stand = null;
+  function zeige(a, b){
+    const q = Math.floor(a / b), r = a % b, reihen = Math.ceil(a / b) || 1;
+    const breite = Math.min(560, innerWidth - 70, (B('rtFeld').parentElement.clientWidth || 560) - 8), hoehe = document.documentElement.classList.contains('handy') ? 420 : 330;
+    const g = Math.max(6, Math.min(26, Math.floor(breite / b) - 3, Math.floor(hoehe / reihen) - 3));
+    const feld = B('rtFeld');
+    feld.style.gridTemplateColumns = `repeat(${b}, ${g}px)`; feld.style.gap = g > 12 ? '3px' : '2px';
+    let h = '';
+    for(let k = 0; k < reihen * b; k++) h += `<i class="${k < q * b ? 'voll' : k < a ? 'rest' : ''}" style="width:${g}px;height:${g}px"></i>`;
+    feld.innerHTML = h;
+    stand = {a, b, q, r};
+    B('rtErg').innerHTML = `<p class="mono gl">${a} : ${b} = ${q} <b>Rest ${r}</b></p><p class="mono gl2">${a} = ${q} · ${b} + ${r}</p>` +
+      `<p class="klein">${q} volle Reihe${q === 1 ? '' : 'n'} zu ${b}, ${r} übrig. ` +
+      (r === 0 ? `<strong>Geht auf: ${b} ist ein Teiler von ${a}.</strong>` : `Der Rest ist kleiner als ${b} – sonst gäbe es noch eine volle Reihe.`) + '</p>';
+    B('resttafel').dataset.stand = JSON.stringify(stand);
+  }
+  function rechne(){
+    const ra = liesGanz(fa.value, 'Zahl a', 0, 150), rb = liesGanz(fb.value, 'Reihenlänge b', 2, 30);
+    fa.classList.toggle('falsch', !!ra.fehler); fb.classList.toggle('falsch', !!rb.fehler);
+    const f = ra.fehler || rb.fehler;
+    B('rtMeldung').className = f ? 'meldung nein' : 'meldung'; B('rtMeldung').textContent = f || '';
+    if(!f && !ra.leer && !rb.leer) zeige(ra.wert, rb.wert);
+  }
+  [fa, fb].forEach(f => f.addEventListener('input', rechne));
+  addEventListener('handy-wechsel', rechne); addEventListener('resize', rechne);
+  document.querySelectorAll('.rtbsp').forEach(k => k.onclick = ()=>{ fa.value = k.dataset.a; fb.value = k.dataset.b; rechne(); });
+  rechne();
+  return { get stand(){ return stand; } };
+})();
+
+/* =====================================================================
+   Primzahlen: alle Reste von n : 2 … n − 1
+   ===================================================================== */
+const PRIM = (function(){
+  const feld = B('pmFeld');
+  let teiler = null;
+  function zeige(n){
+    teiler = [];
+    let h = '';
+    for(let b = 2; b < n; b++){ const r = n % b; if(!r) teiler.push(b); h += `<div class="pm${r ? '' : ' null'}"><b>${b}</b><span>${r}</span></div>`; }
+    B('pmGitter').innerHTML = h || '<p class="klein">Zwischen 1 und 2 gibt es nichts zum Probieren.</p>';
+    B('pmGitter').classList.toggle('dicht', n > 120);
+    B('pmUrteil').className = 'pmurteil ' + (teiler.length ? 'nein' : 'ja');
+    B('pmUrteil').innerHTML = teiler.length
+      ? `${n} lässt sich teilen durch <strong>${teiler.join(', ')}</strong> – keine Primzahl.`
+      : `Nie Rest 0: <strong>${n} ist eine Primzahl</strong> – nur durch 1 und ${n} teilbar.`;
+    B('prim').dataset.teiler = teiler.join(',');
+  }
+  function eingabe(){ const r = liesGanz(feld.value, 'Zahl', 2, 200); if(melde(feld, B('pmMeldung'), r)) zeige(r.wert); }
+  feld.addEventListener('input', eingabe);
+  document.querySelectorAll('.pmbsp').forEach(k => k.onclick = ()=>{ feld.value = k.dataset.n; eingabe(); });
+  eingabe();
+  return { get teiler(){ return teiler; } };
+})();
+
+</script>
+<script data-handy="technik/handy/handy.js">
+/* =====================================================================
+   HANDY-SCHICHT — schaltet die Handy-Ansicht, wenn die Bühne 1280 × 720 zu stark
+   verkleinert würde (Maßstab unter 0,62: Handy hoch und quer, Tablet hochkant).
+   Muss NACH der Folien-Navigation des Rahmens stehen (nutzt stage, zeige, skalieren).
+   Meldet Wechsel mit dem Ereignis „handy-wechsel", damit Rechner neu zeichnen können.
+   ===================================================================== */
+(function(){
+  const html = document.documentElement;
+  const istHandy = () => Math.min(innerWidth / 1280, innerHeight / 720) < 0.62;
+  let vorher = null;
+  function pruefen(){
+    const h = istHandy();
+    html.classList.toggle('handy', h);
+    if (h) stage.style.transform = 'none';
+    else if (typeof skalieren === 'function') skalieren();
+    if (h !== vorher){ vorher = h; window.dispatchEvent(new CustomEvent('handy-wechsel', { detail: h })); }
+  }
+  addEventListener('resize', pruefen);
+  addEventListener('orientationchange', () => setTimeout(pruefen, 200));
+  pruefen();
+
+  // Neue Folie (und nur dann, nicht bei jedem Knopf): nach oben scrollen
+  const wach = new MutationObserver((liste) => {
+    if (!html.classList.contains('handy')) return;
+    if (liste.some((m) => m.target.classList.contains('aktiv') && !/\baktiv\b/.test(m.oldValue || ''))) window.scrollTo(0, 0);
+  });
+  document.querySelectorAll('.slide').forEach((f) => wach.observe(f, { attributes: true, attributeFilter: ['class'], attributeOldValue: true }));
+
+  // Beim Scrollen tippt man oft auf Text: auf dem Handy blättert ein Tipp nicht weiter
+  stage.addEventListener('click', (e) => {
+    if (html.classList.contains('handy') && !e.target.closest('a, button, input, select, textarea, label, .interaktiv')) e.stopPropagation();
+  }, true);
+})();
+</script><!-- /HANDY-SCHICHT -->
+</body>
+</html>
