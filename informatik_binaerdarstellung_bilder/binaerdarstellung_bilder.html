@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Wie ein Computer Bilder speichert: Pixel, Schwarz-Weiß als Bits, Graustufen und RGB-Farben von 0 bis 255, ein Pixel-Atelier mit PBM/PPM und PNG, ein Bildlabor mit Filtern als Formeln, Speicherbedarf und ein Geheimbild im letzten Bit.">
+<title>Binärdarstellung von Bildern</title>
+<style>
+/* ==== HANDY-SCHICHT: technik/handy/handy.css ==== */
+/* =====================================================================
+   HANDY-SCHICHT für den Rahmen der Vorlagen (ds1 / Folgen) — plus eine Regel für alle Ansichten:
+   zu viel Inhalt scrollt statt abgeschnitten zu werden.
+   Greift nur, wenn handy.js <html class="handy"> setzt: Bildschirm zu klein für die
+   Bühne 1280 × 720 (Handy, Tablet hochkant). Beamer, Laptop und Druck bleiben unberührt.
+   Aus der Bühne wird eine scrollbare Seite pro Folie; Raster werden einspaltig,
+   Schrift mindestens 14 px, Knöpfe mindestens 40 px (Finger).
+   ===================================================================== */
+/* ---- Für ALLE Ansichten (auch Beamer): nie abschneiden. Passt der Inhalt einer Folie nicht,
+        scrollt der Inhaltsbereich; Kopf und Fuß bleiben stehen. ---- */
+#stage .slide .inhalt{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#C4DFF2 transparent;
+  margin-bottom:-10px}   /* bis an die Fußzeilenlinie: der freie Rand darüber gehört zum Inhalt (Folgen nutzt ihn) */
+@media print{#stage .slide .inhalt{overflow:visible}}            /* Druck: alles zeigen */
+
+html.handy, html.handy body{height:auto;overflow-x:hidden;overflow-y:auto}
+html.handy body{display:block;background:var(--papier)}
+html.handy #stage{width:100%;height:auto;transform:none!important}
+html.handy .slide{position:relative;inset:auto;display:none;min-height:100vh;border-radius:0;box-shadow:none;
+  padding:64px 14px 84px;transform:none;transition:none;overflow:visible}
+html.handy .slide.aktiv{display:flex}
+
+/* Kopf, Überschriften, Fuß */
+html.handy .kopf{height:48px;padding:0 12px;gap:10px}
+html.handy .kopf img{height:34px}
+html.handy .kopf .schule{font-size:14px;letter-spacing:.06em}
+html.handy .kopf .kurs{display:none}
+html.handy h1{font-size:34px}
+html.handy h2, html.handy .slide.kompakt h2{font-size:25px}
+html.handy .eyebrow{font-size:14px;letter-spacing:.12em}
+html.handy .titelzeile, html.handy .slide.kompakt .titelzeile{margin-bottom:14px}
+html.handy .inhalt, html.handy #stage .slide .inhalt{display:block;overflow:visible;margin-bottom:0}   /* Handy: die Seite scrollt, nicht die Folie */
+html.handy .fuss{position:static;margin-top:22px;font-size:14px;gap:10px}
+html.handy p, html.handy li{font-size:17px}
+html.handy .klein, html.handy .hinweis{font-size:15px}
+
+/* Titelfolie: untereinander */
+html.handy .slide.titel{display:none;grid-template-columns:1fr;padding:0}
+html.handy .slide.titel.aktiv{display:grid}
+html.handy .slide.titel .links{padding:40px 20px 24px}
+html.handy .slide.titel .rechts{padding:24px 0 90px;border-left:none;border-top:1px solid rgba(255,255,255,.16)}
+html.handy .slide.titel .unter{font-size:18px}
+html.handy .slide.titel .meta span{font-size:14px}
+html.handy .slide.titel .logokachel{border-radius:26px;padding:16px 18px}
+html.handy .slide.titel .logokachel img{width:110px}
+html.handy .slide.titel svg{max-width:100%;height:auto}
+
+/* Raster und Karten: einspaltig */
+html.handy .raster, html.handy .g2, html.handy .g3, html.handy .g4{grid-template-columns:1fr!important}
+html.handy .karte p, html.handy .karte li{font-size:16px}
+
+/* Finger: Knöpfe und Felder mindestens 40 px */
+html.handy .knopf{min-height:42px;min-width:42px;font-size:15.5px;padding:8px 14px}
+html.handy input, html.handy select{min-height:42px;font-size:16px}   /* 16 px: iOS zoomt sonst beim Tippen */
+html.handy #nav{right:10px;bottom:10px;padding:6px 8px;gap:6px}
+html.handy #nav button{width:42px;height:42px;font-size:18px}
+html.handy #zaehler{font-size:14px}
+html.handy svg{max-width:100%;height:auto}
+/* ==== /HANDY-SCHICHT ==== */
+:root{
+  --blau:#136EA9;
+  --blau-d:#0C4E79;
+  --blau-h:#3E93CE;
+  --blau-pastell:#E3F0F9;
+  --orange:#F3A92F;
+  --orange-d:#D98908;
+  --orange-pastell:#FDF0DA;
+  --tinte:#16232E;
+  --grau:#5B6A76;
+  --linie:#D8E2EA;
+  --papier:#FFFFFF;
+  --bg:#EAF1F6;
+  --rot:#C62828;
+  --gruen:#2E7D32;
+  --stage-w:1280px;
+  --stage-h:720px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--tinte);
+  font-family:"Sansation","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+
+#stage{
+  position:relative;
+  width:var(--stage-w);height:var(--stage-h);
+  transform-origin:center center;
+  flex:none;
+}
+.slide{
+  position:absolute;inset:0;
+  background:var(--papier);
+  border-radius:14px;
+  box-shadow:0 18px 50px rgba(12,78,121,.22), 0 2px 6px rgba(12,78,121,.12);
+  overflow:hidden;
+  padding:86px 62px 58px;
+  opacity:0;visibility:hidden;
+  transform:translateY(14px) scale(.995);
+  transition:opacity .32s ease, transform .32s ease, visibility .32s;
+  display:flex;flex-direction:column;
+}
+.slide.aktiv{opacity:1;visibility:visible;transform:none}
+
+.kopf{
+  position:absolute;top:0;left:0;right:0;height:58px;
+  background:linear-gradient(100deg,var(--blau-d) 0%,var(--blau) 55%,var(--blau-h) 100%);
+  display:flex;align-items:center;gap:14px;
+  padding:0 22px 0 18px;
+  color:#fff;
+  z-index:5;
+}
+.kopf::after{
+  content:"";position:absolute;left:0;right:0;bottom:-5px;height:5px;
+  background:linear-gradient(90deg,var(--orange) 0%,var(--orange) 34%,#F6C46E 34%,#F6C46E 100%);
+}
+.kopf img{height:40px;width:auto;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))}
+.kopf .schule{font-size:13px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;opacity:.95}
+.kopf .kurs{
+  margin-left:auto;font-size:12.5px;font-weight:600;letter-spacing:.06em;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);
+  padding:5px 12px;border-radius:999px;
+}
+
+h1{font-size:56px;line-height:1.06;font-weight:800;letter-spacing:-.02em}
+h2{font-size:40px;line-height:1.12;font-weight:800;letter-spacing:-.015em;color:var(--blau-d)}
+h3{font-size:20px;font-weight:750;color:var(--blau-d)}
+p,li{font-size:19px;line-height:1.5;color:var(--tinte)}
+.klein{font-size:16px;line-height:1.45;color:var(--grau)}
+.eyebrow{
+  font-size:13px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--orange-d);margin-bottom:10px;
+}
+.titelzeile{margin-bottom:26px;flex:none}
+.titelzeile h2::after{
+  content:"";display:block;width:64px;height:5px;border-radius:3px;
+  background:var(--orange);margin-top:12px;
+}
+.slide.kompakt .titelzeile{margin-bottom:14px}
+.slide.kompakt h2{font-size:32px}
+.slide.kompakt h2::after{margin-top:8px;height:4px;width:52px}
+.inhalt{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:safe center}
+strong{color:var(--blau-d)}
+em{font-style:normal;background:linear-gradient(transparent 62%, var(--orange-pastell) 62%);padding:0 2px}
+
+.raster{display:grid;gap:20px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+
+.karte{
+  background:var(--papier);
+  border:1px solid var(--linie);
+  border-radius:12px;
+  padding:20px 22px;
+  box-shadow:0 2px 0 rgba(19,110,169,.05);
+  display:flex;flex-direction:column;gap:8px;
+}
+.karte.blau{background:var(--blau-pastell);border-color:#C4DFF2}
+.karte.orange{background:var(--orange-pastell);border-color:#F3DCAF}
+.karte.voll{background:linear-gradient(150deg,var(--blau-d),var(--blau));border:none;color:#fff}
+.karte.voll h3,.karte.voll strong{color:#fff}
+.karte.voll p,.karte.voll li{color:rgba(255,255,255,.92)}
+.karte .icon{font-size:26px;line-height:1}
+.karte p,.karte li{font-size:17px;line-height:1.45}
+
+.nummer{
+  width:38px;height:38px;flex:none;border-radius:10px;
+  background:var(--orange);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:19px;
+}
+.nummer.b{background:var(--blau)}
+.zeile{display:flex;gap:16px;align-items:flex-start}
+
+ul.liste{list-style:none;display:flex;flex-direction:column;gap:11px}
+ul.liste li{position:relative;padding-left:30px}
+ul.liste li::before{
+  content:"";position:absolute;left:6px;top:.55em;
+  width:9px;height:9px;border-radius:3px;background:var(--orange);
+}
+ul.liste.blaupunkt li::before{background:var(--blau)}
+ul.liste.eng{gap:7px}
+ul.liste.eng li{font-size:16px}
+
+.chip{
+  display:inline-block;padding:6px 14px;border-radius:999px;
+  background:var(--blau-pastell);color:var(--blau-d);
+  font-size:16px;font-weight:650;border:1px solid #C4DFF2;
+}
+.chip.o{background:var(--orange-pastell);color:var(--orange-d);border-color:#F3DCAF}
+
+.zitat{
+  border-left:6px solid var(--orange);
+  padding:6px 0 6px 22px;
+  font-size:26px;line-height:1.35;font-weight:600;color:var(--blau-d);
+}
+.grossezahl{font-size:76px;font-weight:800;line-height:1;color:var(--orange);letter-spacing:-.03em}
+
+.fuss{
+  position:absolute;left:62px;right:62px;bottom:20px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:12.5px;color:var(--grau);
+  border-top:1px solid var(--linie);padding-top:9px;
+}
+
+/* ---------- Titel ---------- */
+.slide.titel{
+  padding:0;
+  background:
+    radial-gradient(1100px 520px at 78% 8%, rgba(243,169,47,.20), transparent 62%),
+    linear-gradient(140deg,#0A4470 0%, var(--blau-d) 40%, var(--blau) 100%);
+  color:#fff;
+  display:grid;grid-template-columns:1.35fr .65fr;
+}
+.slide.titel .links{padding:74px 56px 56px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:2}
+.slide.titel .rechts{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  background:rgba(255,255,255,.07);border-left:1px solid rgba(255,255,255,.16);
+  position:relative;z-index:2;
+}
+.slide.titel .logokachel{
+  background:#fff;border-radius:38px;padding:28px 30px;
+  box-shadow:0 20px 46px rgba(0,0,0,.30), 0 0 0 1px rgba(255,255,255,.5);
+  display:flex;align-items:center;justify-content:center;
+}
+.slide.titel .logokachel img{width:168px;display:block}
+.slide.titel h1{color:#fff}
+.slide.titel .eyebrow{color:var(--orange)}
+.slide.titel .unter{font-size:23px;color:rgba(255,255,255,.9);margin-top:18px;max-width:640px}
+.slide.titel .meta{margin-top:38px;display:flex;gap:12px;flex-wrap:wrap}
+.slide.titel .meta span{
+  background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.26);
+  padding:8px 16px;border-radius:999px;font-size:15.5px;font-weight:600;
+}
+.slide.titel .balken{height:6px;width:110px;background:var(--orange);border-radius:4px;margin-bottom:26px}
+.titelfaecher{position:relative;height:150px;width:250px;margin-top:6px}
+.titelfaecher .sk{position:absolute;left:83px;top:10px;transform-origin:50% 120%}
+
+.bitregen{
+  position:absolute;inset:0;overflow:hidden;z-index:1;pointer-events:none;
+  font-family:ui-monospace,"Cascadia Mono",Consolas,monospace;
+  font-size:15px;line-height:1.75;letter-spacing:.34em;
+  color:rgba(255,255,255,.085);word-break:break-all;
+}
+.bitregen div{animation:bitfluss 26s linear infinite}
+@keyframes bitfluss{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+
+.slide.schluss{grid-template-columns:1fr}
+.slide.schluss .links{align-items:center;text-align:center;padding:60px 120px}
+.slide.schluss img{width:64px;margin-bottom:34px;background:rgba(255,255,255,.92);border-radius:50%;padding:9px;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.zitatgross{font-size:40px;line-height:1.28;font-weight:700;letter-spacing:-.015em;color:#fff;max-width:960px}
+.zitatgross .strich{display:block;width:56px;height:5px;background:var(--orange);border-radius:3px;margin:26px auto 20px}
+.quelle{font-size:18px;font-weight:600;color:var(--orange);letter-spacing:.06em}
+
+/* ---------- Interaktive Bühnen (allgemein) ---------- */
+.interaktiv{cursor:default}
+.knopfleiste{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.knopf{
+  font:inherit;font-size:16px;font-weight:700;
+  border:none;border-radius:999px;padding:9px 18px;cursor:pointer;
+  background:var(--blau);color:#fff;
+  box-shadow:0 2px 0 rgba(12,78,121,.25);
+  transition:background .15s, opacity .15s, transform .1s;
+}
+.knopf:hover{background:var(--blau-d)}
+.knopf:active{transform:translateY(1px)}
+.knopf.o{background:var(--orange);color:#3A2500}
+.knopf.o:hover{background:var(--orange-d)}
+.knopf.hell{background:var(--blau-pastell);color:var(--blau-d);box-shadow:none;border:1px solid #C4DFF2}
+.knopf.hell:hover{background:#D2E7F6}
+.knopf.hell.an{background:var(--tinte);color:#fff;border-color:var(--tinte)}
+.knopf:disabled{opacity:.35;cursor:not-allowed}
+.knopf.aus{display:none}
+.status{font-size:19px;font-weight:700;color:var(--blau-d);min-height:28px}
+.status .sub{font-weight:600;color:var(--grau);font-size:16px}
+
+/* Tabelle */
+table.tab{border-collapse:separate;border-spacing:0;width:100%;font-size:19px}
+table.tab th{background:var(--blau-d);color:#fff;text-align:left;padding:10px 16px;font-size:15px;letter-spacing:.06em;text-transform:uppercase}
+table.tab th:first-child{border-top-left-radius:10px}
+table.tab th:last-child{border-top-right-radius:10px}
+table.tab td{padding:9px 16px;border-bottom:1px solid var(--linie)}
+table.tab tr:nth-child(even) td{background:#F6FAFD}
+table.tab td.z{font-weight:800;color:var(--orange-d);font-size:22px}
+
+/* Schritte */
+.schritte{display:flex;flex-direction:column;gap:9px}
+.schritt{display:flex;gap:14px;align-items:center;background:var(--papier);border:1px solid var(--linie);border-radius:11px;padding:9px 14px}
+.schritt .nummer{width:34px;height:34px;font-size:17px}
+.schritt p{font-size:18px;line-height:1.35}
+.schritt.wichtig{background:var(--orange-pastell);border-color:#F3DCAF}
+
+.frag{opacity:0;transform:translateY(10px);transition:opacity .34s ease,transform .34s ease}
+.frag.an{opacity:1;transform:none}
+.frag.vl{transform:translateX(-22px)}
+.frag.vr{transform:translateX(22px)}
+.frag.vl.an,.frag.vr.an{transform:none}
+
+#fortschritt{
+  position:fixed;left:0;top:0;height:4px;background:var(--orange);
+  width:0;transition:width .3s ease;z-index:50;
+}
+#nav{
+  position:fixed;right:18px;bottom:14px;z-index:50;
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.85);backdrop-filter:blur(6px);
+  border:1px solid var(--linie);border-radius:999px;padding:5px 8px;
+  box-shadow:0 4px 14px rgba(12,78,121,.14);
+}
+#nav button{
+  border:none;background:var(--blau-pastell);color:var(--blau-d);
+  width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;font-weight:800;
+}
+#nav button:hover{background:var(--blau);color:#fff}
+#zaehler{font-size:13px;font-weight:700;color:var(--grau);padding:0 6px;min-width:52px;text-align:center}
+
+#uebersicht{
+  position:fixed;inset:0;background:rgba(10,68,112,.96);z-index:100;
+  display:none;padding:34px;overflow:auto;
+}
+#uebersicht.an{display:block}
+#uebersicht h4{color:#fff;font-size:18px;margin-bottom:18px;font-weight:700}
+#uebersicht .gitter{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+#uebersicht .mini{
+  background:#fff;border-radius:8px;padding:14px;cursor:pointer;
+  border:3px solid transparent;min-height:78px;
+}
+#uebersicht .mini:hover{border-color:var(--orange)}
+#uebersicht .mini .nr{font-size:11px;font-weight:800;color:var(--orange-d)}
+#uebersicht .mini .tt{font-size:14px;font-weight:700;color:var(--blau-d);margin-top:3px;line-height:1.25}
+
+@media print{
+  @page{size:A4 landscape;margin:0}
+  body{display:block;background:#fff;overflow:visible}
+  #stage{transform:none!important;width:100%;height:auto}
+  .slide{
+    position:relative;visibility:visible;opacity:1;transform:none;
+    width:1280px;height:720px;page-break-after:always;box-shadow:none;border-radius:0;
+  }
+  .frag{opacity:1!important;transform:none!important}
+  #nav,#fortschritt,#uebersicht{display:none!important}
+}
+
+/* ================= Binärdarstellung von Bildern (diese Präsentation) ================= */
+.mono{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace}
+.meldung{font-size:16px;font-weight:600;color:var(--grau)}
+.meldung:empty{display:none}
+.meldung.nein{color:var(--rot);background:#FBE6E4;border:1px solid var(--rot);border-radius:10px;padding:8px 14px}
+.beschr{font-size:14px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--grau)}
+.leise{color:var(--grau);font-weight:600}
+.r{color:#C62828}.g{color:#2E7D32}.b{color:#1E5AC8}
+
+/* Eingaben */
+.eingabezeile{display:flex;flex-direction:column;gap:4px}
+.eingabezeile label{font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--grau)}
+.grossfeld{font:inherit;font-family:ui-monospace,Consolas,monospace;font-size:40px;font-weight:800;width:100%;min-width:0;border:2px solid var(--linie);border-radius:12px;padding:2px 12px;color:var(--blau-d);background:#fff}
+.grossfeld.mittel{font-size:28px}
+.grossfeld:focus{outline:none;border-color:var(--blau)}
+
+/* Raster */
+.zweispalt{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:start}
+.zweispalt.breitlinks{grid-template-columns:1.1fr 1fr}
+.spalte{display:flex;flex-direction:column;gap:12px;min-width:0}
+.leinwand{display:block;max-width:100%;height:auto;border-radius:12px;box-shadow:0 6px 20px rgba(12,78,121,.18);image-rendering:pixelated;background:#fff}
+.leinwand.klickbar{cursor:crosshair}
+#lpBild{width:640px}
+#grBild{width:480px}
+
+/* Titel */
+.titelpixel{width:216px;height:216px;image-rendering:pixelated;background:#fff;border-radius:16px;padding:12px;box-shadow:0 0 26px rgba(243,169,47,.55)}
+
+/* Regler mit Eingabefeld */
+.regler{display:grid;grid-template-columns:120px 1fr 78px;gap:12px;align-items:center}
+.regler label{font-size:15px;font-weight:800;color:var(--blau-d)}
+.regler.r label{color:#C62828}.regler.g label{color:#2E7D32}.regler.b label{color:#1E5AC8}
+.regler input[type=range]{width:100%;accent-color:var(--blau);height:28px}
+.regler.r input[type=range]{accent-color:#C62828}.regler.g input[type=range]{accent-color:#2E7D32}.regler.b input[type=range]{accent-color:#1E5AC8}
+.regler .wert{font-size:20px;font-weight:800;width:100%;min-height:40px;border:2px solid var(--linie);border-radius:10px;padding:2px 8px;color:var(--blau-d);text-align:center;background:#fff}
+.regler .wert:focus{outline:none;border-color:var(--blau)}
+.wert.falsch,.grossfeld.falsch,textarea.falsch{border-color:var(--rot)!important;background:#FBE6E4!important}
+
+/* Pixel-Info */
+.pixelinfo{display:flex;gap:12px;align-items:center;font-size:17px;color:var(--blau-d);background:#fff;border:1px solid var(--linie);border-radius:12px;padding:8px 12px;flex-wrap:wrap}
+.pixelinfo i{font-style:normal;font-weight:800}
+.farbfleck{width:150px;height:150px;border-radius:16px;border:1px solid var(--linie);box-shadow:inset 0 0 0 4px rgba(255,255,255,.4)}
+.farbfleck.gross{width:100%;height:190px}
+.farbfleck.mini{width:40px;height:40px;border-radius:9px;flex:none}
+
+/* Malbrett */
+.malbrett{--sp:12;--zelle:30px;display:grid;grid-template-columns:repeat(var(--sp),var(--zelle));gap:2px;background:var(--linie);padding:3px;border-radius:10px;touch-action:none;user-select:none;width:max-content;cursor:pointer}
+.malbrett .px{width:var(--zelle);height:var(--zelle);background:#fff;border-radius:3px}
+.malbrett .px.an{background:var(--tinte)}
+.malbrett .px.zu{background:#F1F4F7}
+.malbrett.klein{--zelle:24px;cursor:default;touch-action:auto}
+.malbrett.farbig{--zelle:26px;gap:1px}
+.code{font-family:ui-monospace,Consolas,monospace;font-size:15px;line-height:1.4;background:#F1F4F7;border:1px solid var(--linie);border-radius:12px;padding:10px 14px;color:var(--blau-d);white-space:pre;overflow:auto;max-height:370px}
+.code.gross{font-size:19px;max-height:none}
+.code .offen{background:var(--orange-pastell);color:var(--orange-d);font-weight:800;border-radius:4px}
+textarea.code{width:100%;height:200px;resize:vertical;font-size:13px}
+.zaehlband{display:flex;gap:10px;flex-wrap:wrap;font-size:17px;color:var(--blau-d)}
+.zaehlband span{background:var(--blau-pastell);border-radius:999px;padding:4px 14px}
+.zaehlband b{color:var(--orange-d)}
+.zaehlband .leise{background:none}
+
+/* Graustufen */
+.grauzeile{display:flex;gap:18px;align-items:center}
+.binzeile{font-size:34px;font-weight:800;color:var(--blau-d);letter-spacing:.06em}
+.binzeile .hl{color:#fff;background:var(--orange);border-radius:6px;padding:0 3px}
+.stufenband{display:flex;height:42px;border-radius:10px;overflow:hidden;border:1px solid var(--linie);width:480px;max-width:100%}
+.stufenband i{flex:1;display:flex;align-items:center;justify-content:center}
+.stufenband b{font-size:12px;color:#fff;font-style:normal}
+.stufenband b.d{color:var(--tinte)}
+
+/* RGB */
+.binblock{display:flex;flex-direction:column;gap:6px;font-size:20px}
+.binblock div{display:grid;grid-template-columns:70px 56px 1fr 40px;gap:10px;align-items:center;background:#fff;border:1px solid var(--linie);border-radius:10px;padding:4px 12px}
+.binblock b{font-size:22px}
+.binblock span:first-child{font-family:inherit;font-size:15px;font-weight:800}
+
+/* Licht */
+.lichtbuehne{position:relative;width:400px;height:360px;background:#000;border-radius:18px;overflow:hidden;isolation:isolate}
+.lk{position:absolute;width:210px;height:210px;border-radius:50%;mix-blend-mode:screen;transition:opacity .25s}
+.lk.r{background:#FF0000;left:60px;top:40px}
+.lk.g{background:#00FF00;left:130px;top:40px}
+.lk.b{background:#0000FF;left:95px;top:110px}
+.lk.aus{opacity:0}
+.lichttab{display:flex;flex-direction:column;gap:6px}
+.lz{display:grid;grid-template-columns:34px 1fr 150px 150px;gap:10px;align-items:center;font-size:17px;color:var(--blau-d);border:1px solid var(--linie);border-radius:10px;padding:5px 10px;background:#fff}
+.lz.jetzt{border-color:var(--orange);box-shadow:0 0 0 2px var(--orange);background:var(--orange-pastell)}
+.lz .mono{white-space:nowrap}
+.lf{width:30px;height:30px;border-radius:50%;border:1px solid var(--linie)}
+
+/* Spiel */
+.spielflecken{display:flex;gap:18px}
+.spielflecken > div{display:flex;flex-direction:column;align-items:center;gap:6px}
+.spielflecken .farbfleck{width:220px;height:220px}
+.spielurteil{background:#fff;border:1px solid var(--linie);border-radius:14px;padding:12px 16px;font-size:19px;color:var(--blau-d);min-height:110px;display:flex;flex-direction:column;gap:8px;justify-content:center}
+.spp b{font-size:40px;color:var(--orange-d)}
+.tipps{display:flex;gap:8px;flex-wrap:wrap}
+.tipps span{border-radius:999px;padding:3px 12px;font-size:16px;font-weight:700}
+.tipps .passt{background:#E5F2E6;color:var(--gruen)}
+.tipps .mehr,.tipps .weniger{background:var(--orange-pastell);color:var(--orange-d)}
+.punkte{font-size:17px;font-weight:700;color:var(--grau)}
+
+/* Atelier */
+.palette{display:flex;gap:6px;flex-wrap:wrap}
+.pf{width:40px;height:40px;border-radius:9px;border:2px solid var(--linie);cursor:pointer}
+.pf.an{border-color:var(--orange);box-shadow:0 0 0 3px var(--orange)}
+.atfarbe{display:flex;gap:12px;align-items:center;font-size:18px;color:var(--blau-d)}
+.atfarbe input[type=color]{width:48px;height:40px;border:none;background:none;cursor:pointer}
+.datei{position:relative;overflow:hidden;cursor:pointer}
+.datei input{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+/* Bildlabor */
+.laborkopf{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}
+.laborkopf .knopf{padding:8px 14px;font-size:15px}
+.laborbilder{display:grid;grid-template-columns:320px 320px 1fr;gap:18px;align-items:start}
+.laborbilder > div > .beschr{margin-bottom:4px}
+.formel{background:linear-gradient(150deg,var(--blau-d),var(--blau));color:#fff;border-radius:12px;padding:10px 14px;font-size:18px;font-weight:700}
+.formel .beschr{color:var(--orange)}
+#lbParam .regler{grid-template-columns:1fr 1fr 70px}
+#lbInfo{flex-direction:column;align-items:flex-start;gap:6px}
+#lbInfo .vn{display:flex;gap:10px;align-items:center}
+#lbInfo .rg{color:var(--orange-d);font-weight:700}
+
+/* Speicher */
+.feldreihe{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.rechenweg{display:flex;flex-direction:column;gap:8px}
+.rz{display:grid;grid-template-columns:90px 1fr auto;gap:12px;align-items:center;background:#fff;border:1px solid var(--linie);border-radius:12px;padding:8px 14px;font-size:19px;color:var(--blau-d)}
+.rz > span:first-child{font-size:14px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--grau)}
+.rz b{font-size:24px}
+.rz.erg{background:linear-gradient(150deg,var(--blau-d),var(--blau));color:#fff;border:none}
+.rz.erg > span:first-child{color:rgba(255,255,255,.8)}
+.rz.erg b{color:var(--orange);font-size:30px}
+
+/* Formate */
+.formatzeile{display:grid;grid-template-columns:1.3fr 1fr;gap:24px;align-items:center}
+.lauflaenge{font-size:18px;line-height:1.7;color:var(--blau-d);margin-top:6px}
+.lauflaenge span{background:#F1F4F7;border-radius:5px;padding:1px 5px}
+.lauflaenge span.eins{background:var(--tinte);color:#fff}
+.formatmess{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+
+/* Geheimbild */
+#ghBin{font-size:24px}
+#ghBild{width:640px}
+.ghBox{position:relative;line-height:0}
+.ghMarke{position:absolute;width:24px;height:24px;border:3px solid var(--orange);border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 0 2px #fff;pointer-events:none}
+.ghWert{font-size:22px;font-weight:700;color:var(--blau-d)}
+table.stellen{border-collapse:separate;border-spacing:3px}
+table.stellen td{min-width:40px;text-align:center;font-size:28px;font-weight:800;color:var(--blau-d);border-radius:6px;padding:0 2px}
+table.stellen tr.w td{font-size:14px;font-weight:700;color:var(--grau)}
+table.stellen tr.w td.hl{color:#fff}
+table.stellen td.hl{background:var(--orange);color:#fff}
+.einpixel{display:grid;grid-template-columns:560px 1fr;gap:28px;align-items:start}
+#epBild{width:560px}
+.epFarben{display:flex;gap:16px;align-items:center;margin-top:12px}
+.epFarben > div{display:flex;flex-direction:column;align-items:center;gap:4px}
+.epFeld{width:56px;height:56px;border-radius:10px;box-shadow:0 2px 8px rgba(12,78,121,.2)}
+.epSchritt{display:flex;gap:14px;align-items:flex-start}
+.epNr{flex:none;width:34px;height:34px;border-radius:50%;background:var(--orange);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:18px}
+.epSchritt .klein{margin-top:2px}
+.ghLeiste{gap:6px}
+.guUrteil{font-size:24px;font-weight:700;color:var(--blau-d);background:var(--blau-pastell);border-radius:12px;padding:10px 16px;width:max-content;max-width:100%}
+.guUrteil.ungerade{background:#16232E;color:#fff}
+.guUrteil strong{color:var(--orange-d)}
+.guUrteil.ungerade strong{color:var(--orange)}
+.guLogik{display:flex;gap:12px;align-items:center;margin-top:10px}
+.guFeld{flex:none;width:40px;height:40px;border-radius:8px;background:#000;color:#fff;font:800 20px ui-monospace,Consolas,monospace;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 2px #fff,0 1px 4px rgba(0,0,0,.25)}
+.guFeld.gross{width:64px;height:64px;font-size:24px;border-radius:12px}
+.guFeld.weiss{background:#fff;color:var(--tinte);box-shadow:inset 0 0 0 2px var(--linie),0 1px 4px rgba(0,0,0,.15)}
+.guLogik p{font-size:20px}
+.guKette{display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:24px}
+.guKette > span:not(.guPfeil){background:var(--blau-pastell);color:var(--blau-d);border-radius:12px;padding:10px 16px}
+.guKette strong{color:var(--orange-d)}
+.guKette .guPfeil{color:var(--orange-d);font-weight:800}
+.karte p.guZahl{font-size:24px;letter-spacing:.08em}
+.guZahl strong{color:var(--orange-d)}
+.guKette .schwarz{background:#16232E !important;color:#fff !important;font-weight:700}
+.knopf.bitk{min-width:44px;padding-left:0;padding-right:0;justify-content:center}
+.selbst{display:grid;grid-template-columns:repeat(3,auto);gap:26px;justify-content:start;align-items:start}
+.malbrett.gs{--sp:16;--zelle:18px;gap:2px}
+.malbrett.gs .px.an{background:var(--tinte)}
+#gsErgebnis{width:330px}
+#gsPalette .pf{width:26px;height:26px}
+.selbst .spalte{max-width:336px}
+
+/* ---------- Handy ---------- */
+html.handy .zweispalt,html.handy .zweispalt.breitlinks,html.handy .laborbilder,html.handy .formatzeile{grid-template-columns:1fr}
+html.handy #lpBild,html.handy #grBild,html.handy #ghBild,html.handy #epBild,html.handy #lbVor,html.handy #lbNach{width:100%}
+html.handy .titelpixel{width:150px;height:150px}
+html.handy .regler{grid-template-columns:1fr 78px}
+html.handy .regler label{grid-column:1 / -1}
+html.handy #lbParam .regler{grid-template-columns:1fr 78px}
+html.handy .malbrett{--zelle:24px}
+html.handy .malbrett.klein{--zelle:22px}
+html.handy .code{font-size:14px}
+html.handy .code.gross{font-size:14px}
+html.handy .binzeile{font-size:26px}
+html.handy #ghBin{font-size:18px}
+html.handy .grossfeld.mittel{font-size:20px}
+html.handy .farbfleck{width:110px;height:110px}
+html.handy .farbfleck.gross{width:100%;height:120px}
+html.handy .farbfleck.mini{width:40px;height:40px}
+html.handy .spielflecken .farbfleck{width:140px;height:140px}
+html.handy .binblock{font-size:16px}
+html.handy .binblock div{grid-template-columns:52px 40px 1fr 30px;padding:4px 8px}
+html.handy .binblock b{font-size:17px}
+html.handy .binblock span:first-child{font-size:14px}
+html.handy .lichtbuehne{width:300px;height:280px}
+html.handy .lk{width:160px;height:160px}
+html.handy .lk.r{left:45px;top:30px}
+html.handy .lk.g{left:100px;top:30px}
+html.handy .lk.b{left:72px;top:85px}
+html.handy .lz{grid-template-columns:34px 1fr;font-size:15px}
+html.handy .lz b,html.handy .lz .mono{grid-column:2}
+html.handy .laborkopf{flex-direction:column;align-items:flex-start}
+html.handy .rz{grid-template-columns:1fr auto;font-size:16px}
+html.handy .rz > span:first-child{grid-column:1 / -1}
+html.handy .rz b{font-size:19px}
+html.handy .rz.erg b{font-size:22px}
+html.handy .lauflaenge{font-size:14px;overflow-wrap:anywhere}
+html.handy .feldreihe{grid-template-columns:1fr}
+html.handy .grauzeile{flex-direction:column;align-items:flex-start}
+#speicher{grid-template-columns:1fr 1fr}
+.rz{grid-template-columns:90px minmax(0,1fr) auto}
+.rz .mono{overflow-wrap:anywhere}
+html.handy #speicher{grid-template-columns:1fr}
+html.handy .rz{grid-template-columns:1fr auto}
+
+/* Aufbau einer Bilddatei */
+.code.datei{font-size:18px;line-height:1.6;max-height:none}
+.code .kenn,.aufbau .tk.kenn{color:#fff;background:var(--orange);border-radius:5px;padding:0 4px;font-weight:800}
+.code .mass,.aufbau .tk.mass{color:#fff;background:var(--blau);border-radius:5px;padding:0 4px;font-weight:800}
+.code .max,.aufbau .tk.max{color:#fff;background:var(--gruen);border-radius:5px;padding:0 4px;font-weight:800}
+.code .pw{cursor:pointer;border-radius:5px;padding:0 2px}
+.code .pw:hover{background:var(--blau-pastell)}
+.code .pw.an{background:var(--tinte);color:#fff}
+.aufbau .tk.pix{background:#F1F4F7;color:var(--blau-d);border-radius:5px;padding:0 6px;font-weight:800}
+.aufbau{grid-template-columns:620px 1fr}
+.abbildzeile{display:grid;grid-template-columns:120px 1fr;gap:18px;align-items:start}
+.abhuelle{position:relative;width:120px;height:120px}
+.abhuelle .leinwand{width:120px;height:120px}
+.abrahmen{position:absolute;width:25%;height:25%;border:4px solid var(--orange);border-radius:4px;pointer-events:none;box-sizing:border-box}
+.abteile{display:flex;flex-direction:column;gap:8px}
+.abteil{display:grid;grid-template-columns:56px 1fr;gap:10px;align-items:start;font-size:15.5px;line-height:1.4;color:var(--grau)}
+.abteil .tk{font-family:ui-monospace,Consolas,monospace;font-size:17px;text-align:center}
+.abteil strong{color:var(--blau-d)}
+html.handy .code.datei{font-size:14px}
+html.handy .abbildzeile{grid-template-columns:1fr}
+html.handy .aufbau{grid-template-columns:1fr}
+html.handy .abteil{font-size:15px}
+html.handy .code.datei{white-space:pre-wrap}
+.code .pw{white-space:nowrap}
+
+html.handy table.stellen td{min-width:0;font-size:22px}
+html.handy table.stellen tr.w td{font-size:14px}
+html.handy .einpixel{grid-template-columns:1fr}
+html.handy .guKette{font-size:18px}
+html.handy .selbst{grid-template-columns:1fr}
+html.handy .malbrett.gs{--zelle:18px}
+html.handy #gsErgebnis{width:100%}
+html.handy #gsPalette .pf{width:40px;height:40px}
+
+</style>
+</head>
+<body>
+
+<div id="fortschritt"></div>
+<div id="stage"></div>
+
+<div id="nav">
+  <button id="uebBtn" title="Übersicht (O)">☰</button>
+  <button id="zurueck" title="Zurück (←)">‹</button>
+  <span id="zaehler">1 / 1</span>
+  <button id="vor" title="Weiter (→)">›</button>
+</div>
+
+<div id="uebersicht"><h4>Übersicht — Folie anklicken (ESC schließt)</h4><div class="gitter"></div></div>
+
+<script>
+const LOGO = "data:image/jpeg;base64,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";
+</script>
+
+<script>
+const KURS = "Informatik";
+const REIHE = "Binärdarstellung von Bildern";
+const BITS = ('255 0 0  0 255 0  0 0 255  11001000  P3 16 16 255  0 1 1 0  ').repeat(16);
+
+/* Regler mit Eingabefeld: Name, Kürzel, Startwert */
+const regler = (id, name, wert, max = 255, klasse = '') => `
+  <div class="regler ${klasse}">
+    <label for="${id}F">${name}</label>
+    <input type="range" id="${id}R" min="0" max="${max}" value="${wert}" aria-label="${name}">
+    <input id="${id}F" class="wert mono" value="${wert}" autocomplete="off" spellcheck="false" inputmode="numeric">
+  </div>`;
+
+const folien = [
+
+{titel:"Titel", klasse:"titel", roh:`
+  <div class="bitregen"><div>${BITS}${BITS}</div></div>
+  <div class="links">
+    <div class="balken"></div>
+    <div class="eyebrow">Information darstellen</div>
+    <h1>Binärdarstellung von Bildern</h1>
+    <p class="unter">Ein Bild ist nur eine Liste von Zahlen. Heute malen wir mit ihnen.</p>
+    <div class="meta">
+      <span>Informatik</span>
+      <span>Pixel · Bits · Farben</span>
+    </div>
+  </div>
+  <div class="rechts">
+    <div class="logokachel"><img src="${LOGO}" alt="Logo Montessori-Schule Landau"></div>
+    <canvas id="titelPixel" class="titelpixel" width="12" height="12" aria-hidden="true"></canvas>
+  </div>
+`},
+
+{titel:"Ganz nah ran", klasse:"kompakt", eyebrow:"Pixel", h2:"Ganz nah ran: Woraus besteht ein Bild?", roh:`
+  <div class="interaktiv zweispalt" id="lupe">
+    <div>
+      <canvas id="lpBild" class="leinwand klickbar" width="768" height="432"></canvas>
+    </div>
+    <div class="spalte">
+      ${regler('lp', 'Zoomstufe', 0, 5)}
+      <p class="klein">Ins Bild klicken: Dort wird hineingezoomt, und das Pixel zeigt seine Zahlen.</p>
+      <div class="pixelinfo" id="lpInfo"></div>
+      <div class="karte blau frag"><h3>Pixel</h3><p class="klein">Ein Bild ist ein Raster aus kleinen Quadraten, den <strong>Pixeln</strong> (picture elements). Jedes Pixel hat genau <strong>eine</strong> Farbe.</p></div>
+      <div class="karte orange frag"><p class="klein">Dieses Bild: <strong>96 × 54 = 5 184 Pixel</strong>, jedes mit drei Zahlen. Mehr ist es nicht.</p></div>
+    </div>
+  </div>
+`},
+
+{titel:"Aufbau einer Bilddatei", klasse:"kompakt", eyebrow:"Bilddateien", h2:"So ist eine Bilddatei aufgebaut", roh:`
+  <div class="interaktiv zweispalt aufbau" id="aufbau">
+    <div class="spalte">
+      <div class="knopfleiste">${[['P1','schwarz-weiß'],['P2','grau'],['P3','farbig']].map(([p,t])=>`<button class="knopf hell abart" data-p="${p}">${p} · ${t}</button>`).join('')}</div>
+      <pre class="code datei" id="abCode"></pre>
+      <p class="klein">Ein Klick auf ein Pixel oder auf eine Zahl zeigt, was zusammengehört.</p>
+      <div class="karte orange frag"><p class="klein">Achtung bei P1: <strong>1 heißt schwarz</strong> – wie Tinte auf Papier. Zeilen mit <strong>#</strong> sind Kommentare.</p></div>
+    </div>
+    <div class="spalte">
+      <div class="abbildzeile">
+        <canvas id="abBild" class="leinwand klickbar" width="4" height="4"></canvas>
+        <div class="abteile">
+          <div class="abteil frag"><span class="tk kenn">P3</span><p><strong>Kennung:</strong> Welche Art von Bild? P1 schwarz-weiß (PBM), P2 grau (PGM), P3 farbig (PPM).</p></div>
+          <div class="abteil frag"><span class="tk mass">4 4</span><p><strong>Breite und Höhe</strong> in Pixeln. Ohne sie wüsste niemand, wo eine Zeile endet.</p></div>
+          <div class="abteil frag"><span class="tk max">255</span><p><strong>Größter Wert</strong>, nur bei P2 und P3: 255 heißt hell. Bei P1 gibt es nur 0 und 1.</p></div>
+          <div class="abteil frag"><span class="tk pix">…</span><p><strong>Die Pixel</strong>, Zeile für Zeile, links oben beginnend. P1 und P2: eine Zahl pro Pixel, P3: drei (Rot, Grün, Blau).</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+`},
+
+{titel:"Schwarz-Weiß", klasse:"kompakt", eyebrow:"Schwarz-Weiß", h2:"Ein Pixel, ein Bit", roh:`
+  <div class="interaktiv zweispalt" id="sw">
+    <div class="spalte">
+      <div class="malbrett" id="swBrett"></div>
+      <div class="knopfleiste">
+        <button class="knopf hell" id="swLeer">Leeren</button>
+        <button class="knopf hell" id="swUmkehr">Umkehren</button>
+        <button class="knopf hell" id="swBsp">Beispiel</button>
+      </div>
+    </div>
+    <div class="spalte">
+      <p class="klein">Klicken oder ziehen: <strong>1</strong> ist schwarz, <strong>0</strong> ist weiß. Rechts entsteht die Datei im Format <strong>PBM</strong>.</p>
+      <pre class="code" id="swCode"></pre>
+      <div class="zaehlband" id="swZahl"></div>
+    </div>
+  </div>
+`},
+
+{titel:"Rätsel", klasse:"kompakt", eyebrow:"Rätsel", h2:"Welches Bild steckt in den Zahlen?", roh:`
+  <div class="interaktiv zweispalt" id="raetsel">
+    <div class="spalte">
+      <div class="knopfleiste">${['Rätsel 1','Rätsel 2','Rätsel 3'].map((t,k)=>`<button class="knopf hell rtwahl" data-k="${k}">${t}</button>`).join('')}</div>
+      <pre class="code gross" id="rtCode"></pre>
+    </div>
+    <div class="spalte">
+      <p class="klein">Erst selbst entschlüsseln (Karopapier!), dann Zeile für Zeile aufdecken.</p>
+      <div class="malbrett klein" id="rtBrett"></div>
+      <div class="knopfleiste">
+        <button class="knopf" id="rtZeile">Nächste Zeile</button>
+        <button class="knopf hell" id="rtAlles">Alles aufdecken</button>
+      </div>
+    </div>
+  </div>
+`},
+
+{titel:"Graustufen", klasse:"kompakt", eyebrow:"Graustufen", h2:"Von Schwarz bis Weiß: 256 Stufen", roh:`
+  <div class="interaktiv raster g2" id="grau" style="gap:30px;align-items:start">
+    <div class="spalte">
+      ${regler('gr', 'Grauwert', 200)}
+      <div class="grauzeile">
+        <div class="farbfleck" id="grFleck"></div>
+        <div>
+          <div class="binzeile mono" id="grBin"></div>
+          <p class="klein" id="grText"></p>
+        </div>
+      </div>
+      <div class="karte blau frag"><p class="klein"><strong>0</strong> ist schwarz, <strong>255</strong> ist weiß. Ein Grauwert passt genau in <strong>8 Bit = 1 Byte</strong>. Das Format dafür heißt <strong>PGM</strong>.</p></div>
+    </div>
+    <div class="spalte">
+      <div class="knopfleiste"><span class="beschr">Stufen</span>${[2,4,16,256].map(n=>`<button class="knopf hell grstufe" data-n="${n}">${n}</button>`).join('')}</div>
+      <canvas id="grBild" class="leinwand" width="480" height="270"></canvas>
+      <div class="stufenband" id="grBand"></div>
+      <p class="klein" id="grStufenText"></p>
+    </div>
+  </div>
+`},
+
+{titel:"RGB", klasse:"kompakt", eyebrow:"Farbe", h2:"Rot, Grün, Blau: drei Zahlen pro Pixel", roh:`
+  <div class="interaktiv zweispalt breitlinks" id="rgb">
+    <div class="spalte">
+      ${regler('rr', 'Rot', 19, 255, 'r')}
+      ${regler('rg', 'Grün', 110, 255, 'g')}
+      ${regler('rb', 'Blau', 169, 255, 'b')}
+      <div class="eingabezeile"><label for="rgbHex">Als Hex</label><input id="rgbHex" class="grossfeld mittel mono" value="#136EA9" autocomplete="off" spellcheck="false" style="width:200px"></div>
+      <div class="meldung" id="rgbMeldung"></div>
+      <div class="knopfleiste">${[['Schulblau',19,110,169],['Schulorange',243,169,47],['Gelb',255,255,0],['Lila',128,0,128],['Weiß',255,255,255],['Schwarz',0,0,0]].map(([t,r,g,b])=>`<button class="knopf hell rgbbsp" data-rgb="${r},${g},${b}">${t}</button>`).join('')}</div>
+    </div>
+    <div class="spalte">
+      <div class="farbfleck gross" id="rgbFleck"></div>
+      <div class="binblock mono" id="rgbBin"></div>
+      <p class="klein">Drei Byte pro Pixel: <strong>24 Bit</strong>. Das sind 256 · 256 · 256 = <strong>16 777 216</strong> Farben. Das Format dafür heißt <strong>PPM</strong>.</p>
+    </div>
+  </div>
+`},
+
+{titel:"Licht mischen", eyebrow:"Licht mischen", h2:"Rot und Grün ergibt … Gelb?", roh:`
+  <div class="interaktiv zweispalt" id="licht">
+    <div class="spalte">
+      <div class="lichtbuehne" id="lcBuehne">
+        <div class="lk r"></div><div class="lk g"></div><div class="lk b"></div>
+      </div>
+      <div class="knopfleiste">
+        <button class="knopf hell lcschalter an" data-k="r">Rot</button>
+        <button class="knopf hell lcschalter an" data-k="g">Grün</button>
+        <button class="knopf hell lcschalter an" data-k="b">Blau</button>
+      </div>
+    </div>
+    <div class="spalte">
+      <div class="lichttab" id="lcTab"></div>
+      <div class="karte orange frag"><h3>Licht, nicht Farbe</h3><p class="klein">Ein Bildschirm <strong>leuchtet</strong>: Jedes Pixel hat drei winzige Lampen. Mehr Licht wird heller, alle drei zusammen ergeben Weiß. Im Malkasten ist es umgekehrt: Farben schlucken Licht.</p></div>
+    </div>
+  </div>
+`},
+
+{titel:"Triff die Farbe", klasse:"kompakt", eyebrow:"Spiel", h2:"Triff die Farbe", roh:`
+  <div class="interaktiv zweispalt" id="spiel">
+    <div class="spalte">
+      <div class="spielflecken">
+        <div><div class="farbfleck" id="spZiel"></div><p class="beschr">Ziel</p></div>
+        <div><div class="farbfleck" id="spMein"></div><p class="beschr">deine Mischung</p></div>
+      </div>
+      <div class="knopfleiste">
+        <button class="knopf o" id="spPruef">Prüfen</button>
+        <button class="knopf hell" id="spNeu">Neue Farbe</button>
+      </div>
+    </div>
+    <div class="spalte">
+      ${regler('sr', 'Rot', 128, 255, 'r')}
+      ${regler('sg', 'Grün', 128, 255, 'g')}
+      ${regler('sb', 'Blau', 128, 255, 'b')}
+      <div class="spielurteil" id="spUrteil">Mische die Zielfarbe nach. Dann: Prüfen.</div>
+      <div class="punkte" id="spPunkte"></div>
+    </div>
+  </div>
+`},
+
+{titel:"Pixel-Atelier", klasse:"kompakt", eyebrow:"Pixel-Atelier", h2:"Malen mit Zahlen", roh:`
+  <div class="interaktiv zweispalt" id="atelier">
+    <div class="spalte">
+      <div class="malbrett farbig" id="atBrett"></div>
+    </div>
+    <div class="spalte">
+      <div class="palette" id="atPalette"></div>
+      <div class="atfarbe">
+        <div class="farbfleck mini" id="atAktuell"></div>
+        <span class="mono" id="atWerte"></span>
+        <input type="color" id="atWahl" value="#136ea9" aria-label="eigene Farbe">
+      </div>
+      <textarea class="code" id="atCode" spellcheck="false" wrap="off" aria-label="Bild als Text (P1, P2 oder P3)"></textarea>
+      <div class="meldung" id="atMeldung"></div>
+      <div class="knopfleiste">
+        <button class="knopf" id="atLesen">Text → Bild</button>
+        <button class="knopf hell" id="atLeer">Leeren</button>
+        <button class="knopf hell" id="atBsp">Beispiel</button>
+        <button class="knopf o" id="atPng">PNG speichern</button>
+        <button class="knopf hell" id="atPpm">PPM speichern</button>
+      </div>
+    </div>
+  </div>
+`},
+
+{titel:"Bildlabor", klasse:"kompakt", eyebrow:"Bildlabor", h2:"Filter sind Formeln", roh:`
+  <div class="interaktiv" id="labor">
+    <div class="laborkopf">
+      <div class="knopfleiste" id="lbFilter"></div>
+      <label class="knopf hell datei">Eigenes Foto<input type="file" id="lbDatei" accept="image/*"></label>
+    </div>
+    <div class="laborbilder">
+      <div><p class="beschr">vorher</p><canvas id="lbVor" class="leinwand klickbar" width="320" height="180"></canvas></div>
+      <div><p class="beschr">nachher</p><canvas id="lbNach" class="leinwand" width="320" height="180"></canvas></div>
+      <div class="spalte">
+        <div class="formel" id="lbFormel"></div>
+        <div id="lbParam">${regler('lb', 'Stärke', 60, 100)}</div>
+        <div class="pixelinfo" id="lbInfo"></div>
+        <button class="knopf hell" id="lbPng">Nachher als PNG speichern</button>
+      </div>
+    </div>
+  </div>
+`},
+
+{titel:"Speicher", klasse:"kompakt", eyebrow:"Speicheraufwand", h2:"Wie groß wird das Bild?", roh:`
+  <div class="interaktiv zweispalt" id="speicher">
+    <div class="spalte">
+      <div class="feldreihe">
+        <div class="eingabezeile"><label for="spB">Breite</label><input id="spB" class="grossfeld mittel mono" value="4000" autocomplete="off" inputmode="numeric"></div>
+        <div class="eingabezeile"><label for="spH">Höhe</label><input id="spH" class="grossfeld mittel mono" value="3000" autocomplete="off" inputmode="numeric"></div>
+      </div>
+      <div class="knopfleiste"><span class="beschr">pro Pixel</span>${[[1,'1 Bit · s/w'],[8,'8 Bit · grau'],[24,'24 Bit · farbig']].map(([n,t])=>`<button class="knopf hell spbit" data-n="${n}">${t}</button>`).join('')}</div>
+      <div class="meldung" id="spMeldung"></div>
+      <div class="knopfleiste"><span class="beschr">Beispiele</span>${[[12,12,1,'Malbrett'],[16,16,24,'Atelier'],[1920,1080,24,'Full HD'],[4000,3000,24,'Handyfoto']].map(([b,h,n,t])=>`<button class="knopf hell spbsp" data-b="${b}" data-h="${h}" data-n="${n}">${t}</button>`).join('')}</div>
+    </div>
+    <div class="spalte">
+      <div class="rechenweg" id="spWeg"></div>
+      <div class="karte orange frag"><p class="klein">Ein Handyfoto hat ungepackt rund <strong>36 MB</strong>. Die Datei auf dem Handy ist meist nur 3 bis 5 MB groß: Sie ist <strong>gepackt</strong>.</p></div>
+    </div>
+  </div>
+`},
+
+{titel:"Formate", eyebrow:"Grafikformate", h2:"Dieselben Pixel, verschieden gespeichert", roh:`
+  <div class="raster g3" style="gap:18px">
+    <div class="karte blau frag"><h3>PBM · PGM · PPM</h3><p class="klein">Die Zahlen stehen einfach da: als Text (P1, P2, P3) oder als Bytes (P4, P5, P6). <strong>Ungepackt</strong>, gut zum Verstehen.</p></div>
+    <div class="karte blau frag"><h3>PNG</h3><p class="klein"><strong>Verlustfrei</strong> gepackt: Wiederholungen werden kurz notiert, kein Pixel geht verloren. Gut für Grafiken, Screenshots, Pixelkunst.</p></div>
+    <div class="karte orange frag"><h3>JPG</h3><p class="klein">Lässt Feinheiten weg, die das Auge kaum sieht. Sehr klein, gut für Fotos – aber jedes Speichern <strong>verliert</strong> etwas.</p></div>
+  </div>
+  <div class="interaktiv karte frag" id="format" style="margin-top:20px">
+    <div class="formatzeile">
+      <div><h3>Die Idee beim Packen: Gleiches zählen statt aufschreiben</h3><p class="mono lauflaenge" id="fmLauf"></p></div>
+      <div class="formatmess">
+        <button class="knopf" id="fmMessen">Mein Atelierbild messen</button>
+        <div class="klein" id="fmErgebnis"></div>
+      </div>
+    </div>
+  </div>
+`},
+
+{titel:"Ein Pixel", klasse:"kompakt", eyebrow:"Steganografie", h2:"Das Geheimnis im letzten Bit: ein Pixel", roh:`
+  <div class="interaktiv einpixel" id="einpixel">
+    <div>
+      <div class="ghBox"><canvas id="epBild" class="leinwand klickbar" width="320" height="180"></canvas><div class="ghMarke" id="epMarke"></div></div>
+      <p class="klein" style="margin-top:8px">Klick auf ein Pixel. Wir schauen nur auf seinen <strong>Rotwert</strong>.</p>
+      <div class="epFarben">
+        <div><span class="epFeld" id="epFarbeVor"></span><span class="klein">vorher</span></div>
+        <div><span class="epFeld" id="epFarbeNach"></span><span class="klein">nachher</span></div>
+        <p class="klein" id="epGleich"></p>
+      </div>
+    </div>
+    <div class="spalte">
+      <div class="epSchritt"><span class="epNr">1</span><div><div class="ghWert">Rot vorher: <strong id="epVor"></strong></div><div id="epVorBits"></div></div></div>
+      <div class="epSchritt frag"><span class="epNr">2</span><div><div class="ghWert">Die Botschaft</div><p class="klein" id="epBot"></p></div></div>
+      <div class="epSchritt frag"><span class="epNr">3</span><div><div class="ghWert">Rot nachher: <strong id="epNach"></strong></div><div id="epNachBits"></div><p class="klein" id="epDiff"></p></div></div>
+    </div>
+  </div>
+`},
+
+{titel:"Gerade oder ungerade", klasse:"kompakt", eyebrow:"Steganografie", h2:"Das letzte Bit: gerade oder ungerade", roh:`
+  <div class="interaktiv raster g2" id="gerade" style="gap:30px;align-items:start">
+    <div class="spalte">
+      ${regler('gu', 'Rotwert', 148)}
+      <div id="guBits"></div>
+      <div class="guUrteil" id="guUrteil"></div>
+    </div>
+    <div class="karte blau frag"><h3>Warum entscheidet nur das letzte Bit?</h3><p>Die Stellen sind <span class="mono">128 64 32 16 8 4 2 1</span> wert. Alle außer der letzten sind <strong>gerade</strong>, und gerade + gerade bleibt gerade.</p><p style="margin-top:10px">Nur die <strong>1</strong> ganz hinten kann eine Zahl ungerade machen.</p></div>
+  </div>
+`},
+
+{titel:"Abmachung", klasse:"kompakt", eyebrow:"Steganografie", h2:"Ist 0 schwarz oder 1? Das ist Abmachung", roh:`
+  <div class="raster g2" style="gap:30px;align-items:stretch">
+    <div class="karte orange"><h3>Licht: Graustufen und RGB</h3>
+      <div class="guLogik"><span class="guFeld gross">0</span><p>kein Licht = <strong>schwarz</strong></p></div>
+      <div class="guLogik"><span class="guFeld gross weiss">255</span><p>volles Licht = <strong>weiß</strong></p></div>
+      <p class="klein" style="margin-top:14px">Die Zahl sagt, wie hell der Bildschirm leuchtet.</p>
+    </div>
+    <div class="karte orange frag"><h3>Tinte: P1</h3>
+      <div class="guLogik"><span class="guFeld gross">1</span><p>da ist etwas = <strong>schwarz</strong></p></div>
+      <div class="guLogik"><span class="guFeld gross weiss">0</span><p>leer = <strong>weiß</strong></p></div>
+      <p class="klein" style="margin-top:14px">Die Zahl sagt, ob auf dem Papier ein Punkt ist.</p>
+    </div>
+  </div>
+  <p class="frag" style="margin-top:18px">Beides ist richtig. Es kommt nur darauf an, was man vorher <strong>abgemacht</strong> hat.</p>
+`},
+
+{titel:"Unsere Abmachung", klasse:"kompakt", eyebrow:"Steganografie", h2:"Unsere Abmachung beim Verstecken", roh:`
+  <div class="guKette">
+    <span>letztes Bit <strong>1</strong></span><span class="guPfeil">→</span><span><strong>ungerade</strong></span><span class="guPfeil">→</span><span><strong>Botschaft</strong></span><span class="guPfeil">→</span><span class="schwarz">schwarz</span>
+  </div>
+  <div class="raster g2 frag" style="gap:30px;margin-top:22px">
+    <div class="karte blau"><h3>Rot 149</h3><p class="mono guZahl">1001010<strong>1</strong></p><p>ungerade → hier steckt die Botschaft, das Pixel wird <strong>schwarz</strong>.</p></div>
+    <div class="karte blau"><h3>Rot 148</h3><p class="mono guZahl">1001010<strong>0</strong></p><p>gerade → keine Botschaft, das Pixel bleibt <strong>weiß</strong>.</p></div>
+  </div>
+  <p class="frag" style="margin-top:18px">Wie bei P1. Andersherum ginge es genauso. Wer versteckt und wer liest, müssen sich nur einigen.</p>
+`},
+
+{titel:"Ebenen", klasse:"kompakt", eyebrow:"Steganografie", h2:"Alle Pixel, Ebene für Ebene", roh:`
+  <div class="interaktiv zweispalt" id="geheim">
+    <div>
+      <div class="ghBox"><canvas id="ghBild" class="leinwand klickbar" width="320" height="180"></canvas><div class="ghMarke" id="ghMarke"></div></div>
+      <p class="klein" style="margin-top:8px">Der Kreis ist dasselbe Pixel wie eben. Klick, um ein anderes zu nehmen.</p>
+    </div>
+    <div class="spalte">
+      <div class="knopfleiste ghLeiste">
+        <button class="knopf hell ghebene" data-b="-1">Bild</button>
+        ${[7,6,5,4,3,2,1,0].map(b=>`<button class="knopf hell ghebene bitk" data-b="${b}">${b}</button>`).join('')}
+      </div>
+      <div id="ghBin"></div>
+      <p class="klein" id="ghText"></p>
+      <div class="knopfleiste">
+        <button class="knopf o" id="ghMein">Mein Malbrett-Bild verstecken</button>
+        <button class="knopf hell" id="ghStandard">Zurück zu GEHEIM</button>
+      </div>
+    </div>
+  </div>
+`},
+
+{titel:"Selbst verstecken", klasse:"kompakt", eyebrow:"Steganografie", h2:"Dein eigenes Geheimnis", roh:`
+  <div class="interaktiv selbst" id="selbst">
+    <div class="spalte">
+      <span class="beschr">1 · Botschaft ins letzte Bit</span>
+      <div class="malbrett gs" id="gsBot"></div>
+      <div class="knopfleiste"><button class="knopf hell" id="gsBotLeer">Leeren</button><button class="knopf hell" id="gsBotBsp">Beispiel</button></div>
+    </div>
+    <div class="spalte">
+      <span class="beschr">2 · Bild darüber malen</span>
+      <div class="malbrett gs farbig" id="gsBild"></div>
+      <div class="palette" id="gsPalette"></div>
+      <div class="knopfleiste"><button class="knopf hell" id="gsBildLeer">Leeren</button><button class="knopf hell" id="gsBildBsp">Beispiel</button></div>
+    </div>
+    <div class="spalte">
+      <span class="beschr">3 · Ergebnis</span>
+      <canvas id="gsErgebnis" class="leinwand" width="16" height="12"></canvas>
+      <div class="knopfleiste"><button class="knopf hell gssicht" data-s="bild">So sieht man es</button><button class="knopf hell gssicht" data-s="bit0">Letztes Bit von Rot</button></div>
+      <p class="klein" id="gsText"></p>
+    </div>
+  </div>
+`},
+
+{titel:"Werkzeuge", eyebrow:"Am PC", h2:"Was du dafür brauchst", roh:`
+  <div class="raster g2" style="gap:18px;margin-top:20px">
+    <div class="karte blau frag"><h3>Ein Texteditor</h3><p class="klein">Zum Schreiben der Datei. Windows: <strong>Editor</strong> (Notepad). Mac: <strong>TextEdit</strong>, vorher <em>Format → In reinen Text umwandeln</em>. Speichern als <strong>Alle Dateien</strong>, Name endet auf <strong>.ppm</strong>, <strong>.pgm</strong> oder <strong>.pbm</strong>.</p></div>
+    <div class="karte orange frag"><h3>IrfanView</h3><p class="klein">Kostenloser Bildbetrachter für Windows, öffnet PBM, PGM und PPM direkt. Kleine Bilder mit der Taste <strong>+</strong> mehrmals vergrößern.</p></div>
+    <div class="karte orange frag"><h3>GIMP</h3><p class="klein">Kostenloses Bildprogramm für Windows, Mac und Linux. Öffnet die Dateien und speichert sie mit <em>Exportieren als</em> auch als <strong>PNG</strong>.</p></div>
+    <div class="karte blau frag"><h3>Diese Präsentation</h3><p class="klein">Läuft in jedem Browser, auch ohne Internet. Im <strong>Pixel-Atelier</strong> Text einfügen und <strong>Text → Bild</strong>, dann als PNG speichern – das PNG ist schon groß. Im <strong>Bildlabor</strong> eigene Fotos filtern.</p></div>
+  </div>
+`},
+
+{titel:"Abschluss", klasse:"titel schluss", roh:`
+  <div class="bitregen"><div>${BITS}${BITS}</div></div>
+  <div class="links">
+    <img src="${LOGO}" alt="">
+    <div class="zitatgross">
+      Ein Bild ist ein Raster aus Pixeln.<br>Pro Pixel ein Bit, ein Grauwert<br>oder drei Zahlen für Rot, Grün und Blau.
+      <span class="strich"></span>
+    </div>
+    <div class="quelle">MERKSATZ</div>
+    <div class="meta" style="justify-content:center;margin-top:30px">
+      <span>${KURS}</span>
+      <span>${REIHE}</span>
+    </div>
+  </div>
+`}
+
+];
+
+</script>
+
+<script>
+/* =====================================================================
+   Folien aufbauen und navigieren (Rahmen wie ds2)
+   ===================================================================== */
+const stage = document.getElementById('stage');
+
+folien.forEach((f,i)=>{
+  const el = document.createElement('section');
+  el.className = 'slide' + (f.klasse ? ' '+f.klasse : '');
+  let html = '';
+  if(!(f.klasse||'').split(' ').includes('titel')){
+    html += `<header class="kopf">
+        <img src="${LOGO}" alt="">
+        <span class="schule">Montessori-Schule Landau</span>
+        <span class="kurs">${KURS}</span>
+      </header>`;
+    if(f.h2){
+      html += `<div class="titelzeile">${f.eyebrow?`<div class="eyebrow">${f.eyebrow}</div>`:''}<h2>${f.h2}</h2></div>`;
+    }
+    html += `<div class="inhalt">${f.roh}</div>`;
+    html += `<div class="fuss"><span>${REIHE}</span><span>${i+1} / ${folien.length}</span></div>`;
+  } else {
+    html = f.roh;
+  }
+  el.innerHTML = html;
+  stage.appendChild(el);
+});
+
+const slides = [...document.querySelectorAll('.slide')];
+let i = 0, schritt = 0;
+
+function frags(n){
+  const alle = [...slides[n].querySelectorAll('.frag')];
+  return alle
+    .map((el,k)=>({el, ord: el.dataset.schritt ? parseFloat(el.dataset.schritt) : k+1, k}))
+    .sort((a,b)=> a.ord - b.ord || a.k - b.k)
+    .map(x=>x.el);
+}
+
+function zeige(n, alleFragmente=false){
+  i = Math.max(0, Math.min(slides.length-1, n));
+  slides.forEach((s,k)=>s.classList.toggle('aktiv', k===i));
+  const fr = frags(i);
+  schritt = alleFragmente ? fr.length : 0;
+  fr.forEach((f,k)=>f.classList.toggle('an', k<schritt));
+  document.getElementById('zaehler').textContent = (i+1)+' / '+slides.length;
+  document.getElementById('fortschritt').style.width = ((i+1)/slides.length*100)+'%';
+  location.hash = i+1;
+}
+function vor(){
+  const fr = frags(i);
+  if(schritt < fr.length){ fr[schritt].classList.add('an'); schritt++; return; }
+  if(i < slides.length-1) zeige(i+1);
+}
+function zurueck(){
+  if(schritt > 0){ schritt--; frags(i)[schritt].classList.remove('an'); return; }
+  if(i > 0) zeige(i-1, true);
+}
+
+function skalieren(){
+  const rand = 40;
+  const s = Math.min((innerWidth-rand)/1280, (innerHeight-rand)/720);
+  stage.style.transform = 'scale('+s+')';
+}
+addEventListener('resize', skalieren);
+
+const ueb = document.getElementById('uebersicht');
+const gitter = ueb.querySelector('.gitter');
+folien.forEach((f,k)=>{
+  const d = document.createElement('div');
+  d.className = 'mini';
+  d.innerHTML = `<div class="nr">FOLIE ${k+1}</div><div class="tt">${f.h2 || f.titel}</div>`;
+  d.onclick = ()=>{ ueb.classList.remove('an'); zeige(k); };
+  gitter.appendChild(d);
+});
+
+addEventListener('keydown', e=>{
+  if(e.target.closest && e.target.closest('input, select, textarea')) return;   // in Feldern tippen, nicht blättern
+  if(e.target.closest && e.target.closest('button') && (e.key===' '||e.key==='Enter')) return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='Enter'){ e.preventDefault(); vor(); }
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='Backspace'){ e.preventDefault(); zurueck(); }
+  else if(e.key==='Home'){ zeige(0); }
+  else if(e.key==='End'){ zeige(slides.length-1, true); }
+  else if(e.key==='o'||e.key==='O'){ ueb.classList.toggle('an'); }
+  else if(e.key==='Escape'){ ueb.classList.remove('an'); }
+  else if(e.key==='f'||e.key==='F'){ vollbild(); }
+});
+function vollbild(){
+  const el = document.documentElement;
+  if(document.fullscreenElement) document.exitFullscreen();
+  else if(el.requestFullscreen) el.requestFullscreen();
+  else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+}
+// Wischen auf Tablets: links = weiter, rechts = zurück (nicht in interaktiven Bereichen)
+let wischX = null, wischY = null;
+stage.addEventListener('touchstart', e=>{
+  if(e.target.closest('.interaktiv')){ wischX = null; return; }
+  wischX = e.touches[0].clientX; wischY = e.touches[0].clientY;
+}, {passive:true});
+stage.addEventListener('touchend', e=>{
+  if(wischX === null) return;
+  const dx = e.changedTouches[0].clientX - wischX, dy = e.changedTouches[0].clientY - wischY;
+  if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) (dx < 0 ? vor : zurueck)();
+  wischX = null;
+});
+document.getElementById('uebBtn').onclick = ()=> ueb.classList.toggle('an');
+document.getElementById('vor').onclick = vor;
+document.getElementById('zurueck').onclick = zurueck;
+stage.addEventListener('click', e=>{ if(!e.target.closest('a, button, input, .interaktiv')) vor(); });
+
+skalieren();
+zeige(parseInt(location.hash.slice(1)) - 1 || 0);
+
+/* =====================================================================
+   Hilfen: streng lesen, nichts still verändern
+   ===================================================================== */
+const B = id => document.getElementById(id);
+const tz = n => n < 10000 ? String(n) : n.toLocaleString('de-DE').replace(/\./g, ' ');
+const bin8 = v => v.toString(2).padStart(8, '0');
+const hex2 = v => v.toString(16).toUpperCase().padStart(2, '0');
+const rgbCss = (r, g, b) => `rgb(${r},${g},${b})`;
+const handy = () => document.documentElement.classList.contains('handy');
+
+/* ganze Zahl in [lo, hi]: {wert} | {leer} | {fehler} */
+function liesGanz(t, name, lo, hi){
+  const s = t.trim();
+  if(!s) return {leer:true};
+  if(!/^\d+$/.test(s)) return {fehler:`${name}: bitte eine ganze Zahl (nur Ziffern 0 bis 9).`};
+  const w = s.length > 7 ? Infinity : Number(s);
+  if(w < lo || w > hi) return {fehler:`${name}: von ${tz(lo)} bis ${tz(hi)}.`};
+  return {wert:w};
+}
+/* Feld rot + Meldung (falls Kasten da) oder sauber; true heißt: rechnen */
+function melde(feld, box, r){
+  feld.classList.toggle('falsch', !!r.fehler);
+  if(box){ box.className = r.fehler ? 'meldung nein' : 'meldung'; box.textContent = r.fehler || ''; }
+  return !r.fehler && !r.leer;
+}
+/* Schieber + Eingabefeld: Feld streng, Schieber folgt; neu(v) bei jeder gültigen Änderung */
+function reglerVerbinden(id, neu, box){
+  const r = B(id + 'R'), f = B(id + 'F'), name = f.closest('.regler').querySelector('label').textContent;
+  const lo = () => Number(r.min), hi = () => Number(r.max);
+  r.addEventListener('input', ()=>{ f.value = r.value; f.classList.remove('falsch'); if(box) melde(f, box, {}); neu(Number(r.value)); });
+  f.addEventListener('input', ()=>{ const x = liesGanz(f.value, name, lo(), hi());
+    f.classList.toggle('falsch', !!x.fehler); f.title = x.fehler || '';
+    if(box) melde(f, box, x);
+    if(x.wert !== undefined){ r.value = x.wert; neu(x.wert); } });
+  return {
+    get wert(){ return Number(r.value); },
+    setze(v){ r.value = v; f.value = v; f.classList.remove('falsch'); f.title = ''; },
+    bereich(a, b){ r.min = a; r.max = b; }
+  };
+}
+function speichern(name, blob){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=> URL.revokeObjectURL(a.href), 2000);
+}
+
+/* Zufall mit Startwert: dieselbe Szene bei jedem Laden */
+function zufallszahlen(start){ let a = start >>> 0;
+  return ()=>{ a = a + 0x6D2B79F5 >>> 0; let t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* Eine Landschaft als „Foto“: Himmel, Sonne, Hügel, Baum, etwas Rauschen.
+   Gibt die Pixel als Uint8ClampedArray (RGBA) zurück. */
+function szene(w, h){
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d');
+  const himmel = x.createLinearGradient(0, 0, 0, h * .7);
+  himmel.addColorStop(0, '#1E5F99'); himmel.addColorStop(.6, '#6FA8D6'); himmel.addColorStop(1, '#F7C77A');
+  x.fillStyle = himmel; x.fillRect(0, 0, w, h);
+  const sx = w * .7, sy = h * .42, sr = h * .13;
+  const glanz = x.createRadialGradient(sx, sy, sr * .6, sx, sy, sr * 2.6);
+  glanz.addColorStop(0, 'rgba(255,226,140,.85)'); glanz.addColorStop(1, 'rgba(255,226,140,0)');
+  x.fillStyle = glanz; x.fillRect(0, 0, w, h);
+  x.fillStyle = '#FFD56B'; x.beginPath(); x.arc(sx, sy, sr, 0, 7); x.fill();
+  const huegel = (farbe, basis, amp, f, ph) => { x.fillStyle = farbe; x.beginPath(); x.moveTo(0, h);
+    for(let i = 0; i <= w; i++) x.lineTo(i, h * basis + Math.sin(i / w * f + ph) * h * amp); x.lineTo(w, h); x.fill(); };
+  huegel('#4F8F6A', .62, .06, 5, 1);
+  huegel('#2F6B3F', .76, .07, 3.4, 2.4);
+  x.fillStyle = '#5A3A1E'; x.fillRect(w * .18, h * .5, w * .025, h * .3);
+  x.fillStyle = '#1F4F2C'; x.beginPath(); x.arc(w * .193, h * .47, h * .13, 0, 7); x.fill();
+  x.fillStyle = '#2E6B3A'; x.beginPath(); x.arc(w * .175, h * .43, h * .07, 0, 7); x.fill();
+  const d = x.getImageData(0, 0, w, h).data, z = zufallszahlen(w * 7 + h);
+  for(let i = 0; i < d.length; i += 4){ const n = Math.round((z() - .5) * 10); d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+  return d;
+}
+/* Pixel (RGBA-Liste) auf eine Leinwand, je Pixel ein Quadrat der Größe k */
+function zeichnePixel(leinwand, d, w, h, k = 1){
+  const x = leinwand.getContext('2d');
+  if(k === 1){ const bild = x.createImageData(w, h); bild.data.set(d); x.putImageData(bild, 0, 0); return; }
+  for(let j = 0; j < h; j++) for(let i = 0; i < w; i++){ const p = (j * w + i) * 4;
+    x.fillStyle = rgbCss(d[p], d[p + 1], d[p + 2]); x.fillRect(i * k, j * k, k, k); }
+}
+/* Klick auf eine Leinwand → Pixel (bei Anzeige in anderer Größe umrechnen) */
+function klickPixel(e, leinwand, w, h){
+  const r = leinwand.getBoundingClientRect();
+  return { x: Math.min(w - 1, Math.max(0, Math.floor((e.clientX - r.left) / r.width * w))),
+           y: Math.min(h - 1, Math.max(0, Math.floor((e.clientY - r.top) / r.height * h))) };
+}
+
+/* =====================================================================
+   Malbrett (Schwarz-Weiß, Rätsel, Atelier): Raster aus Kästchen
+   ===================================================================== */
+function malbrett(el, w, h, faerbe, malen){
+  el.style.setProperty('--sp', w);
+  el.innerHTML = Array.from({length: w * h}, (_, k)=> `<div class="px" data-k="${k}"></div>`).join('');
+  const zellen = [...el.children];
+  zellen.forEach((z, k)=> faerbe(z, k));
+  if(malen){
+    let aktiv = false;
+    const unter = e => { const z = document.elementFromPoint(e.clientX, e.clientY); return z && z.parentElement === el ? Number(z.dataset.k) : null; };
+    el.addEventListener('pointerdown', e => { const k = unter(e); if(k === null) return; aktiv = true; e.preventDefault(); malen(k, true); });
+    el.addEventListener('pointermove', e => { if(!aktiv) return; const k = unter(e); if(k !== null) malen(k, false); });
+    addEventListener('pointerup', ()=> aktiv = false);
+    addEventListener('pointercancel', ()=> aktiv = false);
+  }
+  return zellen;
+}
+const ausMuster = zeilen => zeilen.join('').split('').map(c => c === '1' ? 1 : 0);
+const P1text = (bits, w, h, kommentar) => `P1\n${kommentar ? '# ' + kommentar + '\n' : ''}${w} ${h}\n` +
+  Array.from({length: h}, (_, j)=> bits.slice(j * w, j * w + w).join(' ')).join('\n');
+
+/* ---------- Titel: kleines Pixelbild ---------- */
+(function(){
+  const muster = ['............','..oooooooo..','.oobbbbbboo.','oobbbbbbbboo','obbwwbbwwbbo','obbwkbbwkbbo','obbbbbbbbbbo','obbobbbbobbo','oobboooobboo','.oobbbbbboo.','..oooooooo..','............'];
+  const F = {o:[243,169,47], b:[19,110,169], w:[255,255,255], k:[22,35,46], '.':[255,255,255]};
+  const d = new Uint8ClampedArray(144 * 4);
+  muster.join('').split('').forEach((c, k)=>{ const f = F[c]; d.set([f[0], f[1], f[2], c === '.' ? 0 : 255], k * 4); });
+  zeichnePixel(B('titelPixel'), d, 12, 12);
+})();
+
+/* =====================================================================
+   Lupe: ganz nah ran, bis die Zahlen sichtbar sind
+   ===================================================================== */
+const LUPE = (function(){
+  const W = 96, H = 54, d = szene(W, H), lw = B('lpBild'), x = lw.getContext('2d');
+  const BREITEN = [96, 48, 24, 16, 12, 8];
+  let stufe = 0, cx = 67, cy = 22, wahl = {x: 67, y: 22};
+  function zeichne(){
+    const vw = BREITEN[stufe], k = lw.width / vw, vh = lw.height / k;
+    const x0 = Math.max(0, Math.min(W - vw, Math.round(cx - vw / 2))), y0 = Math.max(0, Math.min(H - Math.ceil(vh), Math.round(cy - vh / 2)));
+    x.clearRect(0, 0, lw.width, lw.height);
+    for(let j = y0; j < Math.min(H, y0 + Math.ceil(vh) + 1); j++) for(let i = x0; i < x0 + vw; i++){
+      const p = (j * W + i) * 4; x.fillStyle = rgbCss(d[p], d[p + 1], d[p + 2]); x.fillRect((i - x0) * k, (j - y0) * k, k + .5, k + .5);
+      if(k >= 32){ x.strokeStyle = 'rgba(255,255,255,.55)'; x.lineWidth = 1; x.strokeRect((i - x0) * k + .5, (j - y0) * k + .5, k - 1, k - 1); }
+      if(k >= 64){
+        const hell = d[p] * .3 + d[p + 1] * .59 + d[p + 2] * .11 > 140;
+        x.fillStyle = hell ? '#16232E' : '#FFFFFF'; x.font = `700 ${k >= 96 ? 18 : 13}px ui-monospace,Consolas,monospace`; x.textAlign = 'center';
+        [d[p], d[p + 1], d[p + 2]].forEach((v, t)=> x.fillText(v, (i - x0 + .5) * k, (j - y0) * k + k * (.32 + t * .26)));
+      }
+    }
+    if(wahl.x >= x0 && wahl.x < x0 + vw && wahl.y >= y0 && wahl.y < y0 + vh){
+      x.strokeStyle = '#F3A92F'; x.lineWidth = Math.max(2, k / 12); x.strokeRect((wahl.x - x0) * k + 1, (wahl.y - y0) * k + 1, k - 2, k - 2);
+    }
+    lw.dataset.sicht = `${x0},${y0},${vw}`;
+    const p = (wahl.y * W + wahl.x) * 4;
+    B('lpInfo').innerHTML = `<div class="farbfleck mini" style="background:${rgbCss(d[p], d[p + 1], d[p + 2])}"></div>
+      <div><b>Pixel (${wahl.x} | ${wahl.y})</b><br><span class="mono"><i class="r">R ${d[p]}</i> · <i class="g">G ${d[p + 1]}</i> · <i class="b">B ${d[p + 2]}</i></span></div>`;
+  }
+  const regler = reglerVerbinden('lp', v => { stufe = v; zeichne(); });
+  lw.addEventListener('click', e => {
+    const [x0, y0, vw] = lw.dataset.sicht.split(',').map(Number), k = lw.width / vw;
+    const r = lw.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * lw.width, py = (e.clientY - r.top) / r.height * lw.height;
+    wahl = {x: Math.min(W - 1, x0 + Math.floor(px / k)), y: Math.min(H - 1, y0 + Math.floor(py / k))};
+    cx = wahl.x + .5; cy = wahl.y + .5;
+    if(stufe < BREITEN.length - 1 && e.detail !== 0){ stufe++; regler.setze(stufe); }
+    zeichne();
+  });
+  zeichne();
+  return { d, W, H, get wahl(){ return wahl; }, get stufe(){ return stufe; } };
+})();
+
+/* =====================================================================
+   Aufbau einer Bilddatei: dasselbe Haus als P1, P2, P3
+   ===================================================================== */
+const HAUS = (function(){
+  const F = {h:[180,220,245], d:[198,40,40], w:[243,169,47], f:[19,110,169], t:[121,72,30]};
+  return 'hddh dddd wfww wtww'.replace(/ /g, '').split('').map(c => F[c]);
+})();
+const grauVon = f => Math.round((f[0] + f[1] + f[2]) / 3);
+function hausText(art){
+  const W = 4, H = 4, kopf = [`<span class="kenn">${art}</span>`, `<span class="mass">${W} ${H}</span>`];
+  if(art !== 'P1') kopf.push('<span class="max">255</span>');
+  const wert = f => art === 'P1' ? [grauVon(f) < 128 ? 1 : 0] : art === 'P2' ? [grauVon(f)] : f;
+  const zeilen = Array.from({length: H}, (_, j)=> HAUS.slice(j * W, j * W + W).map((f, i)=>
+    `<span class="pw" data-k="${j * W + i}">${wert(f).join(' ')}</span>`).join(art === 'P3' ? '   ' : ' '));
+  return kopf.join('\n') + '\n' + zeilen.join('\n');
+}
+const AUFBAU = (function(){
+  let art = 'P3', wahl = 5;
+  const lw = B('abBild');
+  function zeige(){
+    B('abCode').innerHTML = hausText(art);
+    const d = new Uint8ClampedArray(64);
+    HAUS.forEach((f, k)=>{ const g = grauVon(f), v = art === 'P3' ? f : art === 'P2' ? [g, g, g] : (g < 128 ? [0, 0, 0] : [255, 255, 255]); d.set([...v, 255], k * 4); });
+    zeichnePixel(lw, d, 4, 4);
+    B('abCode').querySelectorAll('.pw').forEach(s => { s.classList.toggle('an', Number(s.dataset.k) === wahl); s.onclick = ()=>{ wahl = Number(s.dataset.k); zeige(); }; });
+    lw.style.setProperty('--x', wahl % 4); lw.style.setProperty('--y', Math.floor(wahl / 4));
+    B('abRahmen').style.left = (wahl % 4) * 25 + '%'; B('abRahmen').style.top = Math.floor(wahl / 4) * 25 + '%';
+    document.querySelectorAll('.abart').forEach(b => b.classList.toggle('an', b.dataset.p === art));
+    document.querySelector('#aufbau .tk.kenn').textContent = art;
+  }
+  const rahmen = document.createElement('div'); rahmen.id = 'abRahmen'; rahmen.className = 'abrahmen';
+  const huelle = document.createElement('div'); huelle.className = 'abhuelle';
+  lw.parentNode.insertBefore(huelle, lw); huelle.appendChild(lw); huelle.appendChild(rahmen);
+  lw.addEventListener('click', e => { const p = klickPixel(e, lw, 4, 4); wahl = p.y * 4 + p.x; zeige(); });
+  document.querySelectorAll('.abart').forEach(b => b.onclick = ()=>{ art = b.dataset.p; zeige(); });
+  zeige();
+  return { get art(){ return art; }, get wahl(){ return wahl; } };
+})();
+
+/* =====================================================================
+   Schwarz-Weiß: ein Pixel, ein Bit
+   ===================================================================== */
+const SMILEY = ['............','...111111...','..1......1..','.1........1.','.1..1..1..1.','.1........1.','.1.1....1.1.','.1..1111..1.','..1......1..','...111111...','............','............'];
+const SW = (function(){
+  const W = 12, H = 12, bits = Array(W * H).fill(0);
+  let zellen;
+  function zeige(){
+    zellen.forEach((z, k)=> z.classList.toggle('an', !!bits[k]));
+    B('swCode').textContent = P1text(bits, W, H);
+    const n = bits.filter(Boolean).length;
+    B('swZahl').innerHTML = `<span><b>${W * H}</b> Pixel</span><span><b>${W * H}</b> Bit</span><span><b>${W * H / 8}</b> Byte</span><span class="leise">${n} schwarz, ${W * H - n} weiß</span>`;
+  }
+  let farbe = 1;
+  zellen = malbrett(B('swBrett'), W, H, ()=>{}, (k, start)=>{ if(start) farbe = bits[k] ? 0 : 1; bits[k] = farbe; zeige(); });
+  B('swLeer').onclick = ()=>{ bits.fill(0); zeige(); };
+  B('swUmkehr').onclick = ()=>{ bits.forEach((b, k)=> bits[k] = 1 - b); zeige(); };
+  B('swBsp').onclick = ()=>{ ausMuster(SMILEY).forEach((b, k)=> bits[k] = b); zeige(); };
+  B('swBsp').onclick();
+  return { bits, W, H, zeige };
+})();
+
+/* =====================================================================
+   Rätsel: Zahlen → Bild, Zeile für Zeile
+   ===================================================================== */
+const RAETSEL_BILDER = [
+  ['............','..11....11..','.1111..1111.','111111111111','111111111111','111111111111','.1111111111.','..11111111..','...111111...','....1111....','.....11.....','............'],
+  ['.....11.....','....1111....','....1111....','...111111...','...11..11...','...11..11...','...111111...','...111111...','..11111111..','.111.11.111.','.11..11..11.','.....11.....'],
+  ['............','.1........1.','.11......11.','.1111111111.','.1..1111..1.','.1..1111..1.','.1111111111.','.1111..1111.','..11111111..','...111111...','............','............']
+];
+const RAETSEL = (function(){
+  const W = 12, H = 12;
+  let k = 0, offen = 0, bits = ausMuster(RAETSEL_BILDER[0]);
+  const zellen = malbrett(B('rtBrett'), W, H, ()=>{});
+  function zeige(){
+    zellen.forEach((z, i)=>{ const j = Math.floor(i / W); z.classList.toggle('an', j < offen && !!bits[i]); z.classList.toggle('zu', j >= offen); });
+    const zeilen = Array.from({length: H}, (_, j)=> `<span class="${j < offen ? 'offen' : ''}">${bits.slice(j * W, j * W + W).join(' ')}</span>`);
+    B('rtCode').innerHTML = `P1\n${W} ${H}\n` + zeilen.join('\n');
+    B('rtZeile').disabled = offen >= H; B('rtAlles').disabled = offen >= H;
+    document.querySelectorAll('.rtwahl').forEach(b => b.classList.toggle('an', Number(b.dataset.k) === k));
+  }
+  document.querySelectorAll('.rtwahl').forEach(b => b.onclick = ()=>{ k = Number(b.dataset.k); bits = ausMuster(RAETSEL_BILDER[k]); offen = 0; zeige(); });
+  B('rtZeile').onclick = ()=>{ offen = Math.min(H, offen + 1); zeige(); };
+  B('rtAlles').onclick = ()=>{ offen = H; zeige(); };
+  zeige();
+  return { get offen(){ return offen; }, get bits(){ return bits; } };
+})();
+
+/* =====================================================================
+   Graustufen: ein Byte pro Pixel, weniger Stufen = weniger Bits
+   ===================================================================== */
+const stufe = (v, n) => Math.round(Math.round(v * (n - 1) / 255) * 255 / (n - 1));
+const GRAU = (function(){
+  const W = 160, H = 90, d = szene(W, H);
+  let n = 256;
+  function wert(v){
+    B('grFleck').style.background = rgbCss(v, v, v);
+    const b = bin8(v);
+    B('grBin').textContent = `${b.slice(0, 4)} ${b.slice(4)}`;
+    B('grText').innerHTML = `<strong>${v}</strong> dezimal = <strong>${b.slice(0, 4)} ${b.slice(4)}</strong> binär = <strong>${hex2(v)}</strong> hex`;
+  }
+  function bild(){
+    const g = new Uint8ClampedArray(d.length);
+    for(let i = 0; i < d.length; i += 4){ const m = stufe(Math.round((d[i] + d[i + 1] + d[i + 2]) / 3), n); g[i] = g[i + 1] = g[i + 2] = m; g[i + 3] = 255; }
+    zeichnePixel(B('grBild'), g, W, H, 3);
+    const band = B('grBand');
+    band.innerHTML = n <= 16 ? Array.from({length: n}, (_, k)=>{ const v = Math.round(k * 255 / (n - 1)); return `<i style="background:${rgbCss(v, v, v)}"><b class="${v > 140 ? 'd' : ''}">${v}</b></i>`; }).join('')
+      : '<i style="background:linear-gradient(90deg,#000,#fff)"></i>';
+    const bits = Math.log2(n);
+    B('grStufenText').innerHTML = `<strong>${n} Stufen</strong> brauchen <strong>${bits} Bit</strong> pro Pixel${bits === 8 ? ' = 1 Byte' : ''}.` +
+      (n === 2 ? ' Das ist wieder Schwarz-Weiß.' : n === 256 ? ' Ab hier sieht das Auge keine Stufen mehr.' : '');
+    document.querySelectorAll('.grstufe').forEach(b => b.classList.toggle('an', Number(b.dataset.n) === n));
+  }
+  reglerVerbinden('gr', wert);
+  document.querySelectorAll('.grstufe').forEach(b => b.onclick = ()=>{ n = Number(b.dataset.n); bild(); });
+  wert(200); bild();
+  return { get n(){ return n; } };
+})();
+
+/* =====================================================================
+   RGB-Mischpult
+   ===================================================================== */
+const RGB = (function(){
+  const f = [19, 110, 169], hexFeld = B('rgbHex');
+  const zeige = (hexMit = true) => {
+    B('rgbFleck').style.background = rgbCss(...f);
+    B('rgbBin').innerHTML = [['Rot', 'r'], ['Grün', 'g'], ['Blau', 'b']].map(([t, c], k)=>{ const b = bin8(f[k]);
+      return `<div class="${c}"><span>${t}</span><b>${f[k]}</b><span>${b.slice(0, 4)} ${b.slice(4)}</span><span>${hex2(f[k])}</span></div>`; }).join('');
+    if(hexMit){ hexFeld.value = '#' + f.map(hex2).join(''); melde(hexFeld, B('rgbMeldung'), {}); }
+  };
+  const regler = ['rr', 'rg', 'rb'].map((id, k)=> reglerVerbinden(id, v => { f[k] = v; zeige(); }, B('rgbMeldung')));
+  hexFeld.addEventListener('input', ()=>{
+    const s = hexFeld.value.trim();
+    const r = !s ? {leer:true} : /^#?[0-9a-fA-F]{6}$/.test(s) ? {wert:s.replace('#', '')} : {fehler:'Hex-Farbe: sechs Zeichen 0–9 und A–F, zum Beispiel #136EA9.'};
+    if(melde(hexFeld, B('rgbMeldung'), r)){ [0, 1, 2].forEach(k => { f[k] = parseInt(r.wert.slice(k * 2, k * 2 + 2), 16); regler[k].setze(f[k]); }); zeige(false); }
+  });
+  document.querySelectorAll('.rgbbsp').forEach(b => b.onclick = ()=>{ b.dataset.rgb.split(',').map(Number).forEach((v, k)=>{ f[k] = v; regler[k].setze(v); }); zeige(); });
+  zeige();
+  return { f };
+})();
+
+/* =====================================================================
+   Licht mischen
+   ===================================================================== */
+const LICHT = (function(){
+  const an = {r:true, g:true, b:true};
+  const NAMEN = {'':'Schwarz', r:'Rot', g:'Grün', b:'Blau', rg:'Gelb', gb:'Cyan (Türkis)', rb:'Magenta (Pink)', rgb:'Weiß'};
+  const WERTE = s => `(${s.includes('r') ? 255 : 0}, ${s.includes('g') ? 255 : 0}, ${s.includes('b') ? 255 : 0})`;
+  const LISTE = ['rg', 'gb', 'rb', 'rgb', ''];
+  const lesbar = s => s ? [...s].map(c => ({r:'Rot', g:'Grün', b:'Blau'})[c]).join(' + ') : 'kein Licht';
+  function zeige(){
+    const s = ['r', 'g', 'b'].filter(k => an[k]).join('');
+    ['r', 'g', 'b'].forEach(k => B('lcBuehne').querySelector('.' + k).classList.toggle('aus', !an[k]));
+    document.querySelectorAll('.lcschalter').forEach(b => b.classList.toggle('an', an[b.dataset.k]));
+    B('lcTab').innerHTML = LISTE.map(t => `<div class="lz${t === s ? ' jetzt' : ''}"><span class="lf" style="background:rgb${WERTE(t)}"></span><span>${lesbar(t)}</span><b>${NAMEN[t]}</b><span class="mono">${WERTE(t)}</span></div>`).join('')
+      + (LISTE.includes(s) ? '' : `<div class="lz jetzt"><span class="lf" style="background:rgb${WERTE(s)}"></span><span>${lesbar(s)}</span><b>${NAMEN[s]}</b><span class="mono">${WERTE(s)}</span></div>`);
+  }
+  document.querySelectorAll('.lcschalter').forEach(b => b.onclick = ()=>{ an[b.dataset.k] = !an[b.dataset.k]; zeige(); });
+  zeige();
+  return { an };
+})();
+
+/* =====================================================================
+   Spiel: Triff die Farbe
+   ===================================================================== */
+const punkteFuer = (a, b) => Math.max(0, Math.round(100 - Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) / 2));
+const SPIEL = (function(){
+  let ziel, mein = [128, 128, 128], runde = 0, summe = 0, gewertet = false;
+  const zeige = () => { B('spMein').style.background = rgbCss(...mein); };
+  const regler = ['sr', 'sg', 'sb'].map((id, k)=> reglerVerbinden(id, v => { mein[k] = v; zeige(); }));
+  function neu(){
+    ziel = [0, 0, 0].map(()=> Math.floor(Math.random() * 256));
+    B('spZiel').style.background = rgbCss(...ziel);
+    runde++; gewertet = false;
+    B('spUrteil').innerHTML = `Runde ${runde}: Mische die Zielfarbe nach. Dann: Prüfen.`;
+    B('spPunkte').textContent = summe ? `bisher ${summe} Punkte` : '';
+  }
+  B('spPruef').onclick = ()=>{
+    const p = punkteFuer(mein, ziel);
+    if(!gewertet){ summe += p; gewertet = true; }
+    const tipp = ['Rot', 'Grün', 'Blau'].map((t, k)=>{ const u = mein[k] - ziel[k];
+      return Math.abs(u) <= 12 ? `<span class="passt">${t} passt</span>` : `<span class="${u < 0 ? 'mehr' : 'weniger'}">${u < 0 ? 'mehr' : 'weniger'} ${t}</span>`; }).join('');
+    B('spUrteil').innerHTML = `<div class="spp"><b>${p}</b> Punkte</div><div class="tipps">${tipp}</div><div class="mono klein">Ziel war (${ziel.join(', ')})</div>`;
+    B('spPunkte').textContent = `Runde ${runde} · zusammen ${summe} Punkte`;
+  };
+  B('spNeu').onclick = neu;
+  neu(); zeige();
+  return { get ziel(){ return ziel; }, mein, setzeMein(f){ f.forEach((v, k)=>{ mein[k] = v; regler[k].setze(v); }); zeige(); } };
+})();
+
+/* =====================================================================
+   Pixel-Atelier: malen, Text lesen (P1, P2, P3), PNG und PPM speichern
+   ===================================================================== */
+const PALETTE = [[22,35,46],[255,255,255],[19,110,169],[243,169,47],[198,40,40],[46,125,50],[30,90,220],[255,213,0],[121,72,30],[240,150,190],[150,160,170],[180,220,245]];
+/* Bildtext lesen: {w, h, px:[[r,g,b],…]} oder {fehler} */
+function liesBildtext(text){
+  const teile = text.split('\n').map(z => z.replace(/#.*/, '')).join(' ').trim().split(/\s+/).filter(Boolean);
+  if(!teile.length) return {fehler:'Der Text ist leer.'};
+  const art = teile[0];
+  if(!['P1', 'P2', 'P3'].includes(art)) return {fehler:'Der Text muss mit P1 (schwarz-weiß), P2 (grau) oder P3 (farbig) beginnen.'};
+  const zahlen = teile.slice(1);
+  if(zahlen.some(t => !/^\d+$/.test(t))) return {fehler:`Nach ${art} kommen nur ganze Zahlen (und Kommentare mit #). Gefunden: „${zahlen.find(t => !/^\d+$/.test(t))}“.`};
+  const z = zahlen.map(Number);
+  if(z.length < 2) return {fehler:'Es fehlen Breite und Höhe.'};
+  const [w, h] = z;
+  if(w < 1 || h < 1 || w > 32 || h > 32) return {fehler:`Breite und Höhe: je 1 bis 32 (hier ${w} × ${h}).`};
+  let max = 1, start = 2;
+  if(art !== 'P1'){ if(z.length < 3) return {fehler:'Es fehlt der größte Wert (meist 255).'}; max = z[2]; start = 3;
+    if(max < 1 || max > 255) return {fehler:`Der größte Wert muss zwischen 1 und 255 liegen (hier ${max}).`}; }
+  const proPixel = art === 'P3' ? 3 : 1, soll = w * h * proPixel, werte = z.slice(start);
+  if(werte.length !== soll) return {fehler:`${w} × ${h} Pixel${proPixel === 3 ? ' mit je drei Zahlen' : ''} sind ${soll} Werte. Gefunden: ${werte.length}.`};
+  const zuGross = werte.find(v => v > max);
+  if(zuGross !== undefined) return {fehler:`Der Wert ${zuGross} ist größer als ${art === 'P1' ? '1' : 'der größte Wert ' + max}.`};
+  const s = v => Math.round(v * 255 / max);
+  const px = [];
+  for(let k = 0; k < w * h; k++){
+    if(art === 'P1'){ const v = werte[k] ? 0 : 255; px.push([v, v, v]); }
+    else if(art === 'P2'){ const v = s(werte[k]); px.push([v, v, v]); }
+    else px.push([s(werte[3 * k]), s(werte[3 * k + 1]), s(werte[3 * k + 2])]);
+  }
+  return {w, h, px};
+}
+const P3text = (px, w, h) => `P3\n${w} ${h}\n255\n` + Array.from({length: h}, (_, j)=> px.slice(j * w, j * w + w).map(f => f.join(' ')).join('   ')).join('\n');
+function atelierBeispiel(){
+  const w = 16, h = 16, px = [];
+  for(let j = 0; j < h; j++) for(let i = 0; i < w; i++){
+    const dx = i - 7.5, dy = j - 5.5, r = Math.hypot(dx, dy), a = Math.atan2(dy, dx);
+    let f = [180, 220, 245];
+    if(j >= 14) f = [46, 125, 50];
+    else if((i === 7 || i === 8) && j >= 9) f = [46, 125, 50];
+    else if(j === 11 && (i === 5 || i === 6)) f = [46, 125, 50];
+    else if(j === 12 && (i === 9 || i === 10)) f = [46, 125, 50];
+    if(r < 1.6) f = [121, 72, 30];
+    else if(r < 4.4 && Math.cos(6 * a) > -0.35) f = [243, 169, 47];
+    px.push(f);
+  }
+  return {w, h, px};
+}
+const ATELIER = (function(){
+  let w = 16, h = 16, px = [], farbe = PALETTE[2], zellen = [];
+  const code = B('atCode');
+  function zeigeFarbe(){
+    B('atAktuell').style.background = rgbCss(...farbe);
+    B('atWerte').textContent = `(${farbe.join(', ')})`;
+    B('atWahl').value = '#' + farbe.map(v => hex2(v).toLowerCase()).join('');
+    document.querySelectorAll('#atPalette .pf').forEach(b => b.classList.toggle('an', b.dataset.f === farbe.join(',')));
+  }
+  function text(){ code.value = P3text(px, w, h); melde(code, B('atMeldung'), {}); }
+  function brett(){
+    zellen = malbrett(B('atBrett'), w, h, (z, k)=> z.style.background = rgbCss(...px[k]),
+      (k)=>{ px[k] = farbe.slice(); zellen[k].style.background = rgbCss(...farbe); text(); });
+    B('atBrett').style.setProperty('--zelle', `${Math.floor(Math.min(handy() ? 20 : 26, (handy() ? 330 : 430) / Math.max(w, h)))}px`);
+  }
+  function lade(b){ w = b.w; h = b.h; px = b.px.map(f => f.slice()); brett(); text(); }
+  B('atPalette').innerHTML = PALETTE.map(f => `<button class="pf" data-f="${f.join(',')}" style="background:${rgbCss(...f)}" aria-label="Farbe ${f.join(', ')}"></button>`).join('');
+  document.querySelectorAll('#atPalette .pf').forEach(b => b.onclick = ()=>{ farbe = b.dataset.f.split(',').map(Number); zeigeFarbe(); });
+  B('atWahl').addEventListener('input', ()=>{ const v = B('atWahl').value; farbe = [1, 3, 5].map(k => parseInt(v.slice(k, k + 2), 16)); zeigeFarbe(); });
+  B('atLesen').onclick = ()=>{ const r = liesBildtext(code.value); if(r.fehler){ melde(code, B('atMeldung'), r); return; } lade(r); };
+  B('atLeer').onclick = ()=> lade({w, h, px: Array.from({length: w * h}, ()=> [255, 255, 255])});
+  B('atBsp').onclick = ()=> lade(atelierBeispiel());
+  function pngLeinwand(k){ const c = document.createElement('canvas'); c.width = w * k; c.height = h * k;
+    const d = new Uint8ClampedArray(w * h * 4); px.forEach((f, i)=> d.set([...f, 255], i * 4)); zeichnePixel(c, d, w, h, k); return c; }
+  B('atPng').onclick = ()=>{ const k = Math.max(1, Math.floor(320 / Math.max(w, h))); pngLeinwand(k).toBlob(b => speichern('pixelbild.png', b), 'image/png'); };
+  B('atPpm').onclick = ()=> speichern('pixelbild.ppm', new Blob([P3text(px, w, h) + '\n'], {type:'image/x-portable-pixmap'}));
+  addEventListener('handy-wechsel', brett);
+  lade(atelierBeispiel()); zeigeFarbe();
+  return { get px(){ return px; }, get w(){ return w; }, get h(){ return h; }, lade, pngLeinwand };
+})();
+
+/* =====================================================================
+   Bildlabor: Filter als Formeln
+   ===================================================================== */
+const klemme = v => Math.max(0, Math.min(255, v));
+const FILTER = [
+  {k:'orig', name:'Original', formel:'(r, g, b) → (r, g, b)', f:(r, g, b)=> [r, g, b]},
+  {k:'neg', name:'Negativ', formel:'(r, g, b) → (255 − r, 255 − g, 255 − b)', f:(r, g, b)=> [255 - r, 255 - g, 255 - b],
+   rechnung:(r, g, b)=> `(255 − ${r}, 255 − ${g}, 255 − ${b})`},
+  {k:'grau', name:'Grau', formel:'m = (r + g + b) : 3 &nbsp;→&nbsp; (m, m, m)', f:(r, g, b)=>{ const m = Math.round((r + g + b) / 3); return [m, m, m]; },
+   rechnung:(r, g, b)=> `m = (${r} + ${g} + ${b}) : 3 ≈ ${Math.round((r + g + b) / 3)}`},
+  {k:'rot', name:'Nur Rot', formel:'(r, g, b) → (r, 0, 0)', f:(r)=> [r, 0, 0]},
+  {k:'tausch', name:'Tauschen', formel:'(r, g, b) → (b, r, g)', f:(r, g, b)=> [b, r, g]},
+  {k:'hell', name:'Heller', formel:'(r + s, g + s, b + s), höchstens 255', p:['Stärke s', 0, 150, 60], f:(r, g, b, s)=> [klemme(r + s), klemme(g + s), klemme(b + s)],
+   rechnung:(r, g, b, s)=> `(${r} + ${s}, ${g} + ${s}, ${b} + ${s}) → höchstens 255`},
+  {k:'sw', name:'Schwarz-Weiß', formel:'m = (r + g + b) : 3; &nbsp;m ≥ s → Weiß, sonst Schwarz', p:['Schwelle s', 0, 255, 128],
+   f:(r, g, b, s)=>{ const v = Math.round((r + g + b) / 3) >= s ? 255 : 0; return [v, v, v]; },
+   rechnung:(r, g, b, s)=>{ const m = Math.round((r + g + b) / 3); return `m ≈ ${m} ${m >= s ? '≥' : '<'} ${s} → ${m >= s ? 'Weiß' : 'Schwarz'}`; }},
+  {k:'tiefe', name:'Farbtiefe', formel:'nur 2<sup>n</sup> Stufen pro Farbe statt 256', p:['Bit pro Farbe n', 1, 8, 2], f:(r, g, b, n)=> [r, g, b].map(v => stufe(v, 2 ** n))},
+  {k:'grob', name:'Verpixeln', formel:'je k × k Pixel bekommen ihre Mittelfarbe', p:['Blockgröße k', 2, 30, 8], block:true}
+];
+const LABOR = (function(){
+  const W = 320, H = 180;
+  let quelle = szene(W, H), ziel = new Uint8ClampedArray(W * H * 4), fi = FILTER[2], wahl = {x: 224, y: 76};
+  const regler = reglerVerbinden('lb', ()=> rechne());
+  function rechne(){
+    const p = fi.p ? regler.wert : 0;
+    if(fi.block){
+      for(let y0 = 0; y0 < H; y0 += p) for(let x0 = 0; x0 < W; x0 += p){
+        const s = [0, 0, 0]; let n = 0;
+        for(let y = y0; y < Math.min(H, y0 + p); y++) for(let x = x0; x < Math.min(W, x0 + p); x++){ const i = (y * W + x) * 4; s[0] += quelle[i]; s[1] += quelle[i + 1]; s[2] += quelle[i + 2]; n++; }
+        const m = s.map(v => Math.round(v / n));
+        for(let y = y0; y < Math.min(H, y0 + p); y++) for(let x = x0; x < Math.min(W, x0 + p); x++) ziel.set([...m, 255], (y * W + x) * 4);
+      }
+    } else for(let i = 0; i < quelle.length; i += 4){ const e = fi.f(quelle[i], quelle[i + 1], quelle[i + 2], p); ziel[i] = e[0]; ziel[i + 1] = e[1]; ziel[i + 2] = e[2]; ziel[i + 3] = 255; }
+    zeichnePixel(B('lbNach'), ziel, W, H);
+    info();
+  }
+  function info(){
+    const i = (wahl.y * W + wahl.x) * 4, v = [quelle[i], quelle[i + 1], quelle[i + 2]], n = [ziel[i], ziel[i + 1], ziel[i + 2]];
+    B('lbInfo').innerHTML = `<b>Pixel (${wahl.x} | ${wahl.y})</b>
+      <div class="vn"><div class="farbfleck mini" style="background:${rgbCss(...v)}"></div><span class="mono">(${v.join(', ')})</span></div>
+      ${fi.rechnung ? `<div class="mono klein rg">${fi.rechnung(...v, regler.wert)}</div>` : ''}
+      <div class="vn"><div class="farbfleck mini" style="background:${rgbCss(...n)}"></div><span class="mono">(${n.join(', ')})</span></div>`;
+  }
+  function waehle(f){
+    fi = f;
+    B('lbFormel').innerHTML = `<span class="beschr">${f.name}</span><div>${f.formel}</div>`;
+    B('lbParam').style.display = f.p ? '' : 'none';
+    if(f.p){ B('lbParam').querySelector('label').textContent = f.p[0]; regler.bereich(f.p[1], f.p[2]); regler.setze(f.p[3]); }
+    document.querySelectorAll('.lbf').forEach(b => b.classList.toggle('an', b.dataset.k === f.k));
+    rechne();
+  }
+  B('lbFilter').innerHTML = FILTER.map(f => `<button class="knopf hell lbf" data-k="${f.k}">${f.name}</button>`).join('');
+  document.querySelectorAll('.lbf').forEach(b => b.onclick = ()=> waehle(FILTER.find(f => f.k === b.dataset.k)));
+  B('lbVor').addEventListener('click', e => { wahl = klickPixel(e, B('lbVor'), W, H); info(); });
+  B('lbPng').onclick = ()=> B('lbNach').toBlob(b => speichern('bildlabor.png', b), 'image/png');
+  B('lbDatei').addEventListener('change', ()=>{
+    const datei = B('lbDatei').files[0]; if(!datei) return;
+    const bild = new Image();
+    bild.onload = ()=>{
+      const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+      const s = Math.max(W / bild.width, H / bild.height);
+      x.drawImage(bild, (W - bild.width * s) / 2, (H - bild.height * s) / 2, bild.width * s, bild.height * s);
+      quelle = x.getImageData(0, 0, W, H).data; zeichnePixel(B('lbVor'), quelle, W, H); rechne(); URL.revokeObjectURL(bild.src);
+    };
+    bild.src = URL.createObjectURL(datei);
+  });
+  zeichnePixel(B('lbVor'), quelle, W, H);
+  waehle(fi);
+  return { get quelle(){ return quelle; }, get ziel(){ return ziel; }, waehle: k => waehle(FILTER.find(f => f.k === k)), regler, W, H };
+})();
+
+/* =====================================================================
+   Speicheraufwand
+   ===================================================================== */
+function groesse(byte){
+  if(byte < 1000) return `${tz(byte)} Byte`;
+  const f = (x, e) => `${x.toLocaleString('de-DE', {maximumFractionDigits: 1})} ${e}`;
+  return byte < 1e6 ? f(byte / 1e3, 'KB') : byte < 1e9 ? f(byte / 1e6, 'MB') : f(byte / 1e9, 'GB');
+}
+const SPEICHER = (function(){
+  let bpp = 24;
+  const fb = B('spB'), fh = B('spH');
+  function rechne(){
+    const rb = liesGanz(fb.value, 'Breite', 1, 100000), rh = liesGanz(fh.value, 'Höhe', 1, 100000);
+    const okB = melde(fb, null, rb), okH = melde(fh, null, rh);
+    const fehler = rb.fehler || rh.fehler;
+    B('spMeldung').className = fehler ? 'meldung nein' : 'meldung'; B('spMeldung').textContent = fehler || '';
+    document.querySelectorAll('.spbit').forEach(b => b.classList.toggle('an', Number(b.dataset.n) === bpp));
+    if(!okB || !okH) return;
+    const px = rb.wert * rh.wert, bits = px * bpp, byte = bits / 8;
+    B('spWeg').innerHTML = `
+      <div class="rz"><span>Pixel</span><span class="mono">${tz(rb.wert)} · ${tz(rh.wert)}</span><b>${tz(px)}</b></div>
+      <div class="rz"><span>Bit</span><span class="mono">${tz(px)} · ${bpp}</span><b>${tz(bits)}</b></div>
+      <div class="rz"><span>Byte</span><span class="mono">${tz(bits)} : 8</span><b>${tz(byte)}</b></div>
+      <div class="rz erg"><span>ungefähr</span><span></span><b>${groesse(byte)}</b></div>
+      <p class="klein">1 Byte = 8 Bit · 1 KB = 1 000 Byte · 1 MB = 1 000 000 Byte</p>`;
+    B('speicher').dataset.byte = byte;
+  }
+  fb.addEventListener('input', rechne); fh.addEventListener('input', rechne);
+  document.querySelectorAll('.spbit').forEach(b => b.onclick = ()=>{ bpp = Number(b.dataset.n); rechne(); });
+  document.querySelectorAll('.spbsp').forEach(b => b.onclick = ()=>{ fb.value = b.dataset.b; fh.value = b.dataset.h; bpp = Number(b.dataset.n); rechne(); });
+  rechne();
+  return { rechne };
+})();
+
+/* =====================================================================
+   Formate: Lauflängen und Dateigrößen
+   ===================================================================== */
+const lauflaengen = bits => { const r = []; for(const b of bits){ if(r.length && r[r.length - 1][1] === b) r[r.length - 1][0]++; else r.push([1, b]); } return r; };
+const FORMAT = (function(){
+  function lauf(){
+    const zeilen = [4, 7].map(j => SW.bits.slice(j * SW.W, j * SW.W + SW.W));
+    B('fmLauf').innerHTML = zeilen.map(z => `${z.join('')} → ${lauflaengen(z).map(([n, b])=> `<span class="${b ? 'eins' : ''}">${n}×${b}</span>`).join(' ')}`).join('<br>');
+  }
+  B('fmMessen').onclick = ()=>{
+    const ppm = new Blob([P3text(ATELIER.px, ATELIER.w, ATELIER.h) + '\n']).size;
+    ATELIER.pngLeinwand(1).toBlob(b => {
+      B('fmErgebnis').innerHTML = `${ATELIER.w} × ${ATELIER.h} Pixel · ungepackt ${tz(ATELIER.w * ATELIER.h * 3)} Byte<br>PPM als Text: <strong>${tz(ppm)} Byte</strong> · PNG: <strong>${tz(b.size)} Byte</strong>`;
+      B('format').dataset.png = b.size;
+    }, 'image/png');
+  };
+  const beobachter = new MutationObserver(()=>{ if(B('format').closest('.slide').classList.contains('aktiv')) lauf(); });
+  beobachter.observe(B('format').closest('.slide'), {attributes:true, attributeFilter:['class']});
+  lauf();
+  return { lauf };
+})();
+
+/* =====================================================================
+   Geheimbild: Botschaft im letzten Bit jeder Farbe
+   ===================================================================== */
+const GEHEIM = (function(){
+  const W = 320, H = 180, deckbild = szene(W, H), lw = B('ghBild');
+  let bild, ebene = -1, geheim, danach = null;
+  function textBits(){
+    const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+    x.fillStyle = '#000'; x.font = '900 78px "Segoe UI",Arial,sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillText('GEHEIM', W / 2, H / 2 + 4);
+    const d = x.getImageData(0, 0, W, H).data, b = new Uint8Array(W * H);
+    for(let k = 0; k < W * H; k++) b[k] = d[k * 4 + 3] > 128 ? 1 : 0;
+    return b;
+  }
+  function malbrettBits(){
+    const b = new Uint8Array(W * H), k = Math.floor(Math.min(W / SW.W, H / SW.H)), x0 = Math.floor((W - k * SW.W) / 2), y0 = Math.floor((H - k * SW.H) / 2);
+    for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){ const i = Math.floor((x - x0) / k), j = Math.floor((y - y0) / k);
+      b[y * W + x] = i >= 0 && j >= 0 && i < SW.W && j < SW.H ? SW.bits[j * SW.W + i] : 0; }
+    return b;
+  }
+  /* Nur im Rotwert: letztes Bit = 1, wo die Botschaft ist, sonst 0 (wie auf dem Arbeitsblatt: ungerade = Botschaft). Grün und Blau bleiben. */
+  function verstecke(b){
+    geheim = b; bild = new Uint8ClampedArray(deckbild);
+    for(let k = 0; k < W * H; k++) bild[k * 4] = (bild[k * 4] & 254) | (b[k] ? 1 : 0);
+    zeige(true);
+  }
+  function zeige(neueBotschaft){
+    let d = bild;
+    if(ebene >= 0){ d = new Uint8ClampedArray(bild.length);
+      for(let i = 0; i < bild.length; i += 4){ const v = (bild[i] >> ebene & 1) ? 0 : 255; d[i] = d[i + 1] = d[i + 2] = v;   /* wie P1: 1 schwarz, 0 weiß */ d[i + 3] = 255; } }
+    zeichnePixel(lw, d, W, H);
+    document.querySelectorAll('.ghebene').forEach(b => b.classList.toggle('an', Number(b.dataset.b) === ebene));
+    B('ghText').innerHTML = ebene < 0
+      ? 'Ein ganz normales Bild. Klick auf eine Zahl: Dann zeigen wir von <strong>jedem</strong> Pixel nur dieses eine Bit seines Rotwerts – wie bei P1: <strong>1 schwarz, 0 weiß</strong>.'
+      : ebene === 7 ? '<strong>Bit 7</strong> ist 128 wert: schwarz, wo Rot mindestens 128 ist. Man erkennt die groben Formen.'
+      : ebene === 0 ? '<strong>Bit 0</strong> ist nur 1 wert. Normalerweise reines Rauschen – hier steckt die Botschaft: schwarz = 1 = ungerade.'
+      : `<strong>Bit ${ebene}</strong> ist ${2 ** ebene} wert. Je kleiner das Bit, desto mehr Rauschen.`;
+    if(danach) danach(neueBotschaft === true);
+  }
+  document.querySelectorAll('.ghebene').forEach(b => b.onclick = ()=>{ ebene = Number(b.dataset.b); zeige(); });
+  B('ghMein').onclick = ()=> verstecke(malbrettBits());
+  B('ghStandard').onclick = ()=> verstecke(textBits());
+  verstecke(textBits());
+  return { get bild(){ return bild; }, get geheim(){ return geheim; }, get ebene(){ return ebene; }, deckbild, W, H, set danach(f){ danach = f; f(true); } };
+})();
+
+/* Ein Pixel (Folie „ein Pixel“ und der Kreis auf „Ebene für Ebene“): Rotwert vorher → Botschaft → nachher */
+const EINPIXEL = (function(){
+  const { W, H } = GEHEIM, lw = B('epBild'), wert = [128, 64, 32, 16, 8, 4, 2, 1];
+  let px = 0, py = 0;
+  /* Startpixel: gehört zur Botschaft und ändert sich (gerader Rotwert wird ungerade), möglichst nah an der Mitte */
+  function start(){
+    let best = null;
+    for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){ const k = y * W + x;
+      if(!GEHEIM.geheim[k] || (GEHEIM.deckbild[k * 4] & 1)) continue;
+      const d = Math.hypot(x - W * .35, y - H / 2); if(!best || d < best.d) best = { d, x, y }; }
+    if(best){ px = best.x; py = best.y; }
+  }
+  /* hl: Index der markierten Stelle (0 = Bit 7 … 7 = Bit 0) oder -1 */
+  const bits = (v, hl)=> `<table class="stellen mono"><tr>${[...bin8(v)].map((z, k)=> `<td${k === hl ? ' class="hl"' : ''}>${z}</td>`).join('')}</tr>`
+    + `<tr class="w">${wert.map((w, k)=> `<td${k === hl ? ' class="hl"' : ''}>${w}</td>`).join('')}</tr></table>`
+    + `<p class="klein">${v} = ${wert.filter((w, k)=> bin8(v)[k] === '1').join(' + ') || '0'}</p>`;
+  const css = (d, i)=> `rgb(${d[i]},${d[i + 1]},${d[i + 2]})`;
+  const marke = (id)=>{ const m = B(id).style; m.left = (px + .5) / W * 100 + '%'; m.top = (py + .5) / H * 100 + '%'; };
+  function zeige(){
+    zeichnePixel(lw, GEHEIM.deckbild, W, H);
+    marke('epMarke'); marke('ghMarke');
+    const k = py * W + px, vor = GEHEIM.deckbild[k * 4], nach = GEHEIM.bild[k * 4], teil = GEHEIM.geheim[k] === 1;
+    B('epVor').textContent = vor; B('epVorBits').innerHTML = bits(vor, -1);
+    B('epBot').innerHTML = teil
+      ? 'Dieses Pixel gehört zur versteckten Botschaft. Darum wird das <strong>letzte Bit 1</strong> – die Zahl wird ungerade.'
+      : 'Dieses Pixel gehört <strong>nicht</strong> zur Botschaft. Darum wird das <strong>letzte Bit 0</strong> – die Zahl wird gerade.';
+    B('epNach').textContent = nach; B('epNachBits').innerHTML = bits(nach, 7);
+    B('epDiff').innerHTML = vor === nach ? 'Das letzte Bit war schon richtig: Der Wert bleibt gleich.'
+      : `Nur das letzte Bit hat sich geändert: ${vor} → ${nach}, ein Unterschied von <strong>1</strong>.`;
+    B('epFarbeVor').style.background = css(GEHEIM.deckbild, k * 4); B('epFarbeNach').style.background = css(GEHEIM.bild, k * 4);
+    B('epGleich').textContent = 'Siehst du einen Unterschied?';
+    const e = GEHEIM.ebene;
+    B('ghBin').innerHTML = `<div class="ghWert">Rot im Kreis: <strong>${nach}</strong>${e >= 0 ? ` · Bit ${e} ist <strong>${nach >> e & 1}</strong>` : ''}</div>` + bits(nach, e >= 0 ? 7 - e : -1);
+  }
+  const klick = leinwand => e => { const p = klickPixel(e, leinwand, W, H); px = p.x; py = p.y; zeige(); };
+  lw.onclick = klick(lw); B('ghBild').onclick = klick(B('ghBild'));
+  GEHEIM.danach = neu => { if(neu) start(); zeige(); };
+  return { get pixel(){ return { x: px, y: py }; } };
+})();
+
+/* Gerade oder ungerade: das letzte Bit entscheidet */
+const GERADE = (function(){
+  const wert = [128, 64, 32, 16, 8, 4, 2, 1];
+  function zeige(v){
+    const b = bin8(v), u = v % 2 === 1;
+    B('guBits').innerHTML = `<table class="stellen mono"><tr>${[...b].map((z, k)=> `<td${k === 7 ? ' class="hl"' : ''}>${z}</td>`).join('')}</tr>`
+      + `<tr class="w">${wert.map((w, k)=> `<td${k === 7 ? ' class="hl"' : ''}>${w}</td>`).join('')}</tr></table>`
+      + `<p class="klein">${v} = ${wert.filter((w, k)=> b[k] === '1').join(' + ') || '0'}</p>`;
+    B('guUrteil').innerHTML = `Letztes Bit <strong>${b[7]}</strong> → ${v} ist <strong>${u ? 'ungerade' : 'gerade'}</strong>`;
+    B('guUrteil').classList.toggle('ungerade', u);
+  }
+  reglerVerbinden('gu', zeige, null);
+  zeige(148);
+  return { zeige };
+})();
+
+/* Selbst verstecken: Botschaft (letztes Bit von Rot) + Bild darüber → Ergebnis */
+const SELBST = (function(){
+  const W = 16, H = 12, HIMMEL = [180, 220, 245];
+  const BOT_BSP = ['................','................','.1..1.111..1....','.1..1..1...1....','.1..1..1...1....','.1111..1...1....','.1..1..1...1....','.1..1..1........','.1..1.111..1....','................','................','................'];
+  const bot = Array(W * H).fill(0), bild = Array.from({length: W * H}, ()=> [255, 255, 255]);
+  let farbe = PALETTE[2], sicht = 'bild', malwert = 1;
+  const bildBsp = k => { const x = k % W, y = Math.floor(k / W);
+    return y >= 9 ? [46, 125, 50] : Math.hypot(x - 12, y - 3) < 2.3 ? [255, 213, 0] : (x >= 3 && x <= 6 && y >= 6) ? [121, 72, 30] : (Math.hypot(x - 4.5, y - 4.5) < 2.6 ? [46, 125, 50] : HIMMEL); };
+  function ergebnis(){
+    const d = new Uint8ClampedArray(W * H * 4);
+    for(let k = 0; k < W * H; k++){ const [r, g, b] = bild[k], rot = (r & 254) | (bot[k] ? 1 : 0);
+      if(sicht === 'bit0'){ const v = (rot & 1) ? 0 : 255; d.set([v, v, v, 255], k * 4); } else d.set([rot, g, b, 255], k * 4); }
+    return d;
+  }
+  let zBot, zBild;
+  function zeige(){
+    zBot.forEach((z, k)=> z.classList.toggle('an', !!bot[k]));
+    zBild.forEach((z, k)=> z.style.background = rgbCss(...bild[k]));
+    zeichnePixel(B('gsErgebnis'), ergebnis(), W, H);
+    document.querySelectorAll('.gssicht').forEach(b => b.classList.toggle('an', b.dataset.s === sicht));
+    document.querySelectorAll('#gsPalette .pf').forEach(b => b.classList.toggle('an', b.dataset.f === farbe.join(',')));
+    const n = bot.filter(Boolean).length;
+    B('gsText').innerHTML = !n ? 'Male links eine Botschaft.'
+      : sicht === 'bild' ? `Deine Botschaft (${n} Pixel) ist weg – egal, was du darüber malst. Sie steckt nur im letzten Bit des Rotwerts.`
+      : 'Schwarz: letztes Bit 1 – da ist deine Botschaft. Das Bild darüber ist verschwunden.';
+  }
+  zBot = malbrett(B('gsBot'), W, H, ()=>{}, (k, start)=>{ if(start) malwert = bot[k] ? 0 : 1; bot[k] = malwert; zeige(); });
+  zBild = malbrett(B('gsBild'), W, H, ()=>{}, k =>{ bild[k] = farbe.slice(); zeige(); });
+  B('gsPalette').innerHTML = PALETTE.map(f => `<button class="pf" data-f="${f.join(',')}" style="background:${rgbCss(...f)}" aria-label="Farbe ${f.join(', ')}"></button>`).join('');
+  document.querySelectorAll('#gsPalette .pf').forEach(b => b.onclick = ()=>{ farbe = b.dataset.f.split(',').map(Number); zeige(); });
+  document.querySelectorAll('.gssicht').forEach(b => b.onclick = ()=>{ sicht = b.dataset.s; zeige(); });
+  B('gsBotLeer').onclick = ()=>{ bot.fill(0); zeige(); };
+  B('gsBotBsp').onclick = ()=>{ ausMuster(BOT_BSP).forEach((v, k)=> bot[k] = v); zeige(); };
+  B('gsBildLeer').onclick = ()=>{ bild.forEach((_, k)=> bild[k] = [255, 255, 255]); zeige(); };
+  B('gsBildBsp').onclick = ()=>{ bild.forEach((_, k)=> bild[k] = bildBsp(k)); zeige(); };
+  B('gsBotBsp').onclick(); B('gsBildBsp').onclick();
+  return { bot, bild, W, H, ergebnis, get sicht(){ return sicht; } };
+})();
+
+</script>
+<script data-handy="technik/handy/handy.js">
+/* =====================================================================
+   HANDY-SCHICHT — schaltet die Handy-Ansicht, wenn die Bühne 1280 × 720 zu stark
+   verkleinert würde (Maßstab unter 0,62: Handy hoch und quer, Tablet hochkant).
+   Muss NACH der Folien-Navigation des Rahmens stehen (nutzt stage, zeige, skalieren).
+   Meldet Wechsel mit dem Ereignis „handy-wechsel", damit Rechner neu zeichnen können.
+   ===================================================================== */
+(function(){
+  const html = document.documentElement;
+  const istHandy = () => Math.min(innerWidth / 1280, innerHeight / 720) < 0.62;
+  let vorher = null;
+  function pruefen(){
+    const h = istHandy();
+    html.classList.toggle('handy', h);
+    if (h) stage.style.transform = 'none';
+    else if (typeof skalieren === 'function') skalieren();
+    if (h !== vorher){ vorher = h; window.dispatchEvent(new CustomEvent('handy-wechsel', { detail: h })); }
+  }
+  addEventListener('resize', pruefen);
+  addEventListener('orientationchange', () => setTimeout(pruefen, 200));
+  pruefen();
+
+  // Neue Folie (und nur dann, nicht bei jedem Knopf): nach oben scrollen
+  const wach = new MutationObserver((liste) => {
+    if (!html.classList.contains('handy')) return;
+    if (liste.some((m) => m.target.classList.contains('aktiv') && !/\baktiv\b/.test(m.oldValue || ''))) window.scrollTo(0, 0);
+  });
+  document.querySelectorAll('.slide').forEach((f) => wach.observe(f, { attributes: true, attributeFilter: ['class'], attributeOldValue: true }));
+
+  // Beim Scrollen tippt man oft auf Text: auf dem Handy blättert ein Tipp nicht weiter
+  stage.addEventListener('click', (e) => {
+    if (html.classList.contains('handy') && !e.target.closest('a, button, input, select, textarea, label, .interaktiv')) e.stopPropagation();
+  }, true);
+})();
+</script><!-- /HANDY-SCHICHT -->
+<!-- IMPRESSUM: technik/impressum -->
+<style>#impressum-link{position:fixed;left:12px;bottom:4px;z-index:50;font:12px/1.4 "Segoe UI",system-ui,sans-serif;color:#5B6A76;text-decoration:none;opacity:.75}#impressum-link:hover,#impressum-link:focus{opacity:1;text-decoration:underline}#impressum-link .kurz{display:none}html.handy #impressum-link{left:10px;bottom:10px;width:42px;height:42px;border-radius:50%;background:#fff;opacity:1;box-shadow:0 4px 14px rgba(12,78,121,.18);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#0C4E79}html.handy #impressum-link .lang{display:none}html.handy #impressum-link .kurz{display:inline}@media print{#impressum-link{display:none}}</style><a id="impressum-link" href="https://petersmsl.github.io/tools/impressum.html" target="_blank" rel="noopener" title="Impressum und Datenschutz"><span class="lang">Impressum · Datenschutz</span><span class="kurz">§</span></a>
+<!-- /IMPRESSUM -->
+</body>
+</html>
