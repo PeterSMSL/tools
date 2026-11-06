@@ -873,7 +873,11 @@ svg .achse-pfeil{fill:#6B7C89} svg .achse-name{fill:#6B7C89;font-style:italic;fo
 .pdlinks{display:flex;flex-direction:column;gap:10px}
 .pdlabor .labspalte{gap:8px}
 .pdlabor .eingabe{padding:8px 12px;gap:6px}
-.rechnung{border:1px solid var(--linie);border-radius:12px;background:#fff;padding:14px 16px;height:366px;overflow:hidden}
+.rechnung{border:1px solid var(--linie);border-radius:12px;background:#fff;padding:14px 16px;height:286px;overflow:hidden}
+.pdtafel{position:relative;display:inline-block}
+svg.pdpfeile{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
+svg.pdpfeile line{stroke:var(--orange);stroke-width:2.5;stroke-dasharray:6 4}
+svg.pdpfeile path{fill:var(--orange)}
 table.pd{border-collapse:collapse;font-family:"Cambria Math","Cambria","Times New Roman",serif;font-size:23px;color:var(--tinte)}
 table.pd td{padding:.13em .22em;white-space:nowrap;height:1.62em;vertical-align:bottom}
 table.pd td.t{text-align:right;min-width:2em}
@@ -888,7 +892,6 @@ table.pd .leer{color:#9FB3C3}
 table.pd math{font-size:1em}                         /* Schriftgröße setzt die Tabelle (schrumpft bei großen Aufgaben) */
 table.pd span.neu{background:var(--orange);color:#fff;border-radius:6px;padding:0 3px;display:inline-block}
 table.pd math .neu{color:var(--orange-d)}            /* im Quotienten: MathML malt keinen Hintergrund sauber */
-.erklaer .hl{color:var(--orange-d)}
 .pdlabor .labspalte{gap:6px}                           /* rechte Spalte passt über die Fußzeile */
 .nullst .chips{margin:2px 0}
 .nullst .knopf math{font-size:1em}
@@ -896,10 +899,25 @@ table.pd math .neu{color:var(--orange-d)}            /* im Quotienten: MathML ma
 .ergebnis.an{background:linear-gradient(150deg,var(--blau-d),var(--blau));color:#fff}
 .ergebnis.an strong{color:var(--orange)}
 .ergebnis .formel{font-size:21px}
-.erklaer{background:var(--blau-pastell);border:1px solid #C4DFF2;border-radius:11px;padding:6px 12px;min-height:74px}
+.erklaer{background:var(--blau-pastell);border:1px solid #C4DFF2;border-radius:11px;padding:8px 14px 10px;height:190px;display:flex;flex-direction:column;gap:4px}
+.erklaer .nrtext{font-size:16px;line-height:1.4;color:var(--tinte)}
+.erklaer .nrtext math{font-size:17px}
+.erklaer .nr{flex:1;min-height:0;display:flex;flex-direction:column;gap:4px;justify-content:center;overflow-x:auto;overflow-y:hidden}
+.erklaer .nrzeile{font-size:21px;color:var(--blau-d);white-space:nowrap}
+.erklaer .nrzeile.spalten{display:flex;gap:28px;flex-wrap:nowrap}
+.erklaer .nrzeile math{font-size:1em}
+.erklaer .nrknoepfe{display:flex;justify-content:flex-end;gap:8px}
+.erklaer .nrknoepfe .knopf{font-size:15px;padding:6px 14px}
+.erklaer.fertig{background:linear-gradient(150deg,var(--blau-d),var(--blau));border-color:transparent}
+.erklaer.fertig h4,.erklaer.fertig .nrtext,.erklaer.fertig .nrzeile{color:#fff}
+.erklaer.fertig .nrtext strong{color:var(--orange)}
+.erklaer .hl{color:var(--orange-d);font-weight:700}
+table.pd .blass{color:#9FB3C3}
+table.pd span.pdmark, .pdmark.an{display:inline-block}
+.pdmark.an{background:var(--orange-pastell);box-shadow:0 0 0 2px var(--orange);border-radius:6px;padding:0 3px}
+table.pd span.quelle{display:inline-block;background:var(--orange-pastell);border-radius:6px;padding:0 3px}
+td.rechts math, .pdquot math{vertical-align:baseline}
 .erklaer h4,.nullst h4{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--grau);font-weight:800;margin-bottom:2px}
-.erklaer p{font-size:15.5px;line-height:1.4}
-.erklaer .formel{font-size:18px}
 .nullst{border:1px solid var(--linie);border-radius:11px;padding:5px 12px;background:#fff}
 .nullst .chips{display:flex;gap:6px;flex-wrap:wrap;margin:3px 0}
 .nullst p.klein{font-size:12.5px;line-height:1.35}
@@ -937,7 +955,11 @@ html.handy .eingabe .reihe{flex-wrap:wrap}
 html.handy .eingabe input, html.handy .eingabe select{flex:1 1 180px;min-height:42px}
 html.handy .labspalte .knopf{min-height:42px}
 html.handy .erklaer h4, html.handy .nullst h4{font-size:14px}
-html.handy .erklaer p{font-size:16px}
+html.handy .erklaer{height:auto;min-height:170px}
+html.handy .erklaer .nrtext{font-size:16px}
+html.handy .erklaer .nrzeile.spalten{flex-wrap:wrap;gap:6px 22px}
+html.handy .erklaer .nrknoepfe{position:sticky;bottom:0}
+html.handy .erklaer .nrknoepfe .knopf{min-height:42px;font-size:16px}
 html.handy .nullst p.klein{font-size:14px}
 html.handy .nullst p.klein math{font-size:15px}
 html.handy .ergebnis{font-size:16px}
@@ -983,6 +1005,8 @@ html.handy .fzwozu{font-size:16px}
 html.handy .fzhinweis{font-size:16px}
 html.handy .fzlabor .knopf{min-height:42px}
 html.handy .fzlabor .eingabe input{min-height:42px}
+
+.erklaer.fertig #pdSchritt{visibility:hidden}
 
 /* Grundregel aller Werkzeuge: hidden gilt immer, auch wenn eine Klasse display:flex/grid setzt */
 [hidden]{display:none!important}
@@ -2432,7 +2456,15 @@ const folien = [
   <div class="interaktiv pdlabor" id="labor">
     <div class="pdlinks">
       <div class="rechnung" id="pdRechnung"></div>
-      <div class="ergebnis" id="pdErgebnis"></div>
+      <div class="erklaer" id="pdErklaer">
+        <h4 id="pdNRkopf"></h4>
+        <div class="nrtext" id="pdNRtext"></div>
+        <div class="nr" id="pdNR"></div>
+        <div class="nrknoepfe">
+          <button class="knopf hell" id="pdZurueck">‹ Zurück</button>
+          <button class="knopf o" id="pdSchritt">Nächster Schritt ›</button>
+        </div>
+      </div>
     </div>
     <div class="labspalte">
       <div class="eingabe">
@@ -2442,13 +2474,11 @@ const folien = [
         <div class="fehler" id="pdFehler"></div>
       </div>
       <div class="knopfleiste">
-        <button class="knopf o" id="pdSchritt">Nächster Schritt</button>
         <button class="knopf" id="pdAlle">Alle Schritte</button>
         <button class="knopf hell" id="pdVorn">Von vorn</button>
       </div>
-      <div class="erklaer" id="pdErklaer"></div>
       <div class="nullst" id="pdNullst"></div>
-      <div class="plotklein" title="Antippen: Graph groß ansehen"><svg id="pdPlot" width="496" height="108" viewBox="0 0 496 108"></svg></div>
+      <div class="plotklein" title="Antippen: Graph groß ansehen"><svg id="pdPlot" width="496" height="170" viewBox="0 0 496 170"></svg></div>
     </div>
     <div class="grossplot" id="gp">
       <div class="gpkasten">
@@ -2505,7 +2535,7 @@ const BEISPIELE = [
 ];
 const labor = (function(){
   const B = id => document.getElementById(id);
-  const S = {teil:0};           // Teilschritte: je Divisionsschritt 3 (teilen, zurückmultiplizieren, abziehen)
+  const S = {teil:0};           // S.teil: Index in S.phasen (Start, je Divisionsschritt markieren · teilen · mal · abziehen · runterziehen, Ergebnis)
   B('pdAuswahl').innerHTML = '<option value="">Beispiel wählen …</option>' + BEISPIELE.map(([p,d,t],k)=>`<option value="${k}">${t}</option>`).join('');
 
   function rechne(){
@@ -2515,99 +2545,236 @@ const labor = (function(){
       if(grad(d) < 1) throw new Error('d(x) sollte x enthalten, z. B. x − 3.');
       if(grad(p) < grad(d)) throw new Error('Der Grad von p(x) muss mindestens so groß sein wie der von d(x).');
       S.p = p; S.d = d; S.erg = dividiere(p, d); S.teil = 0; S.raten = nullstellenRaten(p);
+      baueSchema();
       B('pdFehler').textContent = '';
       zeichne(); return true;
     }catch(e){ B('pdFehler').textContent = e.message; return false; }
   }
-  const gesamt = () => S.erg ? S.erg.schritte.length * 3 : 0;
+  const gesamt = () => S.phasen ? S.phasen.length - 1 : 0;
 
-  /* Zeile der Rechnung: jeder Term steht in der Spalte seiner Potenz.
-     Nur die Kopfzeile schreibt Lücken aus („+ 0x²“), wie man es beim schriftlichen Rechnen lernt. */
-  // Zellen enthalten LaTeX; „{} + …“ hält das Plus zweistellig (Abstand wie im Satz), auch allein in der Zelle
+  /* Das Schema wie auf Papier: jeder Term steht in der Spalte seiner Potenz.
+     Kopfzeile mit Lücken („+ 0x²“); je Schritt eine Zeile −(…) und darunter die Differenz,
+     in die danach die nächsten Spalten der Kopfzeile heruntergezogen werden.
+     Zellen enthalten LaTeX; „{} + …“ hält das Plus zweistellig (Abstand wie im Satz), auch allein in der Zelle. */
   function zellen(poly, luecken){
     const g = grad(poly), z = {};
-    if(g < 0){ z[0] = '0'; return z; }
+    if(g < 0){ z[0] = {t:'0'}; return z; }
     let erster = true;
     for(let k=g;k>=0;k--){
       const c = poly[k] || Q0;
-      if(c.null()){ if(luecken) z[k] = kTex('luecke', `{} + 0${xTex(k)}`); continue; }
-      const t = termTex(c, k, erster); z[k] = erster ? t : '{}' + t; erster = false;
+      if(c.null()){ if(luecken) z[k] = {t:`{} + 0${xTex(k)}`, luecke:true}; continue; }
+      const t = termTex(c, k, erster); z[k] = {t: erster ? t : '{}' + t}; erster = false;
     }
     return z;
   }
+  function baueSchema(){
+    const p = S.p, d = S.d, m = grad(d), {schritte} = S.erg;
+    const phasen = [{art:'start'}], zeilen = [{art:'dividend', z:zellen(p, true)}];
+    S.idx = [];
+    schritte.forEach((s, i) => {
+      const gr = grad(s.vorher), I = {};
+      I.zeile = i === 0 ? 0 : zeilen.length - 1;                     // Zeile, mit der dieser Schritt rechnet
+      for(const art of ['mark', 'teilen', 'mal', 'minus']) I[art] = phasen.push({art, i}) - 1;
+      // −(Produkt): nur die Terme, die nicht 0 sind
+      const minus = {art:'minus', i, z:{}}; let erster = true;
+      for(let k=gr;k>=gr-m;k--){ const c = s.prod[k] || Q0; if(c.null()) continue;
+        const t = termTex(c, k, erster); minus.z[k] = {t: erster ? t : '{}' + t}; erster = false; }
+      // Differenz: oberste Spalte fällt weg (blasse 0), darunter die Spalten des Produkts, dann heruntergezogen
+      const letzter = i === schritte.length - 1, ng = grad(s.rest);
+      const bis = letzter ? 0 : ng - m;                                 // tiefste Spalte, die der nächste Schritt braucht
+      const runter = []; for(let k=gr-m-1;k>=bis;k--) runter.push(k);
+      const diff = {art:'rest', i, z:{}, runter}; erster = true;
+      diff.z[gr] = {t:'0', blass:true};
+      for(let k=gr-1;k>=gr-m;k--){ const c = s.rest[k] || Q0;
+        if(c.null()){ diff.z[k] = {t:'0', blass:true}; continue; }
+        const t = termTex(c, k, erster); diff.z[k] = {t: erster ? t : '{}' + t}; erster = false; }
+      for(const k of runter){ const c = s.rest[k] || Q0;
+        if(c.null()) diff.z[k] = {t: erster ? `0${xTex(k)}` : `{} + 0${xTex(k)}`, runter:true};
+        else diff.z[k] = {t: erster ? termTex(c, k, true) : '{}' + termTex(c, k, false), runter:true};
+        erster = false; }
+      if(erster && !runter.length) diff.z[gr-m].blass = false;          // alles 0: die letzte 0 ist der Rest
+      zeilen.push(minus, diff);
+      I.minusZeile = zeilen.length - 2; I.diffZeile = zeilen.length - 1;
+      if(runter.length) I.runter = phasen.push({art:'runter', i}) - 1;
+      S.idx.push(I);
+    });
+    phasen.push({art:'fertig'});
+    S.phasen = phasen; S.zeilen = zeilen;
+  }
+  // Ist die Zelle k der Zeile z bei Phase n schon geschrieben?
+  function sichtbar(z, k, n){
+    if(z.art === 'dividend') return true;
+    const I = S.idx[z.i];
+    if(z.art === 'minus') return n >= I.mal;
+    return z.z[k].runter ? n >= I.runter : n >= I.minus;
+  }
+  // Zeilen als Tabellenzellen (LaTeX) mit Klammern; Markierungen als Klassen der Zelle
+  function zeilenTex(z, n){
+    const ks = Object.keys(z.z).map(Number).filter(k => sichtbar(z, k, n)), hi = Math.max(...ks), lo = Math.min(...ks), aus = {};
+    ks.forEach(k => { const c = z.z[k]; let t = c.t;
+      if(k === hi && z.art === 'dividend') t = '(' + t;
+      if(k === hi && z.art === 'minus') t = '-(' + t;
+      if(k === lo && z.art !== 'rest') t += ')';
+      aus[k] = {...c, t}; });
+    return {aus, hi, lo};
+  }
+  const klm = t => t.startsWith('-') ? `(${t})` : t;                          // negativer Faktor: (−2x)
+  // Teiler mit markierbarem höchstem Term: „(“ [x] „− 3)“ als eigene Formeln
+  function teilerHTML(mark){
+    const d = S.d, m = grad(d), lead = termTex(d[m], m, true), rest = polyTex(d.map((c, k) => k === m ? Q0 : c));
+    const mehr = d.filter(c => !c.null()).length > 1;
+    const kopf = `<span class="pdmark${mark ? ' an' : ''}">${F(lead)}</span>`;
+    return mehr ? F('(') + kopf + F('{}' + (rest.startsWith('-') ? ' ' + rest : ' + ' + rest) + ')') : kopf;
+  }
+  function quotientTex(n){
+    const P = S.phasen[n], teile = S.erg.schritte.filter((s, i) => n >= S.idx[i].teilen);
+    if(!teile.length) return kTex('leer', '?');
+    return teile.map((s, i) => { const t = termTex(s.c, s.k, i === 0);
+      const neu = (P.art === 'teilen' || P.art === 'mal') && P.i === i;
+      return neu ? (i ? t.slice(0, 3) + kTex('neu', t.slice(3)) : kTex('neu', t)) : t; }).join('');
+  }
+
   function zeichne(){
-    const {schritte, q, r} = S.erg, p = S.p, d = S.d, G = grad(p), n = S.teil, alle = n >= gesamt();
-    const phase = n === 0 ? -1 : (n-1) % 3, akt = n === 0 ? -1 : Math.floor((n-1)/3);   // Teilschritt: 0 teilen, 1 zurückmultiplizieren, 2 abziehen
-    // Quotient: alle schon geteilten Terme, der neueste leuchtet
-    const qTeile = schritte.filter((s,i) => n > i*3);
-    const qT = qTeile.length ? qTeile.map((s,i)=>{ const t = termTex(s.c, s.k, i===0); return i===qTeile.length-1 && phase===0 ? (i ? t.slice(0, 3) + kTex('neu', t.slice(3)) : kTex('neu', t)) : t; }).join('') : kTex('leer', '?');
-    // Zeilen: Kopf, dann je Schritt „−(Produkt)“ und der neue Rest
-    const zeilen = [{art:'dividend', z:zellen(p, true), hl: phase===0 && akt===0 ? G : null}];
-    schritte.forEach((s,i)=>{
-      if(n > i*3 + 1) zeilen.push({art:'minus', z:zellen(s.prod, false), aktiv: n === i*3 + 2});
-      if(n > i*3 + 2) zeilen.push({art:'rest', z:zellen(s.rest, false), aktiv: n === i*3 + 3, hl: phase===0 && akt===i+1 ? grad(s.rest) : null});
-    });
-    const spalten = [...Array(G+1)].map((_,i)=>G-i), schmal = document.documentElement.classList.contains('handy');
-    const quot = `{} : ${kl(d)} = ${kTex('quotient', qT)}`;                    // Handy: Quotient als eigene Zeile über dem Schema
-    // Handy: zweizeilig (Divisor oben, Quotient darunter) – einzeilig ragte ein langer Quotient heraus
-    let h = (schmal ? `<div class="pdquot">${F(`\\begin{aligned} & p(x) : ${kl(d)} \\\\ &= ${kTex('quotient', qT)} \\end{aligned}`)}</div>` : '') + '<table class="pd">';
-    zeilen.forEach(zl=>{
-      const pot = Object.keys(zl.z).map(Number), hi = Math.max(...pot), lo = Math.min(...pot);
-      h += `<tr class="${zl.art}${zl.aktiv?' aktiv':''}">`;
-      spalten.forEach(k=>{
-        let t = zl.z[k] || '';
-        if(t && k === hi && zl.art==='dividend') t = '(' + t;
-        if(t && k === hi && zl.art==='minus') t = '-(' + t;
-        if(t && k === lo && zl.art!=='rest') t += ')';
-        h += `<td class="t${zl.art==='minus' && k<=hi && k>=lo ? ' strich' : ''}">${!t ? '' : zl.hl === k ? `<span class="neu">${F(t)}</span>` : F(t)}</td>`;
+    const n = S.teil, P = S.phasen[n], G = grad(S.p), alle = n >= gesamt();
+    const schmal = document.documentElement.classList.contains('handy');
+    const I = P.i !== undefined ? S.idx[P.i] : null, s = I ? S.erg.schritte[P.i] : null, gr = s ? grad(s.vorher) : null;
+    const markD = P.art === 'mark' || P.art === 'teilen';
+    const kopf = `${F('{} :')}${teilerHTML(markD)}${F(`{} = ${kTex('quotient', quotientTex(n))}`)}`;
+    const spalten = [...Array(G+1)].map((_,i)=>G-i);
+    let h = (schmal ? `<div class="pdquot">${F('p(x)')}${kopf}</div>` : '') + '<div class="pdtafel"><table class="pd">';
+    S.zeilen.forEach((z, zi) => {
+      if(z.art !== 'dividend' && !Object.keys(z.z).some(k => sichtbar(z, +k, n))) return;
+      const {aus, hi, lo} = zeilenTex(z, n);
+      const aktiv = (P.art === 'mal' && I && zi === I.minusZeile) || (P.art === 'minus' && I && zi === I.diffZeile)
+        || (P.art === 'fertig' && zi === S.zeilen.length - 1);
+      h += `<tr class="${z.art}${aktiv ? ' aktiv' : ''}" data-zeile="${zi}">`;
+      spalten.forEach(k => {
+        const c = aus[k];
+        let inner = '';
+        if(c){
+          let t = c.t; if(c.luecke) t = kTex('luecke', t); if(c.blass) t = kTex('blass', t);
+          inner = F(t);
+          if((P.art === 'mark' || P.art === 'teilen') && I && zi === I.zeile && k === gr) inner = `<span class="pdmark an">${inner}</span>`;
+          else if(P.art === 'runter' && I && zi === I.diffZeile && c.runter) inner = `<span class="neu">${inner}</span>`;
+          else if(P.art === 'runter' && I && zi === 0 && S.zeilen[I.diffZeile].runter.includes(k)) inner = `<span class="quelle">${inner}</span>`;
+        }
+        h += `<td class="t${z.art==='minus' && k<=hi && k>=lo ? ' strich' : ''}" data-k="${k}">${inner}</td>`;
       });
-      h += schmal ? '</tr>' : `<td class="rechts">${zl.art==='dividend' ? F(quot) : ''}</td></tr>`;
+      h += schmal ? '</tr>' : `<td class="rechts">${z.art==='dividend' ? kopf : ''}</td></tr>`;
     });
-    B('pdRechnung').innerHTML = h + '</table>';
+    B('pdRechnung').innerHTML = h + '</table><svg class="pdpfeile" aria-hidden="true"></svg></div>';
     // große Aufgaben (bis Grad 8) setzen sich kleiner, bis die ganze Rechnung in den Kasten passt
     const kasten = B('pdRechnung'), tab = kasten.querySelector('table');
     let fs = 23; tab.style.fontSize = fs + 'px';
-    const handy = document.documentElement.classList.contains('handy');      // Handy: Lesegröße, der Kasten scrollt seitlich
-    const breit = kasten.clientWidth - 32, hoch = kasten.clientHeight - 28;
-    for(let k=0; !handy && k<12 && (tab.scrollWidth > breit || tab.offsetHeight > hoch) && fs > 10; k++){
+    const breit = kasten.clientWidth - 32, hoch = kasten.clientHeight - 28;   // Handy: Lesegröße, der Kasten scrollt seitlich
+    for(let k=0; !schmal && k<12 && (tab.scrollWidth > breit || tab.offsetHeight > hoch) && fs > 10; k++){
       fs = Math.max(10, Math.floor(fs * Math.min(breit/tab.scrollWidth, hoch/tab.offsetHeight, 0.97)));
       tab.style.fontSize = fs + 'px';
     }
-    // Erklärung
-    let e = '';
-    if(n === 0) e = `<h4>Los geht’s</h4><p>Wie beim schriftlichen Teilen mit Zahlen: Immer die <strong>höchste Potenz</strong> zuerst.</p>`;
-    else {
-      const s = schritte[Math.floor((n-1)/3)], ph = (n-1) % 3, nr = Math.floor((n-1)/3) + 1;
-      const lv = termTex(s.vorher[grad(s.vorher)], grad(s.vorher), true), ld = termTex(d[grad(d)], grad(d), true), tt = polyTex(s.t);
-      const klm = t => t.startsWith('-') ? `(${t})` : t;                  // negativer Divisor: (−2x)
-      if(ph === 0) e = `<h4>Schritt ${nr} · Teilen</h4><p>Höchste Potenz durch höchste Potenz: ${F(`${lv} : ${klm(ld)} = ${kTex('hl', tt)}`)}</p>`;
-      if(ph === 1) e = `<h4>Schritt ${nr} · Zurückmultiplizieren</h4><p>${M(`$${tt} \\cdot ${kl(d)} = ${polyTex(s.prod)}$, darunterschreiben.`)}</p>`;
-      if(ph === 2) e = `<h4>Schritt ${nr} · Abziehen</h4><p>${M(`Die höchste Potenz fällt weg. Übrig bleibt $${polyTex(s.rest)}$.`)}`
-        + (grad(s.rest) < grad(d) ? M(` Der Grad ist kleiner als der von $d(x)$: <strong>fertig</strong>.`) + '</p>' : ` Weiter mit diesem Rest.</p>`);
-    }
-    B('pdErklaer').innerHTML = e;
-    // Ergebnis
-    if(alle){
-      const rest0 = grad(r) < 0;
-      B('pdErgebnis').innerHTML = rest0
-        ? `<strong>Rest 0:</strong> ${M('$d(x)$')} ist ein Faktor. ${F(`p(x) = ${kl(d)} \\cdot ${kl(q)}`)}`
-        : `<strong>Rest ${F(polyTex(r))}:</strong> ${F(`\\begin{aligned} p(x) : d(x) &= ${polyTex(q)} \\\\ &\\quad {} ${r[grad(r)].z < 0n ? '-' : '+'} \\dfrac{${polyTex(r[grad(r)].z < 0n ? r.map(c => c.neg()) : r)}}{${polyTex(d)}} \\end{aligned}`)}`;   // zweizeilig: einzeilig zu breit fürs Handy
-      B('pdErgebnis').classList.add('an');
-    } else { B('pdErgebnis').innerHTML = n === 0 ? `${schritte.length} Schritt${schritte.length===1?'':'e'} bis zum Ergebnis` : `Schritt ${Math.ceil(n/3)} von ${schritte.length}`; B('pdErgebnis').classList.remove('an'); }
+    pfeile(P, I);
+    erklaere(P, I, s, gr);
     B('pdSchritt').disabled = B('pdAlle').disabled = alle;
-    // Nullstellen raten
-    const R = S.raten, gp = grad(p);
-    if(gp < 1) B('pdNullst').innerHTML = '';
-    else {
-      const liste = R.kandidaten.filter(x=>!x.null()).filter(x=>x.z>0n).map(x=>'$\\pm ' + qTexB(x).replace(/\\frac\{(\d+)\}\{(\d+)\}/, '$1/$2') + '$').join(', ');
-      B('pdNullst').innerHTML = `<h4>Nullstellen raten</h4>` + (R.treffer.length
-        ? `<div class="chips">${R.treffer.map((x,k)=>`<button class="knopf hell klein" data-x="${k}">${F(`x = ${qTexB(x)}`)}</button>`).join('')}</div><p class="klein">${M(`Tippen setzt $d(x) = x - a$. Getestet: ${liste || '$0$'}.`)}</p>`
-        : `<p class="klein">${M(`Keine rationale Nullstelle. Getestet: ${liste}.`)}</p>`);
-      B('pdNullst').querySelectorAll('[data-x]').forEach(b => b.onclick = ()=>{ const a = R.treffer[+b.dataset.x];
-        B('pdD').value = a.null() ? 'x' : `x ${a.z<0n?'+':'-'} ${qText(a.z<0n?a.neg():a, false).replace('/','/')}`.replace(/(\d+)\/(\d+)/, '($1/$2)'); rechne(); });
-    }
+    B('pdZurueck').disabled = n === 0;
+    nullstellen();
     plot();
-    B('labor').dataset.teil = n; B('labor').dataset.gesamt = gesamt();
+    B('labor').dataset.teil = n; B('labor').dataset.gesamt = gesamt(); B('labor').dataset.phase = P.art;
+  }
+  // Runterziehen: Pfeil von der Kopfzeile in die neue Zeile, je heruntergezogene Spalte
+  function pfeile(P, I){
+    const svg = B('pdRechnung').querySelector('.pdpfeile'), tafel = svg.parentElement;
+    if(P.art !== 'runter'){ svg.innerHTML = ''; return; }
+    const r0 = tafel.getBoundingClientRect(), sk = r0.width / tafel.offsetWidth || 1;   // Bühne ist skaliert: in CSS-Pixel umrechnen
+    svg.setAttribute('width', tafel.offsetWidth); svg.setAttribute('height', tafel.offsetHeight);
+    let inhalt = '';
+    for(const k of S.zeilen[I.diffZeile].runter){
+      const von = tafel.querySelector(`tr[data-zeile="0"] td[data-k="${k}"]`), nach = tafel.querySelector(`tr[data-zeile="${I.diffZeile}"] td[data-k="${k}"]`);
+      if(!von || !nach) continue;
+      const a = von.getBoundingClientRect(), b = nach.getBoundingClientRect();
+      const x = ((a.left + a.right)/2 - r0.left)/sk, y1 = (a.bottom - r0.top)/sk - 2, y2 = (b.top - r0.top)/sk + 4;
+      inhalt += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2 - 9}"/><path d="M${x-6} ${y2-11}L${x} ${y2}L${x+6} ${y2-11}Z"/>`;
+    }
+    svg.innerHTML = inhalt;
+  }
+
+  /* Erklärung und Nebenrechnung unter dem Schema */
+  function erklaere(P, I, s, gr){
+    const d = S.d, m = grad(d), ld = termTex(d[m], m, true), schritte = S.erg.schritte;
+    let kopf = '', text = '', nr = [];
+    const nrText = n => `Schritt ${n + 1} von ${schritte.length}`;
+    if(P.art === 'start'){
+      kopf = 'Die Aufgabe';
+      text = 'Wie beim schriftlichen Teilen mit Zahlen: Immer die <strong>höchste Potenz</strong> zuerst.';
+      if(S.p.some((c, k) => k < grad(S.p) && c.null())) text += ' Fehlende Potenzen stehen blass mit 0 in der Zeile, damit jede Spalte ihren Platz hat.';
+    } else if(P.art === 'fertig'){
+      const r = S.erg.r, q = S.erg.q, rest0 = grad(r) < 0;
+      kopf = 'Ergebnis';
+      text = rest0 ? '' : M(`Sein Grad ist kleiner als der von $d(x)$: Weiter teilen geht nicht.`);
+      nr = [rest0
+        ? `p(x) = ${kl(d)} \\cdot ${kl(q)}`
+        : `p(x) : d(x) = ${polyTex(q)} ${r[grad(r)].z < 0n ? '-' : '+'} \\dfrac{${polyTex(r[grad(r)].z < 0n ? r.map(c => c.neg()) : r)}}{${polyTex(d)}}`];
+      text = (rest0 ? `<strong>Rest 0:</strong> ${M('$d(x)$')} ist ein Faktor von ${M('$p(x)$')}.` : `<strong>Rest ${F(polyTex(r))}:</strong> `) + text;
+    } else {
+      const lv = termTex(s.vorher[gr], gr, true), tt = polyTex(s.t);
+      if(P.art === 'mark'){
+        kopf = `${nrText(P.i)} · Höchste Potenzen`;
+        text = M(`Vorne in der Zeile steht $${lv}$, vorne im Teiler $${ld}$. Nur diese beiden werden geteilt.`);
+        nr = [`${lv} : ${klm(ld)} = \\,?`];
+      }
+      if(P.art === 'teilen'){
+        kopf = `${nrText(P.i)} · Teilen`;
+        text = 'Das Ergebnis kommt hinter das Gleichheitszeichen.';
+        nr = [`${lv} : ${klm(ld)} = \\dfrac{${lv}}{${ld}} = ${kTex('hl', tt)}`];
+      }
+      if(P.art === 'mal'){
+        kopf = `${nrText(P.i)} · Zurückmultiplizieren`;
+        text = M(`$${tt}$ mal den ganzen Teiler. Das Ergebnis kommt mit $-(\\;\\;)$ unter die Zeile.`);
+        const teile = []; for(let k=m;k>=0;k--) if(!d[k].null()) teile.push(`${klm(tt)} \\cdot ${klm(termTex(d[k], k, true))}`);
+        nr = [teile.length > 1
+          ? `${klm(tt)} \\cdot ${kl(d)} = ${teile.join(' + ')} = ${polyTex(s.prod)}`
+          : `${klm(tt)} \\cdot ${klm(ld)} = ${polyTex(s.prod)}`];
+      }
+      if(P.art === 'minus'){
+        kopf = `${nrText(P.i)} · Abziehen`;
+        text = 'Das Minus vor der Klammer dreht jedes Vorzeichen. Dann Spalte für Spalte rechnen: Die höchste Potenz fällt weg.';
+        nr = [`-(${polyTex(s.prod)}) = ${polyTex(s.prod.map(c => c.neg()))}`];
+        const spalten = [];
+        for(let k=gr;k>=gr-m;k--){ const b = s.prod[k] || Q0; if(b.null()) continue;
+          const a = s.vorher[k] || Q0, c = s.rest[k] || Q0;
+          spalten.push(`${a.null() ? '0' : termTex(a, k, true)} ${termTex(b.neg(), k, false)} = ${c.null() ? '0' : termTex(c, k, true)}`); }
+        nr.push(...spalten.map(t => ({t, spalte:true})));
+      }
+      if(P.art === 'runter'){
+        const z = S.zeilen[I.diffZeile], ks = z.runter, letzter = P.i === schritte.length - 1;
+        const terme = ks.map(k => { const c = S.p[k] || Q0; return c.null() ? `0${xTex(k)}` : termTex(c, k, true); });
+        const zeile = Object.keys(z.z).map(Number).sort((a, b) => b - a).filter(k => !z.z[k].blass).map(k => z.z[k].t).join('') || '0';
+        kopf = `${nrText(P.i)} · Runterziehen`;
+        text = (ks.length > 1 ? 'Die nächsten Spalten aus der obersten Zeile kommen' : 'Die nächste Spalte aus der obersten Zeile kommt') + ' herunter: '
+          + terme.map(t => F(t)).join(', ') + '. '
+          + (letzter ? 'Damit ist der Rest vollständig.' : 'Mit dieser Zeile geht es weiter.');
+        nr = [`${letzter ? '\\text{Rest: }' : '\\text{neue Zeile: }'} {${zeile}}`];
+      }
+    }
+    B('pdNRkopf').textContent = kopf;
+    B('pdNRtext').innerHTML = text;
+    const nrEl = B('pdNR');
+    nrEl.innerHTML = nr.map(x => typeof x === 'string' ? `<div class="nrzeile">${F(x)}</div>` : `<span class="nrspalte">${F(x.t)}</span>`).join('');
+    // Spaltenrechnungen nebeneinander in einer Zeile
+    const sp = [...nrEl.querySelectorAll('.nrspalte')];
+    if(sp.length){ const box = document.createElement('div'); box.className = 'nrzeile spalten'; sp[0].before(box); sp.forEach(e => box.append(e)); }
+    nrEl.querySelectorAll('.nrzeile').forEach(z => { const m = z.querySelector('math') ? z : null; if(!m) return;
+      let fs = document.documentElement.classList.contains('handy') ? 19 : 21; z.style.fontSize = fs + 'px';
+      for(let i=0;i<14 && z.scrollWidth > nrEl.clientWidth && fs > 12;i++){ fs--; z.style.fontSize = fs + 'px'; } });
+    B('pdErklaer').classList.toggle('fertig', P.art === 'fertig');
+  }
+  function nullstellen(){
+    const R = S.raten, gp = grad(S.p);
+    if(gp < 1){ B('pdNullst').innerHTML = ''; return; }
+    const liste = R.kandidaten.filter(x=>!x.null()).filter(x=>x.z>0n).map(x=>'$\\pm ' + qTexB(x).replace(/\\frac\{(\d+)\}\{(\d+)\}/, '$1/$2') + '$').join(', ');
+    B('pdNullst').innerHTML = `<h4>Nullstellen raten</h4>` + (R.treffer.length
+      ? `<div class="chips">${R.treffer.map((x,k)=>`<button class="knopf hell klein" data-x="${k}">${F(`x = ${qTexB(x)}`)}</button>`).join('')}</div><p class="klein">${M(`Tippen setzt $d(x) = x - a$. Getestet: ${liste || '$0$'}.`)}</p>`
+      : `<p class="klein">${M(`Keine rationale Nullstelle. Getestet: ${liste}.`)}</p>`);
+    B('pdNullst').querySelectorAll('[data-x]').forEach(b => b.onclick = ()=>{ const a = R.treffer[+b.dataset.x];
+      B('pdD').value = a.null() ? 'x' : `x ${a.z<0n?'+':'-'} ${qText(a.z<0n?a.neg():a, false).replace('/','/')}`.replace(/(\d+)\/(\d+)/, '($1/$2)'); rechne(); });
   }
 
   /* ---------- Graph von p(x): klein in der Spalte, groß als Vollansicht ---------- */
@@ -2664,7 +2831,7 @@ const labor = (function(){
     return s;
   }
   function plot(){
-    const W = document.documentElement.classList.contains('handy') ? 340 : 496, H = W === 496 ? 108 : 150, svg = B('pdPlot');
+    const W = document.documentElement.classList.contains('handy') ? 340 : 496, H = W === 496 ? 170 : 150, svg = B('pdPlot');
     svg.setAttribute('width', W); svg.setAttribute('height', H); svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
     svg.innerHTML = graphSVG(W, H, autoSicht(), false)
       + `<g class="lupe" transform="translate(${W - 496} 0)"><rect x="462" y="4" width="30" height="26" rx="7"/><path d="M473 12 a5 5 0 1 0 0.01 0 M476.5 20.5 L481 25" /></g>`;
@@ -2731,35 +2898,33 @@ const labor = (function(){
   ['pdP','pdD'].forEach(id=>B(id).addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); rechne(); } }));
   B('pdAuswahl').onchange = ()=>{ const v = B('pdAuswahl').value; if(v==='') return; const [p, d] = BEISPIELE[+v]; B('pdP').value = p; B('pdD').value = d; rechne(); B('pdAuswahl').value = ''; };
   B('pdSchritt').onclick = ()=>{ if(S.teil < gesamt()){ S.teil++; zeichne(); } };
+  B('pdZurueck').onclick = ()=>{ if(S.teil > 0){ S.teil--; zeichne(); } };
   B('pdAlle').onclick = ()=>{ S.teil = gesamt(); zeichne(); };
   B('pdVorn').onclick = ()=>{ S.teil = 0; zeichne(); };
-  /* Rechnung: das ganze Schema (kurz alle Schritte zeichnen, abgreifen, alten Stand wiederherstellen); die Datei bekommt es als array */
+  /* Rechnung: das ganze Schema als array (Spalten je Potenz, Strich unter jedem −(…)); dazu der Weg in Worten */
   function schemaTex(){
-    const {schritte} = S.erg, G = grad(S.p), sp = k => G - k + 1, roh = t => t.replace(/^\\class\{luecke\}\{(.*)\}$/, '$1');
-    const zeilen = [['dividend', zellen(S.p, true)]];
-    schritte.forEach(s => zeilen.push(['minus', zellen(s.prod, false)], ['rest', zellen(s.rest, false)]));
-    const tex = zeilen.map(([art, z]) => {
-      const pot = Object.keys(z).map(Number), hi = Math.max(...pot), lo = Math.min(...pot);
-      const cells = [...Array(G+1)].map((_, i) => { const k = G - i; let t = z[k] ? roh(z[k]) : '';
-        if(t && k === hi && art === 'dividend') t = '(' + t;
-        if(t && k === hi && art === 'minus') t = '-(' + t;
-        if(t && k === lo && art !== 'rest') t += ')';
-        return t; });
-      cells.push(art === 'dividend' ? `{} : ${kl(S.d)} = ${polyTex(S.erg.q)}` : '');
-      return cells.join(' & ') + ' \\\\' + (art === 'minus' ? ` \\cline{${sp(hi)}-${sp(lo)}}` : '');
+    const G = grad(S.p), sp = k => G - k + 1, n = gesamt();
+    const tex = S.zeilen.map(z => {
+      const {aus, hi, lo} = zeilenTex(z, n);
+      const cells = [...Array(G+1)].map((_, i) => { const c = aus[G - i]; return c ? c.t : ''; });
+      cells.push(z.art === 'dividend' ? `{} : ${kl(S.d)} = ${polyTex(S.erg.q)}` : '');
+      return cells.join(' & ') + ' \\\\' + (z.art === 'minus' ? ` \\cline{${sp(hi)}-${sp(lo)}}` : '');
     });
     return `\\[\\begin{array}{${'r'.repeat(G+1)}l} ${tex.join(' ')} \\end{array}\\]`;
   }
   RE.knopf(B('pdAlle'), () => {
     if(!S.erg) return null;
-    const {schritte, q, r} = S.erg, d = S.d, n = S.teil;
+    const {schritte, q, r} = S.erg, d = S.d, n = S.teil, m = grad(d);
     S.teil = gesamt(); zeichne();
-    const html = B('pdRechnung').innerHTML.replace(/ aktiv"/g, '"');
+    const html = B('pdRechnung').querySelector('table').outerHTML.replace(/ aktiv"/g, '"');
     S.teil = n; zeichne();
-    const ld = termTex(d[grad(d)], grad(d), true), klm = t => t.startsWith('-') ? `(${t})` : t;
+    const ld = termTex(d[m], m, true);
     const weg = schritte.map((s, i) => {
-      const lv = termTex(s.vorher[grad(s.vorher)], grad(s.vorher), true), tt = polyTex(s.t);
-      return `**Schritt ${i+1}:** Teilen $${lv} : ${klm(ld)} = ${tt}$, zurückmultiplizieren $${tt} \\cdot ${kl(d)} = ${polyTex(s.prod)}$, abziehen: Rest $${polyTex(s.rest)}$.`;
+      const gr = grad(s.vorher), lv = termTex(s.vorher[gr], gr, true), tt = polyTex(s.t), z = S.zeilen[S.idx[i].diffZeile];
+      const runter = z.runter.map(k => { const c = S.p[k] || Q0; return c.null() ? `0${xTex(k)}` : termTex(c, k, true); });
+      return `**Schritt ${i+1}:** Teilen $${lv} : ${klm(ld)} = ${tt}$. Zurückmultiplizieren $${klm(tt)} \\cdot ${kl(d)} = ${polyTex(s.prod)}$. `
+        + `Abziehen $-(${polyTex(s.prod)}) = ${polyTex(s.prod.map(c => c.neg()))}$, die höchste Potenz fällt weg.`
+        + (runter.length ? ` Runterziehen: $${runter.join(',\\; ')}$.` : '');
     });
     const rest0 = grad(r) < 0, neg = !rest0 && r[grad(r)].z < 0n;
     return { titel: 'Polynomdivision', formel: `${kl(S.p)} : ${kl(d)}`, datei: 'polynomdivision.tex', abschnitte: [
